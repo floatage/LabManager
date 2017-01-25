@@ -12,6 +12,7 @@ Window {
         Rectangle{
             width:500;
             height:600;
+            visible: true;
         }
     }
 }
