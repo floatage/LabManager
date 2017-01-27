@@ -5,10 +5,11 @@ import QtGraphicalEffects 1.0
 Window {
     property int mousePosPreX
     property int mousePosPreY
+    property int iconCount: 10
 
     id: appEasy
     visible: true
-    width: 215
+    width: 225
     height: 420
     flags: Qt.FramelessWindowHint | Qt.Window
 
@@ -50,7 +51,7 @@ Window {
                 Text {
                     text: "10.15.15.10"
                     anchors.left: parent.left
-                    anchors.centerIn: parent
+                    anchors.verticalCenter: parent.verticalCenter
                     font.family: "微软雅黑"
                     font.bold: true
                     color: "#FFF"
@@ -67,7 +68,7 @@ Window {
                 Text {
                     text: "李老师"
                     anchors.left: parent.left
-                    anchors.centerIn: parent
+                    anchors.verticalCenter: parent.verticalCenter
                     font.family: "宋体"
                     font.bold: true
                     font.letterSpacing: 1
@@ -125,6 +126,122 @@ Window {
         anchors.top: titleArea.bottom
         border.width: 1
         border.color: "#6FF"
+
+        Grid {
+            width: parent.width * 0.76
+            height: parent.height * 0.86
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.leftMargin: parent.width * 0.12
+            anchors.rightMargin: parent.width * 0.12
+            anchors.topMargin: parent.height * 0.07
+            anchors.bottomMargin: parent.height * 0.07
+
+            columns: 3
+            rows: Math.ceil(appEasy.iconCount / rows)
+            rowSpacing: parent.height * 0.03
+            columnSpacing: width * 0.095
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/personIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/distributionIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/modeIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/msgIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/remoteHelpIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/screeBctIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/sessionIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/settingIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/testIcon.png"
+                }
+            }
+
+            Rectangle{
+                width: parent.width * 0.27
+                height: parent.width * 0.27
+
+                Image {
+                    anchors.centerIn: parent
+                    source: "/img/uploadIcon.png"
+                }
+            }
+        }
     }
 
 

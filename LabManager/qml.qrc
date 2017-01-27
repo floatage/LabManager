@@ -3,5 +3,15 @@
         <file>main.qml</file>
         <file>MainForm.ui.qml</file>
         <file>img/appEasyIcon.png</file>
+        <file>img/distributionIcon.png</file>
+        <file>img/modeIcon.png</file>
+        <file>img/msgIcon.png</file>
+        <file>img/personIcon.png</file>
+        <file>img/remoteHelpIcon.png</file>
+        <file>img/screeBctIcon.png</file>
+        <file>img/sessionIcon.png</file>
+        <file>img/settingIcon.png</file>
+        <file>img/testIcon.png</file>
+        <file>img/uploadIcon.png</file>
     </qresource>
 </RCC>
