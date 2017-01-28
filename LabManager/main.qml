@@ -128,6 +128,7 @@ Window {
         border.color: "#6FF"
 
         Grid {
+            id: iconGrid
             width: parent.width * 0.76
             height: parent.height * 0.86
             anchors.left: parent.left
@@ -142,105 +143,139 @@ Window {
             rowSpacing: parent.height * 0.03
             columnSpacing: width * 0.095
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
+            Component {
+                id: iconItem
 
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/personIcon.png"
+                Rectangle{
+                    id: iconRect
+                    width: iconGrid.width * 0.27
+                    height: iconGrid.width * 0.27
+                    radius: 5
+                    visible: false
+
+                    signal picLoad(Image img)
+
+                    Image {
+                        id:iconPic
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton
+
+                        onExited: parent.color = "#FFF"
+                        onEntered: parent.color = "#D8FAF5"
+                        onPressed: parent.color = "#F8FABF"
+                        onReleased: parent.color = "#D8FAF5"
+                    }
+
+                    onVisibleChanged: picLoad(iconPic)
                 }
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/distributionIcon.png"
-                }
+            Loader {
+                id: personIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/modeIcon.png"
-                }
+            Loader {
+                id: testIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/msgIcon.png"
-                }
+            Loader {
+                id: distributionIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/remoteHelpIcon.png"
-                }
+            Loader {
+                id: modeIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/screeBctIcon.png"
-                }
+            Loader {
+                id: msgIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/sessionIcon.png"
-                }
+            Loader {
+                id: remoteHelpIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/settingIcon.png"
-                }
+            Loader {
+                id: screeBctIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/testIcon.png"
-                }
+            Loader {
+                id: sessionIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
 
-            Rectangle{
-                width: parent.width * 0.27
-                height: parent.width * 0.27
-
-                Image {
-                    anchors.centerIn: parent
-                    source: "/img/uploadIcon.png"
-                }
+            Loader {
+                id: settingIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
             }
+
+            Loader {
+                id: uploadIcon
+                sourceComponent: iconItem
+                onLoaded: item.visible = true
+            }
+
+            Connections{
+                target:personIcon.item
+                onPicLoad: img.source = "/img/personIcon.png"
+            }
+            Connections{
+                target:testIcon.item
+                onPicLoad: img.source = "/img/testIcon.png"
+            }
+            Connections{
+                target:distributionIcon.item
+                onPicLoad: img.source = "/img/distributionIcon.png"
+            }
+            Connections{
+                target:modeIcon.item
+                onPicLoad: img.source = "/img/modeIcon.png"
+            }
+            Connections{
+                target:msgIcon.item
+                onPicLoad: img.source = "/img/msgIcon.png"
+            }
+            Connections{
+                target:remoteHelpIcon.item
+                onPicLoad: img.source = "/img/remoteHelpIcon.png"
+            }
+            Connections{
+                target:screeBctIcon.item
+                onPicLoad: img.source = "/img/screeBctIcon.png"
+            }
+            Connections{
+                target:sessionIcon.item
+                onPicLoad: img.source = "/img/sessionIcon.png"
+            }
+            Connections{
+                target:settingIcon.item
+                onPicLoad: img.source = "/img/settingIcon.png"
+            }
+            Connections{
+                target:uploadIcon.item
+                onPicLoad: img.source = "/img/uploadIcon.png"
+            }
+
         }
     }
 
