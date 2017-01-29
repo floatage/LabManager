@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>MainForm.ui.qml</file>
         <file>img/appEasyIcon.png</file>
         <file>img/distributionIcon.png</file>
         <file>img/modeIcon.png</file>
@@ -13,5 +12,9 @@
         <file>img/settingIcon.png</file>
         <file>img/testIcon.png</file>
         <file>img/uploadIcon.png</file>
+        <file>ToolTip.qml</file>
+        <file>membersPanel.qml</file>
+        <file>AppTitleBar.qml</file>
+        <file>MainForm.ui.qml</file>
     </qresource>
 </RCC>

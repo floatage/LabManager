@@ -1,19 +1,8 @@
 import QtQuick 2.5
 
-Rectangle {
-    property alias mouseArea: mouseArea
+Item{
+    id: formArea
+    Rectangle{
 
-    width: 360
-    height: 360
-
-    MouseArea {
-        id: mouseArea
-        anchors.fill: parent
-    }
-
-    Text {
-        anchors.centerIn: parent
-        text: "Hello World"
     }
 }
-
