@@ -5,6 +5,7 @@ import QtQuick.Controls 1.3
 
 ApplicationWindow {
     property int iconCount: 10
+    property Component curSubWindow: null
 
     id: appEasy
     visible: true
@@ -13,17 +14,17 @@ ApplicationWindow {
     flags: Qt.FramelessWindowHint | Qt.Window 
 
     AppTitleBar{
-        id: userMsgBar
+        id: userMsgBarInMain
         target: appEasy
     }
 
     Rectangle {
         id: contendArea
         width: parent.width
-        height: parent.height - userMsgBar.height
+        height: parent.height - userMsgBarInMain.height
         color: "#FFF"
         anchors.left: parent.left
-        anchors.top: userMsgBar.bottom
+        anchors.top: userMsgBarInMain.bottom
         border.width: 1
         border.color: "#6FF"
 
@@ -54,6 +55,7 @@ ApplicationWindow {
                     visible: false
 
                     signal picLoad(Image img)
+                    signal iconClicked()
 
                     Image {
                         id:iconPic
@@ -69,6 +71,7 @@ ApplicationWindow {
                         onEntered: parent.color = "#D8FAF5"
                         onPressed: parent.color = "#F8FABF"
                         onReleased: parent.color = "#D8FAF5"
+                        onClicked: iconRect.iconClicked()
                     }
 
                     onVisibleChanged: picLoad(iconPic)
@@ -79,6 +82,16 @@ ApplicationWindow {
                 id: personIcon
                 sourceComponent: iconItem
                 onLoaded: item.visible = true
+
+                Connections{
+                    target:personIcon.item
+                    onPicLoad: img.source = "/img/personIcon.png"
+                    onIconClicked: {
+                        var curSubWindow = Qt.createComponent("membersPanel.qml")
+                        var subwin = curSubWindow.createObject(null, {visible: true})
+                        appEasy.visible = false
+                    }
+                }
             }
 
             Loader {
@@ -135,10 +148,6 @@ ApplicationWindow {
                 onLoaded: item.visible = true
             }
 
-            Connections{
-                target:personIcon.item
-                onPicLoad: img.source = "/img/personIcon.png"
-            }
             Connections{
                 target:testIcon.item
                 onPicLoad: img.source = "/img/testIcon.png"

@@ -16,5 +16,8 @@
         <file>membersPanel.qml</file>
         <file>AppTitleBar.qml</file>
         <file>MainForm.ui.qml</file>
+        <file>img/curSeesionIcon_light.png</file>
+        <file>img/memGroupIcon_light.png</file>
+        <file>img/personIcon_light.png</file>
     </qresource>
 </RCC>

@@ -3,7 +3,8 @@ import QtQuick 2.0
 Rectangle {
     id: titleArea
     width: parent.width
-    height: parent.height * 0.1
+//    height: parent.height * 0.1
+    height: 42
     anchors.left: parent.left
     anchors.top: parent.top
     color: sleepColor
@@ -35,9 +36,22 @@ Rectangle {
             height: parent.height
             color: titleArea.color
 
+
             Image {
                 id: iconPic
                 anchors.centerIn: parent
+                focus: true
+            }
+
+            MouseArea{
+                acceptedButtons: Qt.LeftButton
+                anchors.fill: parent
+
+                onClicked: {
+                    target.visible = false
+                    appEasy.visible = true
+                    mouse.accepted = true
+                }
             }
         }
 
@@ -85,6 +99,7 @@ Rectangle {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
         hoverEnabled: true
+        propagateComposedEvents: true
 
         onDoubleClicked: {
             Qt.quit();
