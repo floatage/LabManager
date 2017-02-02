@@ -13,11 +13,15 @@
         <file>img/testIcon.png</file>
         <file>img/uploadIcon.png</file>
         <file>ToolTip.qml</file>
-        <file>membersPanel.qml</file>
+        <file>MembersPanel.qml</file>
         <file>AppTitleBar.qml</file>
         <file>MainForm.ui.qml</file>
         <file>img/curSeesionIcon_light.png</file>
         <file>img/memGroupIcon_light.png</file>
         <file>img/personIcon_light.png</file>
+        <file>ContentPanel.qml</file>
+        <file>AppMenuBar.qml</file>
+        <file>img/downLoadIcon.png</file>
+        <file>img/fileTransferIcon.png</file>
     </qresource>
 </RCC>

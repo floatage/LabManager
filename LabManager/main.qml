@@ -87,7 +87,7 @@ ApplicationWindow {
                     target:personIcon.item
                     onPicLoad: img.source = "/img/personIcon.png"
                     onIconClicked: {
-                        var curSubWindow = Qt.createComponent("membersPanel.qml")
+                        var curSubWindow = Qt.createComponent("MembersPanel.qml")
                         var subwin = curSubWindow.createObject(null, {visible: true})
                         appEasy.visible = false
                     }
@@ -98,6 +98,16 @@ ApplicationWindow {
                 id: testIcon
                 sourceComponent: iconItem
                 onLoaded: item.visible = true
+
+                Connections{
+                    target:testIcon.item
+                    onPicLoad: img.source = "/img/testIcon.png"
+                    onIconClicked: {
+                        var curSubWindow = Qt.createComponent("ContentPanel.qml")
+                        var subwin = curSubWindow.createObject(null, {visible: true})
+                        appEasy.visible = false
+                    }
+                }
             }
 
             Loader {
@@ -148,10 +158,6 @@ ApplicationWindow {
                 onLoaded: item.visible = true
             }
 
-            Connections{
-                target:testIcon.item
-                onPicLoad: img.source = "/img/testIcon.png"
-            }
             Connections{
                 target:distributionIcon.item
                 onPicLoad: img.source = "/img/distributionIcon.png"

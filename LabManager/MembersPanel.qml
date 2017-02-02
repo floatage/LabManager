@@ -29,7 +29,7 @@ ApplicationWindow {
     }
 
     Rectangle {
-        id: membersCotent
+        id: membersContent
         width: parent.width
         height: parent.height - userMsgBarInMem.height
         anchors.left: parent.left
