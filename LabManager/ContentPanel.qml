@@ -2,11 +2,11 @@ import QtQuick 2.0
 import QtQuick.Controls 1.3
 import QtGraphicalEffects 1.0
 
-ApplicationWindow {
+Rectangle {
     id: userViewRoot
     width: 750
     height: 580
-    flags: Qt.FramelessWindowHint | Qt.Window
+//    flags: Qt.FramelessWindowHint | Qt.Window
 
     AppMenuBar{
         id: appMenuBarInView
@@ -63,7 +63,7 @@ ApplicationWindow {
                         property bool checked: false
                         property var mask: null
 
-                        signal iconClicked
+                        signal iconClicked()
 
                         Image {
                             id: memIconImg
@@ -101,7 +101,8 @@ ApplicationWindow {
                 }
 
                 function setIconTrue(targetIcon) {
-                    var iconList = [memIcon, memGroupIcon, sessionIcon]
+                    var iconList = [chattingIcon, testIcon, broadcastIcon,
+                                    downLoadIcon, fileTransferIcon, upLoadIcon, msgIcon, screeControlIcon]
                     for (var j = 0, len = iconList.length; j < len; j++) {
                         if (iconList[j] === targetIcon)
                             iconList[j].item.checked = true
@@ -119,10 +120,10 @@ ApplicationWindow {
                     }
 
                     Connections {
-                        target: memIcon.item
+                        target: chattingIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(memIcon)
-                            iconRow.replaceToStackTop(memStackView, memListView)
+                            iconRow.setIconTrue(chattingIcon)
+                            iconRow.replaceToStackTop(contentStackView, memListView)
                         }
                     }
                 }
@@ -133,10 +134,10 @@ ApplicationWindow {
                     onLoaded: item.iconImg.source = "/img/testIcon.png"
 
                     Connections {
-                        target: memGroupIcon.item
+                        target: testIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(memGroupIcon)
-                            iconRow.replaceToStackTop(memStackView,
+                            iconRow.setIconTrue(testIcon)
+                            iconRow.replaceToStackTop(contentStackView,
                                                       memGroupListView)
                         }
                     }
@@ -148,10 +149,10 @@ ApplicationWindow {
                     onLoaded: item.iconImg.source = "/img/screeBctIcon.png"
 
                     Connections {
-                        target: sessionIcon.item
+                        target: broadcastIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(sessionIcon)
-                            iconRow.replaceToStackTop(memStackView,
+                            iconRow.setIconTrue(broadcastIcon)
+                            iconRow.replaceToStackTop(contentStackView,
                                                       sessionListView)
                         }
                     }
@@ -162,14 +163,13 @@ ApplicationWindow {
                     sourceComponent: iconItem
                     onLoaded: {
                         item.iconImg.source = "/img/downLoadIcon.png"
-                        item.checked = true
                     }
 
                     Connections {
-                        target: memIcon.item
+                        target: downLoadIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(memIcon)
-                            iconRow.replaceToStackTop(memStackView, memListView)
+                            iconRow.setIconTrue(downLoadIcon)
+                            iconRow.replaceToStackTop(contentStackView, memListView)
                         }
                     }
                 }
@@ -180,10 +180,10 @@ ApplicationWindow {
                     onLoaded: item.iconImg.source = "/img/fileTransferIcon.png"
 
                     Connections {
-                        target: memGroupIcon.item
+                        target: fileTransferIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(memGroupIcon)
-                            iconRow.replaceToStackTop(memStackView,
+                            iconRow.setIconTrue(fileTransferIcon)
+                            iconRow.replaceToStackTop(contentStackView,
                                                       memGroupListView)
                         }
                     }
@@ -195,10 +195,10 @@ ApplicationWindow {
                     onLoaded: item.iconImg.source = "/img/uploadIcon.png"
 
                     Connections {
-                        target: sessionIcon.item
+                        target: upLoadIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(sessionIcon)
-                            iconRow.replaceToStackTop(memStackView,
+                            iconRow.setIconTrue(upLoadIcon)
+                            iconRow.replaceToStackTop(contentStackView,
                                                       sessionListView)
                         }
                     }
@@ -210,10 +210,10 @@ ApplicationWindow {
                     onLoaded: item.iconImg.source = "/img/msgIcon.png"
 
                     Connections {
-                        target: memGroupIcon.item
+                        target: msgIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(memGroupIcon)
-                            iconRow.replaceToStackTop(memStackView,
+                            iconRow.setIconTrue(msgIcon)
+                            iconRow.replaceToStackTop(contentStackView,
                                                       memGroupListView)
                         }
                     }
@@ -225,10 +225,10 @@ ApplicationWindow {
                     onLoaded: item.iconImg.source = "/img/remoteHelpIcon.png"
 
                     Connections {
-                        target: sessionIcon.item
+                        target: screeControlIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(sessionIcon)
-                            iconRow.replaceToStackTop(memStackView,
+                            iconRow.setIconTrue(screeControlIcon)
+                            iconRow.replaceToStackTop(contentStackView,
                                                       sessionListView)
                         }
                     }
@@ -237,7 +237,7 @@ ApplicationWindow {
         }
 
         StackView {
-            id: memStackView
+            id: contentStackView
             width: parent.width - 2
             height: parent.height - listViewTitle.height - 1
             anchors.left: parent.left
@@ -246,8 +246,8 @@ ApplicationWindow {
             anchors.rightMargin: 1
 
 //            Component.onCompleted: {
-//                if (memStackView.depth == 0) {
-//                    memStackView.push(memListView)
+//                if (contentStackView.depth == 0) {
+//                    contentStackView.push(memListView)
 //                }
 //            }
         }

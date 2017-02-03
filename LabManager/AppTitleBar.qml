@@ -78,12 +78,11 @@ Rectangle {
             color: titleArea.color
 
             Text {
-                text: "李老师"
+                text: "李老师.."
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                font.family: "宋体"
+                font.family: "黑体"
                 font.bold: true
-                font.letterSpacing: 1
                 color: ipText.color
                 font.pixelSize: 12
             }

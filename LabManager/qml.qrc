@@ -23,5 +23,9 @@
         <file>AppMenuBar.qml</file>
         <file>img/downLoadIcon.png</file>
         <file>img/fileTransferIcon.png</file>
+        <file>img/closeIcon.png</file>
+        <file>img/hideIcon.png</file>
+        <file>img/minIcon.png</file>
+        <file>img/showIcon.png</file>
     </qresource>
 </RCC>
