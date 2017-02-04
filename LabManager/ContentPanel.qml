@@ -80,7 +80,7 @@ Rectangle {
                             if (checked == true) {
                                 if (mask == null)
                                     mask = Qt.createQmlObject(
-                                                'import QtGraphicalEffects 1.0;ColorOverlay{anchors.fill:memIconImg;source:memIconImg;color:"#69F"}',
+                                                'import QtGraphicalEffects 1.0;ColorOverlay{anchors.fill:memIconImg;source:memIconImg;color:"#669EFF"}',
                                                 iconArea, "")
                             } else {
                                 if (mask != null)

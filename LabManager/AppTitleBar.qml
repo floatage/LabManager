@@ -12,7 +12,7 @@ Rectangle {
     property alias iconPath: iconPic.source
     property alias font: ipText.font
     property alias textColor: ipText.color
-    property color sleepColor: "#69F"
+    property color sleepColor: "#58F"
     property color activeColor: "#6CF"
     property var target: null
 

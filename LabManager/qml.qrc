@@ -27,5 +27,8 @@
         <file>img/hideIcon.png</file>
         <file>img/minIcon.png</file>
         <file>img/showIcon.png</file>
+        <file>AccountManage.qml</file>
+        <file>DialogFrame.qml</file>
+        <file>img/accountPass.png</file>
     </qresource>
 </RCC>
