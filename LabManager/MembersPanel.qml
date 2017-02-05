@@ -188,7 +188,7 @@ ApplicationWindow {
                 anchors.rightMargin: 1
 
                 Component.onCompleted: {
-                    if (memStackView.depth == 0) {
+                    if (memStackView.depth === 0) {
                         memStackView.push(memListView)
                     }
                 }
@@ -234,7 +234,7 @@ ApplicationWindow {
                                 model.append({picPath: "http://musicdata.baidu.com/data2/pic/4c9b080bbeca9376edbbf6f5f4226463/300895997/300895997.jpg@s_0,w_90"
                                                 ,name: "哇哈" + ch
                                                 ,ip: "10.15.15.10"});
-                                ch = ch + '哈'
+                                ch = ch + '哈';
                             }
                         }
 
@@ -489,7 +489,7 @@ ApplicationWindow {
         anchors.top: parent.top
     }
 
-    DialogFrame{
+    AccountManage{
         id: contendda
         anchors.left: membersRoot.right
         anchors.rightMargin: -width
