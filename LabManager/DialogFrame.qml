@@ -5,11 +5,14 @@ import QtQuick.Controls 1.3
 Item {
     id: dialogFrame
     width: 210
-    height: 530
+    height: 538
+
+    signal dialogClose()
+    signal dialogHide()
 
     property color backColor: "#FFF"
     property color lineColor: "#6FF"
-    property var viewMap: {"":""}
+    property var viewMap: null
     property alias titleText: titleTextContent.text
 
     Rectangle{
@@ -31,10 +34,10 @@ Item {
             Rectangle {
                 id: titleTextArea
                 height: parent.height * 0.9
-                width: parent.width * 0.6
+                width: parent.width * 0.62
                 anchors.left: parent.left
                 anchors.top: parent.top
-                anchors.leftMargin: parent.width * 0.05
+                anchors.leftMargin: parent.width * 0.03
                 anchors.topMargin: (parent.height - height) * 0.5
 
                 Text {
@@ -73,6 +76,7 @@ Item {
                             height: width
                             color: backColor
 
+                            signal iconClicked()
                             property alias iconPath: iconImg.source
 
                             Image {
@@ -83,10 +87,16 @@ Item {
                                 MouseArea {
                                     anchors.fill: parent
                                     acceptedButtons: Qt.LeftButton
+                                    hoverEnabled: true
+
+                                    onClicked: iconArea.iconClicked()
+                                    onEntered: {iconMask.color = "#69F"; iconImg.scale = 0.9}
+                                    onExited: {iconMask.color = "#6CF"; iconImg.scale = 0.7}
                                 }
                             }
 
                             ColorOverlay {
+                                id: iconMask
                                 anchors.fill: iconImg
                                 source: iconImg
                                 color: "#6CF"
@@ -98,8 +108,10 @@ Item {
                         id: closeIcon
                         sourceComponent: titleIconItem
 
-                        Component.onCompleted: {
-                            item.iconPath = "/img/closeIcon.png"
+                        Component.onCompleted: {item.iconPath = "/img/closeIcon.png"}
+                        Connections{
+                            target: closeIcon.item
+                            onIconClicked: dialogFrame.dialogClose()
                         }
                     }
 
@@ -107,8 +119,10 @@ Item {
                         id: minIcon
                         sourceComponent: titleIconItem
 
-                        Component.onCompleted: {
-                            item.iconPath = "/img/minIcon.png"
+                        Component.onCompleted: {item.iconPath = "/img/minIcon.png"}
+                        Connections{
+                            target: minIcon.item
+                            onIconClicked: dialogFrame.dialogHide()
                         }
                     }
                 }
@@ -121,6 +135,33 @@ Item {
                 color: lineColor
                 anchors.left: parent.left
                 anchors.top: parent.bottom
+            }
+
+            MouseArea {
+                property bool isPress: false
+                property int mousePosPreX
+                property int mousePosPreY
+
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton
+                propagateComposedEvents: true
+
+                onPressed: {
+                    isPress = true
+                    mousePosPreX = mouseX
+                    mousePosPreY = mouseY
+                }
+
+                onReleased: {
+                    isPress = false
+                }
+
+                onPositionChanged: {
+                    if (isPress == true){
+                        dialogFrame.x += mouseX - mousePosPreX
+                        dialogFrame.y += mouseY - mousePosPreY
+                    }
+                }
             }
         }
 
@@ -180,9 +221,9 @@ Item {
                             Image {
                                 id: memIconImg
                                 anchors.centerIn: parent
-                                sourceSize.width: 18
-                                sourceSize.height: 18
-                                smooth: true
+                                sourceSize.width: 20
+                                sourceSize.height: 20
+                                scale: 0.85
 
                                 MouseArea {
                                     anchors.fill: parent
