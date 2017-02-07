@@ -30,5 +30,21 @@
         <file>AccountManage.qml</file>
         <file>DialogFrame.qml</file>
         <file>img/accountPass.png</file>
+        <file>NormalButton.qml</file>
+        <file>NormalCheckbox.qml</file>
+        <file>TextRow.qml</file>
+        <file>img/defaultPic.jpg</file>
+        <file>RunMode.qml</file>
+        <file>NormalRadioButton.qml</file>
+        <file>RequestMsg.qml</file>
+        <file>GeneralSetting.qml</file>
+        <file>ClientDistribute.qml</file>
+        <file>HomeworkDistribute.qml</file>
+        <file>img/hwkDistributeIcon.png</file>
+        <file>UserGroup.qml</file>
+        <file>img/inforManageIcon.png</file>
+        <file>FileTransfer.qml</file>
+        <file>img/curTask.png</file>
+        <file>img/finishedTask.png</file>
     </qresource>
 </RCC>

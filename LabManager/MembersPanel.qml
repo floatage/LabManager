@@ -230,18 +230,19 @@ ApplicationWindow {
                         height: parent.height
 
                         Component.onCompleted: {
-                            for(var count = 0, ch = '哈'; count < 10; ++count){
-                                model.append({picPath: "http://musicdata.baidu.com/data2/pic/4c9b080bbeca9376edbbf6f5f4226463/300895997/300895997.jpg@s_0,w_90",
+                            var ch = "哈"
+                            for(var count = 0 ; count < 10; ++count){
+                                model.append({picPath: "/img/defaultPic.jpg",
                                                  name: ("哇哈" + ch),
                                                  ip: "10.15.15.10"
                                              });
-                                ch = ch + '哈';
+                                ch = ch + "哈";
                             }
                         }
 
                         model: ListModel {
                             ListElement {
-                                picPath: "http://musicdata.baidu.com/data2/pic/4c9b080bbeca9376edbbf6f5f4226463/300895997/300895997.jpg@s_0,w_90"
+                                picPath: "/img/defaultPic.jpg"
                                 name: "哇哈哈"
                                 ip: "10.15.15.10"
                             }
@@ -329,7 +330,7 @@ ApplicationWindow {
 
                         Component.onCompleted: {
                             for(var count = 0, ch = '1'; count < 10; ++count){
-                                model.append({picPath: "http://musicdata.baidu.com/data2/pic/4c9b080bbeca9376edbbf6f5f4226463/300895997/300895997.jpg@s_0,w_90"
+                                model.append({picPath: "/img/defaultPic.jpg"
                                                 ,name: "应用14" + ch + "班"
                                                 ,memCount: "10/40"})
                                 ch = ch + '1'
@@ -338,7 +339,7 @@ ApplicationWindow {
 
                         model: ListModel {
                             ListElement {
-                                picPath: "http://musicdata.baidu.com/data2/pic/4c9b080bbeca9376edbbf6f5f4226463/300895997/300895997.jpg@s_0,w_90"
+                                picPath: "/img/defaultPic.jpg"
                                 name: "应用141班"
                                 memCount: "10/40"
                             }
@@ -403,7 +404,7 @@ ApplicationWindow {
 
                         Component.onCompleted: {
                             for(var count = 0, ch = '哈'; count < 10; ++count){
-                                model.append({picPath: "http://musicdata.baidu.com/data2/pic/4c9b080bbeca9376edbbf6f5f4226463/300895997/300895997.jpg@s_0,w_90"
+                                model.append({picPath: "/img/defaultPic.jpg"
                                                 ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
                                                 ,sessionMsg: ch})
                                 ch = ch + '哈'
@@ -412,7 +413,7 @@ ApplicationWindow {
 
                         model: ListModel {
                             ListElement {
-                                picPath: "http://musicdata.baidu.com/data2/pic/4c9b080bbeca9376edbbf6f5f4226463/300895997/300895997.jpg@s_0,w_90"
+                                picPath: "/img/defaultPic.jpg"
                                 sessionObjectInfor: "应用141班(10/40)"
                                 sessionMsg: "哈哈：哈哈哈"
                             }
@@ -490,7 +491,7 @@ ApplicationWindow {
         anchors.top: parent.top
     }
 
-    AccountManage{
+    FileTransfer{
         id: contendda
     }
 }
