@@ -5,7 +5,7 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame{
     id: runModeRoot
     titleText: "系统运行模式"
-    viewMap: {"/img/modeIcon.png":[selectRunMode, 'selectRunMode', true]}
+    viewMap: {"/img/modeIcon.png":[selectRunMode, "selectRunMode", true]}
 
     property real colSpacing: 35
 

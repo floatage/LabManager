@@ -95,17 +95,17 @@ DialogFrame{
                     spacing: colSpacing
 
                     TextRow{
-                        rowText: "当前密码"
-                        tPlaceholderText: "Account"
+                        rowText: "当前密码";
+                        tPlaceholderText: "Account";
                     }
 
                     TextRow{
-                        rowText: "新的密码"
+                        rowText: "新的密码";
                         tPlaceholderText: "Password"
                     }
 
                     TextRow{
-                        rowText: "确认密码"
+                        rowText: "确认密码";
                         tPlaceholderText: "Password again"
                     }
 

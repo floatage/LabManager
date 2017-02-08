@@ -9,7 +9,13 @@ DialogFrame{
               "/img/finishedTask.png":[fileTransferHistory, 'fileTransferHistory', false],
               "/img/settingIcon.png":[fileTransferSetting,'fileTransferSetting', false]}
 
+    property color textDColor: "#5E5E5E"
+    property color textUDColor: "#333"
     property real colSpacing: 35
+    property var fileTypePicMap: {
+        "pdf" : "/img/fileType_pdf.png"
+    }
+
 
     Component{
         id: curFileTransfer
@@ -26,13 +32,89 @@ DialogFrame{
                 anchors.leftMargin: parent.width * 0.075
                 anchors.topMargin: parent.height * 0.07
 
-                Column{
+                ListView {
+                    id: curFileTransferView
                     width: parent.width
                     height: parent.height
-                    spacing: colSpacing
+                    spacing: 30
 
-                    ListView{
+                    Component.onCompleted: {
+                        for(var count = 0, ch = "1"; count < 3; ++count){
+                            model.append({type: "pdf",
+                                          name: "homework" + ch + ".pdf",
+                                          curSize: "50.5",
+                                          size: "100 M"})
+                            ch = ch + "1"
+                        }
+                    }
 
+                    model: ListModel {
+                        ListElement {
+                            type: "pdf"
+                            name: "homework.pdf"
+                            curSize: "50.5"
+                            size: "100 M"
+                        }
+                    }
+
+                    delegate: Item {
+                        width: parent.width
+                        height: 20
+
+                        Image {
+                            id: fileType
+                            sourceSize.width: 17
+                            sourceSize.height: 19
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: fileTransfer.fileTypePicMap[type]
+                        }
+
+                        Text {
+                            id: fileName
+                            anchors.left: fileType.right
+                            anchors.top: fileType.top
+                            anchors.leftMargin: 10
+                            font.family: "宋体"
+                            color: textDColor
+                            font.pixelSize: 12
+                            text: membersRoot.ingnoreStr(name, 15)
+
+                            ToolTip{
+                                text: membersRoot.insertFlag(name, 20)
+                                width: (name.length+1) * fileName.font.pixelSize
+                                target: parent
+                            }
+                        }
+
+                        Text {
+                            id: fileProgressText
+                            anchors.verticalCenter: fileName.verticalCenter
+                            anchors.right: parent.right
+                            font.family: "宋体"
+                            font.pixelSize: 10
+                            color: textUDColor
+                            text: curSize + "/" + size
+                        }
+
+                        ProgressBar {
+                            id: fileProgress
+                            anchors.left: fileType.right
+                            anchors.bottom: fileType.bottom
+                            anchors.leftMargin: 10
+                            value: 0.5
+
+                            style: ProgressBarStyle {
+                                    background: Rectangle {
+                                        radius: 5
+                                        color: "#6FF"
+                                        implicitWidth: 150
+                                        implicitHeight: 3
+                                    }
+                                    progress: Rectangle {
+                                        color: "#6CF"
+                                    }
+                                }
+                        }
                     }
                 }
             }
@@ -54,12 +136,81 @@ DialogFrame{
                 anchors.leftMargin: parent.width * 0.075
                 anchors.topMargin: parent.height * 0.07
 
-                Column{
+                ListView {
+                    id: fileTransferHistoryView
                     width: parent.width
-                    spacing: colSpacing
+                    height: parent.height
+                    spacing: 30
 
-                    ListView{
+                    Component.onCompleted: {
+                        for(var count = 0, ch = "1"; count < 3; ++count){
+                            model.append({type: "pdf",
+                                          name: "homework" + ch + ".pdf",
+                                          date: "16:18  2016/12/3",
+                                          size: "50 M"})
+                            ch = ch + "1"
+                        }
+                    }
 
+                    model: ListModel {
+                        ListElement {
+                            type: "pdf"
+                            name: "homework.pdf"
+                            date: "16:18  2016/12/3"
+                            size: "50 M"
+                        }
+                    }
+
+                    delegate: Item {
+                        width: parent.width
+                        height: 20
+
+                        Image {
+                            id: fileType
+                            sourceSize.width: 17
+                            sourceSize.height: 19
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: fileTransfer.fileTypePicMap[type]
+                        }
+
+                        Text {
+                            id: fileName
+                            anchors.left: fileType.right
+                            anchors.top: fileType.top
+                            anchors.leftMargin: 10
+                            anchors.topMargin: -3
+                            font.family: "宋体"
+                            color: textDColor
+                            font.pixelSize: 12
+                            text: membersRoot.ingnoreStr(name, 15)
+
+                            ToolTip{
+                                text: membersRoot.insertFlag(name, 20)
+                                width: (name.length+1) * fileName.font.pixelSize
+                                target: parent
+                            }
+                        }
+
+                        Text {
+                            id: fileDate
+                            anchors.left: fileType.right
+                            anchors.bottom: fileType.bottom
+                            anchors.leftMargin: 10
+                            anchors.bottomMargin: -1
+                            font.family: "宋体"
+                            font.pixelSize: 10
+                            color: textUDColor
+                            text: date
+                        }
+
+                        Text {
+                            id: fileSize
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            font: fileDate.font
+                            color: textUDColor
+                            text: size
+                        }
                     }
                 }
             }

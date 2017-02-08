@@ -5,8 +5,8 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame{
     id: userGroup
     titleText: "我的用户组"
-    viewMap: {"/img/memGroupIcon_light.png":[getUserGroup, 'getUserGroup', true],
-              "/img/inforManageIcon.png":[editUserGroup, 'editUserGroup', false]}
+    viewMap: {"/img/memGroupIcon_light.png":[getUserGroup, "getUserGroup", true],
+              "/img/inforManageIcon.png":[editUserGroup, "editUserGroup", false]}
 
     property real colSpacing: 30
 

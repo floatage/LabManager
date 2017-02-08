@@ -13,12 +13,12 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.top: parent.top
 
-        function insertFlag(str){
+        function insertFlag(str, maxLen){
             var result = ''
-            for(var count = 1, cols = Math.ceil(str.length / 10); count <= cols; ++count){
+            for(var count = 1, cols = Math.ceil(str.length / maxLen); count <= cols; ++count){
                 if (count===cols) result += str.substring(0, str.length)
-                else result += str.substring(0,9) + "\n"
-                str = str.substring(9, str.length)
+                else result += str.substring(0,maxLen-1) + "\n"
+                str = str.substring(maxLen-1, str.length)
             }
             return result
         }
@@ -304,7 +304,7 @@ ApplicationWindow {
                                 text: membersRoot.ingnoreStr(name + '(' + ip + ')', 10)
 
                                 ToolTip{
-                                    text: membersRoot.insertFlag(name + '(' + ip + ')')
+                                    text: membersRoot.insertFlag(name + '(' + ip + ')', 10)
                                     width: ((name + '(' + ip + ')').length+1) * memInfor.font.pixelSize
                                     target: parent
                                 }
@@ -378,7 +378,7 @@ ApplicationWindow {
                                 text: membersRoot.ingnoreStr(name, 10) + membersRoot.ingnoreStr('(' + memCount +')', 7)
 
                                 ToolTip{
-                                    text: membersRoot.insertFlag(name + '(' + memCount +')')
+                                    text: membersRoot.insertFlag(name + '(' + memCount +')', 10)
                                     width: ((name + '(' + memCount +')').length+1) * groupInfor.font.pixelSize
                                     target: parent
                                 }
@@ -453,7 +453,7 @@ ApplicationWindow {
                                 text: membersRoot.ingnoreStr(sessionObjectInfor, 10)
 
                                 ToolTip{
-                                    text: membersRoot.insertFlag(sessionObjectInfor)
+                                    text: membersRoot.insertFlag(sessionObjectInfor, 10)
                                     width: (sessionObjectInfor.length+1) * sessionInfor.font.pixelSize
                                     target: parent
                                 }
@@ -472,7 +472,7 @@ ApplicationWindow {
                                 text: membersRoot.ingnoreStr(sessionMsg, 12)
 
                                 ToolTip{
-                                    text: membersRoot.insertFlag(sessionMsg)
+                                    text: membersRoot.insertFlag(sessionMsg, 10)
                                     width: (sessionMsg.length+4) * sessionMsgArea.font.pixelSize
                                     target: parent
                                 }
@@ -491,7 +491,7 @@ ApplicationWindow {
         anchors.top: parent.top
     }
 
-    FileTransfer{
+    RequestMsg {
         id: contendda
     }
 }

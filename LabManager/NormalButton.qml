@@ -10,6 +10,7 @@ Item {
     property alias buttonText: sourceButton.bText
     property real fillWidth: 30
     property real fillHeight: 18
+    property real buttonTextSize: 12
     property color buttonTextColor: "#169BD5"
     property bool hasBorder: true
 
@@ -23,7 +24,7 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignHCenter
                     font.family: "宋体"
-                    font.pixelSize: 12
+                    font.pixelSize: buttonTextSize
                     text: sourceButton.bText
                 }
 
@@ -34,7 +35,7 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         horizontalAlignment: Text.AlignHCenter
                         font.family: "宋体"
-                        font.pixelSize: 12
+                        font.pixelSize: buttonTextSize
                         text: sourceButton.bText
                     }
 

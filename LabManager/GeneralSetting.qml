@@ -5,7 +5,7 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame{
     id: generalSetting
     titleText: "系统通用设置"
-    viewMap: {"/img/settingIcon.png":[generalSettingContent, 'generalSettingContent', true]}
+    viewMap: {"/img/settingIcon.png":[generalSettingContent, "generalSettingContent", true]}
 
     property real colSpacing: 35
 

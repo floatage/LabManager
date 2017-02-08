@@ -46,5 +46,6 @@
         <file>FileTransfer.qml</file>
         <file>img/curTask.png</file>
         <file>img/finishedTask.png</file>
+        <file>img/fileType_pdf.png</file>
     </qresource>
 </RCC>
