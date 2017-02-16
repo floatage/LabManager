@@ -32,7 +32,7 @@ DialogFrame{
 
                     ComboBox {
                         width: 200
-                        model: [ "Banana", "Apple", "Coconut" ]
+                        model: ["Banana","Apple","Coconut"]
                     }
 
                     ListView{

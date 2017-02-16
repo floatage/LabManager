@@ -105,7 +105,7 @@ DialogFrame{
                     }
 
                     TextRow{
-                        rowText: "确认密码";
+                        rowText: "确认密码"
                         tPlaceholderText: "Password again"
                     }
 

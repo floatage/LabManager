@@ -232,9 +232,9 @@ ApplicationWindow {
                         Component.onCompleted: {
                             var ch = "哈"
                             for(var count = 0 ; count < 10; ++count){
-                                model.append({picPath: "/img/defaultPic.jpg",
-                                                 name: ("哇哈" + ch),
-                                                 ip: "10.15.15.10"
+                                model.append({picPath:"/img/defaultPic.jpg",
+                                                 name:("哇哈" + ch),
+                                                 ip:"10.15.15.10"
                                              });
                                 ch = ch + "哈";
                             }
