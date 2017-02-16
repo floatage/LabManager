@@ -1,7 +1,7 @@
-#include "src/authoritymanager.h"
+#include "authoritymanager.h"
 
 AuthorityManager* AuthorityManager::instance = nullptr;
-AuthorityManager::AuthorityManager(QObject *parent) : QObject(parent), saveFileName("role.xml"), curUser()
+AuthorityManager::AuthorityManager(QObject *parent) : QObject(parent), saveFileName("role.xml"), curUser(), roleSet()
 {
     read();
 }
@@ -34,12 +34,12 @@ bool AuthorityManager::addRole(const Role& newRole)
     return true;
 }
 
-bool AuthorityManager::removeRole(const QString& name)
+bool AuthorityManager::removeRole(const std::string& name)
 {
     Role key;
     key.name = name;
-    QSet::iterator<Role> pos = roleSet.find(key);
-    if (pos == roleSet::end())
+    std::set<Role>::iterator pos = roleSet.find(key);
+    if (pos == roleSet.end())
         return false;
     else
         roleSet.erase(pos);
@@ -47,31 +47,40 @@ bool AuthorityManager::removeRole(const QString& name)
     return true;
 }
 
-const QHash<QString, bool>*  AuthorityManager::getRole(const QString& name)const
+const std::hash_map<std::string, bool>*  AuthorityManager::getRole(const std::string& name)const
 {
-    QSet::const_iterator<Role> dest = std::find_if(roleSet.cbegin(), roleSet.cend(),[=](const Role& role)->bool{ return role.name == name ? true : false;});
+    std::set<Role>::const_iterator dest = std::find_if(roleSet.cbegin(), roleSet.cend(),[=](const Role& role)->bool{ return role.name == name ? true : false;});
     return dest != roleSet.end() ? &(dest->authorityMap) : nullptr;
 }
 
-bool AuthorityManager::modifyRole(const QString& name, const QMap<QString, bool>& newRule)
+bool AuthorityManager::modifyRole(const std::string& name, const std::hash_map<std::string, bool>& newRule)
 {
-
+    return false;
 }
 
-bool AuthorityManager::checkAuthority(QString ruleName)const
+bool AuthorityManager::checkAuthority(std::string ruleName)const
 {
-
+    return false;
 }
 
 bool AuthorityManager::adminLogin(const QString& name, const QString& password)const
 {
-
+    return false;
 }
 
-bool AuthorityManager::adminModifyPassword(const QString& newPassword)
+bool AuthorityManager::adminModifyPassword(const std::string& newPassword)
+{
+    return false;
+}
+
+void AuthorityManager::loginSuccess()
 {
 
 }
 
+void AuthorityManager::modifyPassword()
+{
+
+}
 
 

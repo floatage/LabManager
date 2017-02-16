@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("NetController", new User());
+    engine.rootContext()->setContextProperty("AuthorityManager", AuthorityManager::getInstance());
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     return app.exec();
