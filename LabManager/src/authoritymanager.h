@@ -1,10 +1,9 @@
 #ifndef AUTHORITYMANAGER_H
 #define AUTHORITYMANAGER_H
 
+#include <map>
+#include <vector>
 #include <QString>
-#include <string>
-#include <hash_map>
-#include <set>
 #include <QObject>
 
 template<typename ClassName>
@@ -15,64 +14,63 @@ bool HasAuthority()
 
 struct MACSOCKET
 {
-    std::string ip;
-    std::string mac;
-    std::string port;
+    QString ip;
+    QString mac;
+    QString port;
+};
+
+struct Role
+{
+    QString name;
+    std::map<QString, bool> authorityMap;
+
+    Role(): name(), authorityMap(){}
+    Role(const QString& name): name(name), authorityMap(){}
+    bool operator == (const Role& other)const{
+        return name < other.name ? true : false;
+    }
 };
 
 class User{
 private:
 	MACSOCKET macSocket;
-    std::string roleName;
-    std::string name;
-    std::string password;
+    Role role;
+    QString name;
+    QString password;
 
 public:
     User(){}
 	const MACSOCKET& getMacSocket()const {return macSocket;}
 	void setMacSocket(const MACSOCKET& newSocket) {macSocket = newSocket;}
-    const std::string& getRoleName()const {return roleName;}
-    void setRoleName(const std::string& newRoleName) {roleName = newRoleName;}
-    const std::string& getName()const {return name;}
-    void setName(const std::string& newName) {name = newName;}
-    const std::string& getPassword()const {return password;}
-    void setPassword(const std::string& newPassword) {password = newPassword;}
+    const Role& getRole()const {return role;}
+    void setRole(const Role& newRole) {role = newRole;}
+    const QString& getName()const {return name;}
+    void setName(const QString& newName) {name = newName;}
+    const QString& getPassword()const {return password;}
+    void setPassword(const QString& newPassword) {password = newPassword;}
 };
 
 class AuthorityManager: public QObject
 {
     Q_OBJECT
 protected:
-    struct Role
-    {
-        std::string name;
-        std::hash_map<std::string, bool> authorityMap;
-
-        bool operator< (Role& other){
-            return name < other.name ? true : false;
-        }
-        bool operator< (const Role& other)const{
-            return name < other.name ? true : false;
-        }
-    };
-
     explicit AuthorityManager(QObject* parent=0);
     ~AuthorityManager(void);
 
+    void adminLoginSuccess();
+    void adminPasswordModifySuccess();
+
 	static AuthorityManager* instance;
 
-    std::set<Role> roleSet;
+    std::vector<Role> roleSet;
 	User curUser;
-    std::string saveFileName;
+    QString saveFileName;
 
 signals:
     void usernameFalse();
     void passwordFalse();
-    void passwordTrue();
-
-public slots:
     void loginSuccess();
-    void modifyPassword();
+    void modifyPasswordSuccess();
 
 public:
 	static AuthorityManager* getInstance(void);
@@ -81,13 +79,13 @@ public:
     void save(void);
 
 	bool addRole(const Role& newRole);
-    bool removeRole(const std::string& name);
-    const std::hash_map<std::string, bool>*  getRole(const std::string& name)const;
-    bool modifyRole(const std::string& name, const std::hash_map<std::string, bool>& newRule);
+    bool removeRole(const QString& name);
+    const Role* getRole(const QString& name)const;
+    bool modifyRole(const QString& name, const std::map<QString, bool>& newRule);
 
-    bool checkAuthority(std::string ruleName)const;
-    Q_INVOKABLE bool adminLogin(const QString& name, const QString& password)const;
-    bool adminModifyPassword(const std::string& newPassword);
+    bool checkAuthority(QString ruleName)const;
+    Q_INVOKABLE bool adminLogin(const QString& name, const QString& password);
+    Q_INVOKABLE bool adminModifyPassword(const QString& oldPassword, const QString& newPassword);
 
 private:
 	AuthorityManager(const AuthorityManager& other);

@@ -10,10 +10,11 @@ Item {
     property alias rowText: rowLabel.text
     property color textColor: "#949494"
     property alias rSpacing: textRowCotent.spacing
-    property alias tPlaceholderText: rowText.placeholderText
+    property alias tPlaceholderText: rowTextField.placeholderText
     property real tWidth: 120
     property bool hasButton: false
     property string bButtonText: "default"
+    property string value: rowTextField.text
 
     Row{
         id: textRowCotent
@@ -38,7 +39,7 @@ Item {
         }
 
         TextField{
-            id: rowText
+            id: rowTextField
             anchors.verticalCenter: rowLabel.verticalCenter
             style:TextFieldStyle{
                 font: rowLabel.font

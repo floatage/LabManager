@@ -491,7 +491,7 @@ ApplicationWindow {
         anchors.top: parent.top
     }
 
-    RequestMsg {
+    AccountManage{
         id: contendda
     }
 }

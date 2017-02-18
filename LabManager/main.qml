@@ -16,10 +16,6 @@ ApplicationWindow {
     AppTitleBar{
         id: userMsgBarInMain
         target: appEasy
-        Component.onCompleted: {
-            AuthorityManager.adminLogin("123", "123")
-            console.log("1")
-        }
     }
 
     Rectangle {

@@ -11,6 +11,22 @@ DialogFrame{
 
     property real colSpacing: 35
 
+    Connections{
+        target: AuthorityManager;
+        onUsernameFalse:{
+            console.log('1')
+        }
+        onPasswordFalse:{
+            console.log('2')
+        }
+        onModifyPasswordSuccess:{
+            console.log('3')
+        }
+        onLoginSuccess:{
+            console.log('4')
+        }
+    }
+
     Component{
         id: accountLogin
 
@@ -33,11 +49,13 @@ DialogFrame{
                     spacing: colSpacing
 
                     TextRow{
+                        id: accountTextRow
                         rowText:"我的账号"
                         tPlaceholderText: "Account"
                     }
 
                     TextRow{
+                        id: passwordTextRow
                         rowText:"我的密码"
                         tPlaceholderText: "Password"
                     }
@@ -66,6 +84,14 @@ DialogFrame{
                         NormalButton{
                             id: loginButton
                             buttonText: "登 录"
+
+                            buttonAction:
+                                Action {
+                                    onTriggered:{
+                                        if (accountTextRow.value.length > 0 && passwordTextRow.value.length > 0)
+                                            AuthorityManager.adminLogin(accountTextRow.value, passwordTextRow.value)
+                                    }
+                                }
                         }
                     }
                 }
@@ -182,4 +208,3 @@ DialogFrame{
         }
     }
 }
-
