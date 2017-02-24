@@ -4,7 +4,8 @@ QT += qml quick
 CONFIG += c++11
 
 SOURCES += main.cpp \
-    src/authoritymanager.cpp
+    src/authoritymanager.cpp \
+    src/usermanager.cpp
 
 RESOURCES += qml.qrc
 
@@ -17,6 +18,7 @@ include(deployment.pri)
 DISTFILES +=
 
 HEADERS += \
-    src/authoritymanager.h
+    src/authoritymanager.h \
+    src/usermanager.h
 
 

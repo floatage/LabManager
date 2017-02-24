@@ -14,16 +14,16 @@ DialogFrame{
     Connections{
         target: AuthorityManager;
         onUsernameFalse:{
-            console.log('1')
+            console.log("username false")
         }
         onPasswordFalse:{
-            console.log('2')
+            console.log("password false")
         }
         onModifyPasswordSuccess:{
-            console.log('3')
+            console.log("modify success")
         }
         onLoginSuccess:{
-            console.log('4')
+            console.log("login success")
         }
     }
 
@@ -90,6 +90,8 @@ DialogFrame{
                                     onTriggered:{
                                         if (accountTextRow.value.length > 0 && passwordTextRow.value.length > 0)
                                             AuthorityManager.adminLogin(accountTextRow.value, passwordTextRow.value)
+                                        else
+                                            console.log("can't empty")
                                     }
                                 }
                         }
@@ -121,16 +123,19 @@ DialogFrame{
                     spacing: colSpacing
 
                     TextRow{
+                        id:nowPasswordTextRow
                         rowText: "当前密码";
                         tPlaceholderText: "Account";
                     }
 
                     TextRow{
+                        id:newPasswordTextRow
                         rowText: "新的密码";
                         tPlaceholderText: "Password"
                     }
 
                     TextRow{
+                        id:newPasswordAgainTextRow
                         rowText: "确认密码"
                         tPlaceholderText: "Password again"
                     }
@@ -146,6 +151,22 @@ DialogFrame{
                         NormalButton{
                             id: passEditButton
                             buttonText: "修 改 密 码"
+                            buttonAction:
+                                Action {
+                                    onTriggered:{
+                                        if (nowPasswordTextRow.value.length > 0 && newPasswordTextRow.value.length > 0 && newPasswordAgainTextRow.value.length > 0){
+                                            if (newPasswordAgainTextRow.value === newPasswordTextRow.value){
+                                                AuthorityManager.adminModifyPassword(nowPasswordTextRow.value, newPasswordTextRow.value)
+                                            }
+                                            else{
+                                                 console.log("not same")
+                                            }
+                                        }
+                                        else{
+                                            console.log("can't empty")
+                                        }
+                                    }
+                                }
                         }
                     }
                 }

@@ -7,17 +7,10 @@
 #include <QObject>
 
 template<typename ClassName>
-bool HasAuthority()
+bool HasAuthority(ClassName)
 {
 	return AuthorityManager::getInstance()->checkAuthority(ClassName::getOpName());
 }
-
-struct MACSOCKET
-{
-    QString ip;
-    QString mac;
-    QString port;
-};
 
 struct Role
 {
@@ -31,25 +24,7 @@ struct Role
     }
 };
 
-class User{
-private:
-	MACSOCKET macSocket;
-    Role role;
-    QString name;
-    QString password;
-
-public:
-    User(){}
-	const MACSOCKET& getMacSocket()const {return macSocket;}
-	void setMacSocket(const MACSOCKET& newSocket) {macSocket = newSocket;}
-    const Role& getRole()const {return role;}
-    void setRole(const Role& newRole) {role = newRole;}
-    const QString& getName()const {return name;}
-    void setName(const QString& newName) {name = newName;}
-    const QString& getPassword()const {return password;}
-    void setPassword(const QString& newPassword) {password = newPassword;}
-};
-
+class User;
 class AuthorityManager: public QObject
 {
     Q_OBJECT
@@ -62,8 +37,9 @@ protected:
 
 	static AuthorityManager* instance;
 
-    std::vector<Role> roleSet;
-	User curUser;
+    std::vector<Role> roleSet; 
+    User* curUser;
+    QString curRoleName;
     QString saveFileName;
 
 signals:
@@ -83,7 +59,7 @@ public:
     const Role* getRole(const QString& name)const;
     bool modifyRole(const QString& name, const std::map<QString, bool>& newRule);
 
-    bool checkAuthority(QString ruleName)const;
+    bool checkAuthority(const QString& ruleName)const;
     Q_INVOKABLE bool adminLogin(const QString& name, const QString& password);
     Q_INVOKABLE bool adminModifyPassword(const QString& oldPassword, const QString& newPassword);
 

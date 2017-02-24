@@ -1,10 +1,11 @@
 #include "authoritymanager.h"
+#include "usermanager.h"
 #include <algorithm>
 
 #define ROLE_COMPARER(roleName) [=](const Role& role)->bool{return role.name == (roleName) ? true : false;}
 
 AuthorityManager* AuthorityManager::instance = nullptr;
-AuthorityManager::AuthorityManager(QObject *parent) : QObject(parent), saveFileName("role.xml"), curUser(), roleSet()
+AuthorityManager::AuthorityManager(QObject *parent) : QObject(parent), saveFileName("role.xml"), curRoleName("Client"),curUser(new User), roleSet()
 {
     read();
 }
@@ -12,12 +13,13 @@ AuthorityManager::AuthorityManager(QObject *parent) : QObject(parent), saveFileN
 AuthorityManager::~AuthorityManager(void)
 {
     save();
+    curUser != nullptr ? delete curUser : void(0);
 }
 
 void AuthorityManager::read(void)
 {
-    curUser.setName("123");
-    curUser.setPassword("123");
+    curUser->setName("123");
+    curUser->setPassword("123");
 }
 
 void AuthorityManager::save(void)
@@ -75,11 +77,13 @@ bool AuthorityManager::modifyRole(const QString& name, const std::map<QString, b
     return false;
 }
 
-bool AuthorityManager::checkAuthority(QString ruleName)const
+bool AuthorityManager::checkAuthority(const QString& ruleName)const
 {
-    auto dest = curUser.getRole().authorityMap.find(ruleName);
-    if (dest != curUser.getRole().authorityMap.end()){
-        return dest->second;
+    auto rolePtr = getRole(curRoleName);
+    if (rolePtr){
+        auto dest = rolePtr->authorityMap.find(ruleName);
+        if (dest != rolePtr->authorityMap.end())
+            return dest->second;
     }
 
     throw std::exception("operation not exists");
@@ -87,9 +91,9 @@ bool AuthorityManager::checkAuthority(QString ruleName)const
 
 bool AuthorityManager::adminLogin(const QString& name, const QString& password)
 {
-    if (name == curUser.getName()){
-        if (password == curUser.getPassword()){
-            curUser.setPassword(password);
+    if (name == curUser->getName()){
+        if (password == curUser->getPassword()){
+            curUser->setPassword(password);
             adminLoginSuccess();
             emit loginSuccess();
             return true;
@@ -106,16 +110,14 @@ bool AuthorityManager::adminLogin(const QString& name, const QString& password)
 
 bool AuthorityManager::adminModifyPassword(const QString& oldPassword, const QString& newPassword)
 {
-    if (oldPassword == curUser.getPassword()){
-        curUser.setPassword(newPassword);
+    if (oldPassword == curUser->getPassword()){
+        curUser->setPassword(newPassword);
         adminPasswordModifySuccess();
-        emit adminPasswordModifySuccess();
+        emit modifyPasswordSuccess();
         return true;
     }
-    else{
-        emit passwordFalse();
-    }
 
+    emit passwordFalse();
     return false;
 }
 
@@ -130,5 +132,3 @@ void AuthorityManager::adminPasswordModifySuccess()
     //save
     //notify
 }
-
-
