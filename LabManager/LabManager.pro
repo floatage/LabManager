@@ -5,7 +5,8 @@ CONFIG += c++11
 
 SOURCES += main.cpp \
     src/authoritymanager.cpp \
-    src/usermanager.cpp
+    src/usermanager.cpp \
+    src/datamanager.cpp
 
 RESOURCES += qml.qrc
 
@@ -19,6 +20,7 @@ DISTFILES +=
 
 HEADERS += \
     src/authoritymanager.h \
-    src/usermanager.h
+    src/usermanager.h \
+    src/datamanager.h
 
 

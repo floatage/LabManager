@@ -78,6 +78,7 @@ class UserManager : public QObject
     Q_OBJECT
 public:
     static UserManager* getInstance(void);
+    void scanCommunicationObject();
 
 signals:
 
