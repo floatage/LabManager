@@ -1,4 +1,5 @@
 #include "usermanager.h"
+#include "datamanager.h"
 
 UserManager* UserManager::instance = nullptr;
 UserManager::UserManager(QObject *parent) : QObject(parent)

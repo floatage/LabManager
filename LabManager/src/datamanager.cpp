@@ -1,9 +1,11 @@
 #include "datamanager.h"
 
+#define PROVIDER_ITEATOR_PAIR std::pair<std::multimap<QString,DataProviderPtr>::iterator, std::multimap<QString,DataProviderPtr>::iterator>
+
 DataManager* DataManager::instance = nullptr;
 DataManager::DataManager(QObject* parent):QObject(parent)
 {
-
+    registerDataProvider(UserDataProvider::createDataProvider());
 }
 
 DataManager::~DataManager()
@@ -14,34 +16,34 @@ DataManager::~DataManager()
 DataManager* DataManager::getInstance()
 {
     if (instance == nullptr){
-        instance = new DataManager();
+        instance = new DataManager(nullptr);
     }
 
     return instance;
 }
 
-const DataManager::DataProvider* getDataProvider(const QString& uri)
+DataProviderPtr DataManager::getDataProvider(const QString& uri)
 {
-    std::pair<multimap<QString,DataProvider>::iterator, multimap<QString,int>::DataProvider> it = providerMap.equal_range(uri);
+    PROVIDER_ITEATOR_PAIR it = providerMap.equal_range(uri);
     if (it.first != it.second){
-        return *(it.first);
+        return (*it.first).second;
     }
 
-    return nullptr;
+    return DataProviderPtr(nullptr);
 }
 
-bool DataManager::registerDataProvider(const DataProvider& provider)
+bool DataManager::registerDataProvider(const DataProviderPtr& provider)
 {
-    providerMap[provider.getMarkString() = provider.clone();
+    providerMap.insert(std::pair<QString, DataProviderPtr>(provider->getMarkString(), provider));
     return true;
 }
 
-bool DataManager::unRegisterDataProvider(const DataProvider& provider)
+bool DataManager::unRegisterDataProvider(const DataProviderPtr& provider)
 {
-    std::pair<multimap<QString,DataProvider>::iterator, multimap<QString,int>::DataProvider> it = providerMap.equal_range(provider.getMarkString());
+    PROVIDER_ITEATOR_PAIR it = providerMap.equal_range(provider->getMarkString());
 
-    for (std::multimap<QString, DataProvider>::iterator begin = it.first; begin != it.second; ++begin){
-        if (begin->getStorageWay() == provider.getStorageWay()){
+    for (std::multimap<QString, DataProviderPtr>::iterator begin = it.first; begin != it.second; ++begin){
+        if ((begin->second)->getStorageWay() == provider->getStorageWay()){
             providerMap.erase(begin);
             return true;
         }
@@ -52,21 +54,40 @@ bool DataManager::unRegisterDataProvider(const DataProvider& provider)
 
 bool DataManager::add(const QString& uri, const StorableObject& data)
 {
+    DataProviderPtr provider = getDataProvider(uri);
+    if (provider.get() != nullptr){
+        return provider->add(data);
+    }
+
     return false;
 }
 
 bool DataManager::remove(const QString& uri, const QString& selection, const std::vector<QString>& selectionArgs)
 {
+    DataProviderPtr provider = getDataProvider(uri);
+    if (provider.get() != nullptr){
+        return provider->remove(selection, selectionArgs);
+    }
+
     return false;
 }
 
 bool DataManager::update(const QString& uri, const StorableObject& data, const QString& selection, const std::vector<QString>& selectionArgs)
 {
+    DataProviderPtr provider = getDataProvider(uri);
+    if (provider.get() != nullptr){
+        return provider->update(data, selection, selectionArgs);
+    }
+
     return false;
 }
 
 bool DataManager::query(const QString& uri, const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order)
 {
+    DataProviderPtr provider = getDataProvider(uri);
+    if (provider.get() != nullptr){
+        return provider->query(condition, selection, selectionArgs, order);
+    }
     return false;
 }
 
@@ -118,7 +139,7 @@ QString UserDataProvider::getStorageWay()const
     return "database";
 }
 
-const DataProvider& clone()const
+DataProviderPtr UserDataProvider::createDataProvider()
 {
-    return DataProvider(*this);
+    return DataProviderPtr(new UserDataProvider());
 }
