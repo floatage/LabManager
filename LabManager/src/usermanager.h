@@ -2,23 +2,17 @@
 #define USERMANAGER_H
 
 #include <QObject>
+#include <QVector>
+#include "objectdeclare.h"
 
-class UnCopyable
-{
-protected:
-    UnCopyable(){}
-    ~UnCopyable(){}
-
-private:
-    UnCopyable(const UnCopyable&);
-    UnCopyable& operator =(const UnCopyable&);
-};
-
-class CommunicationObject
+class CommunicationObject: public StorableObject
 {
 public:
     CommunicationObject(){}
     virtual ~CommunicationObject(){}
+
+    virtual QByteArray toString()const{return QByteArray();}
+    virtual void toObject(const QByteArray&)const{}
 };
 
 struct MACSOCKET
@@ -28,16 +22,17 @@ struct MACSOCKET
     QString port;
 };
 
-class User: public CommunicationObject, private UnCopyable
+class User: public CommunicationObject
 {
 private:
-    MACSOCKET macSocket;
     unsigned int id;
+    MACSOCKET macSocket;
     QString name;
     QString password;
+    QString picPath;
 
 public:
-    User():CommunicationObject(){}
+    User(){}
     ~User(){}
     unsigned int getId()const {return id;}
     const MACSOCKET& getMacSocket()const {return macSocket;}
@@ -46,9 +41,20 @@ public:
     void setName(const QString& newName) {name = newName;}
     const QString& getPassword()const {return password;}
     void setPassword(const QString& newPassword) {password = newPassword;}
+    const QString& getPicPath()const{return picPath;}
+    void setPicPath(const QString& path){picPath = path;}
+
+    bool operator ==(const User& other)const{
+        return id == other.id ? true : false;
+    }
+
+    virtual QByteArray toString()const;
+    virtual void toObject(const QByteArray& str);
+
+    static QString getUri(){return "/labmanager/user";}
 };
 
-class UserGroup: public CommunicationObject, private UnCopyable
+class UserGroup: public CommunicationObject
 {
 public:
     UserGroup(){}
@@ -59,18 +65,29 @@ public:
     void setName(const QString& newName){name = newName;}
     const QString& getIntro()const {return intro;}
     void setIntro(const QString& newIntro) {intro = newIntro;}
-
-    const User* getUser(unsigned int userId)const;
+    const QString& getPicPath()const{return picPath;}
+    void setPicPath(const QString& path){picPath=path;}
 
     bool appendMember(unsigned int userId);
     bool removeMember(unsigned int userId);
+    bool isExist(unsigned int userId)const;
+
+    bool operator ==(const UserGroup& other)const{
+        return id == other.id ? true : false;
+    }
+
+    virtual QByteArray toString()const;
+    virtual void toObject(const QByteArray& str);
+
+    static QString getUri(){return "/labmanager/userGroup";}
 
 private:
-    QString name;
     unsigned int id;
-    QString intro;
     unsigned int ownerId;
-    std::vector<unsigned int> memberIdSet;
+    QString name;
+    QString intro;
+    QString picPath;
+    QVector<unsigned int> memberIdSet;
 };
 
 class UserManager : public QObject
@@ -78,7 +95,18 @@ class UserManager : public QObject
     Q_OBJECT
 public:
     static UserManager* getInstance(void);
+
     void scanCommunicationObject();
+
+    bool addUser(const User& user);
+    bool removeUser(unsigned int id);
+    User getUser(unsigned int id);
+
+    bool addUserGroup(const UserGroup& group);
+    bool removeUserGroup(unsigned int id);
+    UserGroup getUserGroup(unsigned int id);
+    bool appendMember(unsigned int groupId, unsigned int userId);
+    bool removeMember(unsigned int groupId, unsigned int userId);
 
 signals:
 
@@ -92,8 +120,8 @@ private:
 
     static UserManager* instance;
 
-    std::vector<User> userSet;
-    std::vector<UserGroup> userGroupSet;
+    QVector<User> userSet;
+    QVector<UserGroup> userGroupSet;
 };
 
 #endif // USERMANAGER_H

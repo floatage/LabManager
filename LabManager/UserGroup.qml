@@ -30,7 +30,7 @@ DialogFrame{
                     height: parent.height
                     spacing: colSpacing
 
-                    ComboBox {
+                    ComboBox{
                         width: 200
                         model: ["Banana","Apple","Coconut"]
                     }

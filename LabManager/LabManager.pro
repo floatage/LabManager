@@ -1,6 +1,7 @@
 TEMPLATE = app
 
 QT += qml quick
+QT += sql
 CONFIG += c++11
 
 SOURCES += main.cpp \
@@ -21,6 +22,7 @@ DISTFILES +=
 HEADERS += \
     src/authoritymanager.h \
     src/usermanager.h \
-    src/datamanager.h
+    src/datamanager.h \
+    src/objectdeclare.h
 
 

@@ -82,13 +82,13 @@ bool DataManager::update(const QString& uri, const StorableObject& data, const Q
     return false;
 }
 
-bool DataManager::query(const QString& uri, const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order)
+QueryResult DataManager::query(const QString& uri, const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order)
 {
     DataProviderPtr provider = getDataProvider(uri);
     if (provider.get() != nullptr){
         return provider->query(condition, selection, selectionArgs, order);
     }
-    return false;
+    return QueryResult(nullptr);
 }
 
 
@@ -124,9 +124,9 @@ bool UserDataProvider::update(const StorableObject& data, const QString& selecti
     return false;
 }
 
-bool UserDataProvider::query(const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order)
+QueryResult UserDataProvider::query(const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order)
 {
-    return false;
+    return QueryResult(nullptr);
 }
 
 QString UserDataProvider::getMarkString()const

@@ -5,7 +5,7 @@
 #define ROLE_COMPARER(roleName) [=](const Role& role)->bool{return role.name == (roleName) ? true : false;}
 
 AuthorityManager* AuthorityManager::instance = nullptr;
-AuthorityManager::AuthorityManager(QObject *parent) : QObject(parent), saveFileName("role.xml"), curRoleName("Client"),curUser(new User), roleSet()
+AuthorityManager::AuthorityManager(QObject *parent) : QObject(parent), saveFileName("role.xml"), curRoleName("Client"),curUser(new User()), roleSet()
 {
     read();
 }

@@ -3,12 +3,13 @@
 
 #include <QObject>
 #include <memory>
-
-class StorableObject{
-    virtual QString toString()const = 0;
-};
+#include <QByteArray>
+#include <QDataStream>
+#include "objectdeclare.h"
 
 #define DataProviderPtr std::shared_ptr<DataProvider>
+#define QueryResult std::shared_ptr<std::vector<QString>>
+#define QueryResultIterator std::vector<QString>::iterator
 
 class DataProvider
 {
@@ -19,7 +20,7 @@ public:
     virtual bool add(const StorableObject& data)=0;
     virtual bool remove(const QString& selection, const std::vector<QString>& selectionArgs)=0;
     virtual bool update(const StorableObject& data, const QString& selection, const std::vector<QString>& selectionArgs)=0;
-    virtual bool query(const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order)=0;
+    virtual QueryResult query(const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order)=0;
     virtual QString getMarkString()const=0;
     virtual QString getStorageWay()const=0;
 
@@ -38,7 +39,7 @@ public:
     bool add(const StorableObject& data);
     bool remove(const QString& selection, const std::vector<QString>& selectionArgs);
     bool update(const StorableObject& data, const QString& selection, const std::vector<QString>& selectionArgs);
-    bool query(const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order);
+    virtual QueryResult query(const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order);
     QString getMarkString()const;
     QString getStorageWay()const;
     static DataProviderPtr createDataProvider();
@@ -59,7 +60,7 @@ public:
     bool add(const QString& uri, const StorableObject& data);
     bool remove(const QString& uri, const QString& selection, const std::vector<QString>& selectionArgs);
     bool update(const QString& uri, const StorableObject& data, const QString& selection, const std::vector<QString>& selectionArgs);
-    bool query(const QString& uri, const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order);
+    QueryResult query(const QString& uri, const QString& condition, const QString& selection, const std::vector<QString>& selectionArgs, QString order);
 
 signals:
 
