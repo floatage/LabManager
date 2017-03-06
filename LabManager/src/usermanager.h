@@ -7,7 +7,7 @@
 #include <QSqlTableModel>
 #include "objectdeclare.h"
 
-class CommunicationObject: public StorableObject
+class CommunicationObject:public StorableObject
 {
 public:
     CommunicationObject(){}
@@ -38,9 +38,10 @@ private:
     QString picPath;
 
 public:
-    User();
-    User(unsigned int id, const MACSOCKET& ms, const QString& name, const QString& pass, const QString& pic);
+    explicit User();
+    explicit User(unsigned int id, const MACSOCKET& ms, const QString& name, const QString& pass, const QString& pic);
     ~User();
+
     unsigned int getId()const {return id;}
     const MACSOCKET& getMacSocket()const {return macSocket;}
     void setMacSocket(const MACSOCKET& newSocket) {macSocket = newSocket;}
@@ -104,10 +105,12 @@ public:
     virtual bool addUser(const User& user)=0;
     virtual bool removeUser(unsigned int id)=0;
     virtual User getUser(unsigned int id)=0;
+    virtual std::shared_ptr<QVector<User>> getUsers()=0;
 
     virtual bool addUserGroup(const UserGroup& group)=0;
     virtual bool removeUserGroup(unsigned int id)=0;
     virtual UserGroup getUserGroup(unsigned int id)=0;
+    virtual std::shared_ptr<QVector<UserGroup>> getUserGroups()=0;
     virtual bool appendMember(unsigned int groupId, unsigned int userId, const QString& type)=0;
     virtual std::shared_ptr<QVector<User>> getMembers(unsigned int groupId)=0;
     virtual bool removeMember(unsigned int groupId, unsigned int userId)=0;
@@ -122,10 +125,12 @@ public:
     bool addUser(const User& user);
     bool removeUser(unsigned int id);
     User getUser(unsigned int id);
+    std::shared_ptr<QVector<User>> getUsers();
 
     bool addUserGroup(const UserGroup& group);
     bool removeUserGroup(unsigned int id);
     UserGroup getUserGroup(unsigned int id);
+    std::shared_ptr<QVector<UserGroup>> getUserGroups();
     std::shared_ptr<QVector<User>> getMembers(unsigned int groupId);
     bool appendMember(unsigned int groupId, unsigned int userId, const QString& type);
     bool removeMember(unsigned int groupId, unsigned int userId);
@@ -143,10 +148,12 @@ public:
     bool addUser(const User& user);
     bool removeUser(unsigned int id);
     User getUser(unsigned int id);
+    std::shared_ptr<QVector<User>> getUsers();
 
     bool addUserGroup(const UserGroup& group);
     bool removeUserGroup(unsigned int id);
     UserGroup getUserGroup(unsigned int id);
+    std::shared_ptr<QVector<UserGroup>> getUserGroups();
     std::shared_ptr<QVector<User>> getMembers(unsigned int groupId);
     bool appendMember(unsigned int groupId, unsigned int userId, const QString& type);
     bool removeMember(unsigned int groupId, unsigned int userId);
@@ -159,35 +166,35 @@ private:
 class UserManager : public QObject
 {
     Q_OBJECT
+protected:
+    explicit UserManager(QObject *parent = 0);
+    ~UserManager();
+
+    static UserManager* instance;
+
+    std::shared_ptr<UserManagerImplement> imp;
+
 public:
     static UserManager* getInstance(void);
 
     void scanCommunicationObject();
 
-    bool addUser(const User& user);
-    bool removeUser(unsigned int id);
-    User getUser(unsigned int id);
+    Q_INVOKABLE bool addUser(const User& user);
+    Q_INVOKABLE bool removeUser(unsigned int id);
+    Q_INVOKABLE User getUser(unsigned int id);
+    Q_INVOKABLE QVariantList getUsers();
 
-    bool addUserGroup(const UserGroup& group);
-    bool removeUserGroup(unsigned int id);
-    UserGroup getUserGroup(unsigned int id);
-    std::shared_ptr<QVector<User>> getMembers(unsigned int groupId);
-    bool appendMember(unsigned int groupId, unsigned int userId, const QString& type);
-    bool removeMember(unsigned int groupId, unsigned int userId);
-
-signals:
-
-public slots:
+    Q_INVOKABLE bool addUserGroup(const UserGroup& group);
+    Q_INVOKABLE bool removeUserGroup(unsigned int id);
+    Q_INVOKABLE UserGroup getUserGroup(unsigned int id);
+    Q_INVOKABLE QVector<UserGroup> getUserGroups();
+    Q_INVOKABLE QVector<User> getMembers(unsigned int groupId);
+    Q_INVOKABLE bool appendMember(unsigned int groupId, unsigned int userId, const QString& type);
+    Q_INVOKABLE bool removeMember(unsigned int groupId, unsigned int userId);
 
 private:
-    explicit UserManager(QObject *parent = 0);
-    ~UserManager();
     UserManager(const UserManager&);
     UserManager& operator =(const UserManager&);
-
-    static UserManager* instance;
-
-    std::shared_ptr<UserManagerImplement> imp;
 };
 
 #endif // USERMANAGER_H

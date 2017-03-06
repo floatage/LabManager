@@ -230,14 +230,14 @@ ApplicationWindow {
                         height: parent.height
 
                         Component.onCompleted: {
-                            var ch = "哈"
-                            for(var count = 0 ; count < 10; ++count){
-                                model.append({picPath:"/img/defaultPic.jpg",
-                                                 name:("哇哈" + ch),
-                                                 ip:"10.15.15.10"
-                                             });
-                                ch = ch + "哈";
+                            console.log("b");
+                            var dataList = UserManager.getUsers();
+                            for(var begin = 0; begin < dataList.length; ++begin){
+                                model.append({picPath: dataList[begin][0]
+                                                ,name: dataList[begin][1]
+                                                ,memCount: dataList[begin][2]})
                             }
+                            console.log(dataList.length);
                         }
 
                         model: ListModel {
@@ -266,29 +266,6 @@ ApplicationWindow {
                                     anchors.fill: parent
                                     source: picPath
                                 }
-
-                                //                            Rectangle{
-                                //                                id: mask
-                                //                                width: parent.width
-                                //                                height: parent.height
-                                //                                anchors.fill: parent
-                                //                                radius: height/2
-                                //                                visible: false
-                                //                            }
-
-                                //                            Image {
-                                //                                id: memImg
-                                //                                anchors.fill: parent
-                                //                                smooth: true
-                                //                                source: picPath
-                                //                                visible: false
-                                //                            }
-
-                                //                            OpacityMask{
-                                //                                anchors.fill: memImg
-                                //                                source: memImg
-                                //                                maskSource: mask
-                                //                            }
                             }
 
                             Text {

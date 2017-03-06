@@ -2,6 +2,7 @@
 #define OBJECTDECLARE
 
 class StorableObject{
+public:
     virtual QByteArray toString()const = 0;
     virtual void toObject(const QByteArray& str)const=0;
 };

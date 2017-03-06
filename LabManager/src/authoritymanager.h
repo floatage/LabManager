@@ -64,8 +64,8 @@ public:
     Q_INVOKABLE bool adminModifyPassword(const QString& oldPassword, const QString& newPassword);
 
 private:
-	AuthorityManager(const AuthorityManager& other);
-	AuthorityManager& operator=(const AuthorityManager& other);
+    AuthorityManager(const AuthorityManager&);
+    AuthorityManager& operator=(const AuthorityManager&);
 };
 
 #endif 
