@@ -192,27 +192,6 @@ ApplicationWindow {
                         memStackView.push(memListView)
                     }
                 }
-
-                delegate: StackViewDelegate {
-                    function transitionFinished(properties) {
-                        properties.exitItem.opacity = 1
-                    }
-
-                    pushTransition: StackViewTransition {
-                        PropertyAnimation {
-                            target: enterItem
-                            property: "opacity"
-                            from: 0
-                            to: 1
-                        }
-                        PropertyAnimation {
-                            target: exitItem
-                            property: "opacity"
-                            from: 1
-                            to: 0
-                        }
-                    }
-                }
             }
 
             Component {
@@ -230,22 +209,15 @@ ApplicationWindow {
                         height: parent.height
 
                         Component.onCompleted: {
-                            console.log("b");
                             var dataList = UserManager.getUsers();
-                            for(var begin = 0; begin < dataList.length; ++begin){
-                                model.append({picPath: dataList[begin][0]
-                                                ,name: dataList[begin][1]
-                                                ,memCount: dataList[begin][2]})
+                            for(var begin = 0; begin < dataList.length; begin+=4){
+                                model.append({name: dataList[begin+1]
+                                                ,ip: dataList[begin+2]
+                                                ,picPath: dataList[begin+3]})
                             }
-                            console.log(dataList.length);
                         }
 
                         model: ListModel {
-                            ListElement {
-                                picPath: "/img/defaultPic.jpg"
-                                name: "哇哈哈"
-                                ip: "10.15.15.10"
-                            }
                         }
 
                         delegate: Item {
@@ -306,20 +278,15 @@ ApplicationWindow {
                         height: parent.height
 
                         Component.onCompleted: {
-                            for(var count = 0, ch = '1'; count < 10; ++count){
-                                model.append({picPath: "/img/defaultPic.jpg"
-                                                ,name: "应用14" + ch + "班"
-                                                ,memCount: "10/40"})
-                                ch = ch + '1'
+                            var dataList = UserManager.getUserGroups()
+                            for(var begin = 0; begin < dataList.length; begin+=4){
+                                model.append({name: dataList[begin+1]
+                                                ,memCount: dataList[begin+2]
+                                                ,picPath: dataList[begin+3]})
                             }
                         }
 
                         model: ListModel {
-                            ListElement {
-                                picPath: "/img/defaultPic.jpg"
-                                name: "应用141班"
-                                memCount: "10/40"
-                            }
                         }
 
                         delegate: Item {
