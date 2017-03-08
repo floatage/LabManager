@@ -34,23 +34,28 @@ bool UserManager::removeUser(unsigned int id)
     return imp->removeUser(id);
 }
 
-User UserManager::getUser(unsigned int id)
+QVariantList UserManager::getUser(unsigned int id)
 {
-    return imp->getUser(id);
+    User user = imp->getUser(id);
+    QVariantList item;
+    item.append(user.getId());
+    item.append(user.getName());
+    item.append(user.getMacSocket().ip);
+    item.append(user.getPicPath());
+    return item;
 }
 
 QVariantList UserManager::getUsers()
 {
     QVariantList dataList;
     std::shared_ptr<QVector<User>> result = imp->getUsers();
-    printf_s("%d\n", result->length());
     for (QVector<User>::iterator begin = result->begin(), end = result->end(); begin != end; ++begin)
     {
         QVariantList item;
         item.append(begin->getId());
         item.append(begin->getName());
-        item.append(begin->getPicPath());
         item.append(begin->getMacSocket().ip);
+        item.append(begin->getPicPath());
 
         dataList.append(item);
     }
@@ -68,19 +73,54 @@ bool UserManager::removeUserGroup(unsigned int id)
     return imp->removeUserGroup(id);
 }
 
-UserGroup UserManager::getUserGroup(unsigned int id)
+QVariantList UserManager::getUserGroup(unsigned int id)
 {
-    return imp->getUserGroup(id);
+    UserGroup group = imp->getUserGroup(id);
+    QVariantList item;
+    item.append(group.getId());
+    item.append(group.getOwnerId());
+    item.append(group.getName());
+    item.append(group.getIntro());
+    item.append(group.getPicPath());
+    item.append("10/40");
+
+    return item;
 }
 
-QVector<UserGroup> UserManager::getUserGroups()
+QVariantList UserManager::getUserGroups()
 {
-    return *(imp->getUserGroups());
+    QVariantList dataList;
+    std::shared_ptr<QVector<UserGroup>> result = imp->getUserGroups();
+    for (QVector<UserGroup>::iterator begin = result->begin(), end = result->end(); begin != end; ++begin)
+    {
+        QVariantList item;
+        item.append(begin->getId());
+        item.append(begin->getName());
+        item.append("10/40");
+        item.append(begin->getPicPath());
+
+        dataList.append(item);
+    }
+
+    return dataList;
 }
 
-QVector<User> UserManager::getMembers(unsigned int groupId)
+QVariantList UserManager::getMembers(unsigned int groupId)
 {
-    return *(imp->getMembers(groupId));
+    QVariantList dataList;
+    std::shared_ptr<QVector<User>> result = imp->getMembers(groupId);
+    for (QVector<User>::iterator begin = result->begin(), end = result->end(); begin != end; ++begin)
+    {
+        QVariantList item;
+        item.append(begin->getId());
+        item.append(begin->getName());
+        item.append(begin->getMacSocket().ip);
+        item.append(begin->getPicPath());
+
+        dataList.append(item);
+    }
+
+    return dataList;
 }
 
 bool UserManager::appendMember(unsigned int groupId, unsigned int userId, const QString& type)
@@ -107,6 +147,10 @@ UserManagerDB::UserManagerDB()
     }
 }
 
+UserManagerDB::~UserManagerDB()
+{
+}
+
 bool UserManagerDB::createDBConn(const QString& dbName)
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
@@ -117,10 +161,6 @@ bool UserManagerDB::createDBConn(const QString& dbName)
     }
 
     return true;
-}
-
-UserManagerDB::~UserManagerDB()
-{
 }
 
 bool UserManagerDB::createTables()
@@ -233,7 +273,7 @@ std::shared_ptr<QVector<User>> UserManagerDB::getUsers()
 bool UserManagerDB::addUserGroup(const UserGroup& group)
 {
     QSqlQuery query(GROUP_INSERT);
-    query.addBindValue(group.getId());
+    query.addBindValue(group.getOwnerId());
     query.addBindValue(group.getName());
     query.addBindValue(group.getIntro());
     query.addBindValue(group.getPicPath());

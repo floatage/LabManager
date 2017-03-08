@@ -10,7 +10,6 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    qDebug() << UserManager::getInstance()->getUser(2).getId();
     engine.rootContext()->setContextProperty("AuthorityManager", AuthorityManager::getInstance());
     engine.rootContext()->setContextProperty("UserManager", UserManager::getInstance());
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

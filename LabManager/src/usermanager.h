@@ -70,6 +70,7 @@ public:
     ~UserGroup();
 
     unsigned int getId()const{return id;}
+    unsigned int getOwnerId()const{return ownerId;}
     const QString& getName()const {return name;}
     void setName(const QString& newName){name = newName;}
     const QString& getIntro()const {return intro;}
@@ -197,14 +198,14 @@ public:
 
     Q_INVOKABLE bool addUser(const User& user);
     Q_INVOKABLE bool removeUser(unsigned int id);
-    Q_INVOKABLE User getUser(unsigned int id);
+    Q_INVOKABLE QVariantList getUser(unsigned int id);
     Q_INVOKABLE QVariantList getUsers();
 
     Q_INVOKABLE bool addUserGroup(const UserGroup& group);
     Q_INVOKABLE bool removeUserGroup(unsigned int id);
-    Q_INVOKABLE UserGroup getUserGroup(unsigned int id);
-    Q_INVOKABLE QVector<UserGroup> getUserGroups();
-    Q_INVOKABLE QVector<User> getMembers(unsigned int groupId);
+    Q_INVOKABLE QVariantList getUserGroup(unsigned int id);
+    Q_INVOKABLE QVariantList getUserGroups();
+    Q_INVOKABLE QVariantList getMembers(unsigned int groupId);
     Q_INVOKABLE bool appendMember(unsigned int groupId, unsigned int userId, const QString& type);
     Q_INVOKABLE bool removeMember(unsigned int groupId, unsigned int userId);
 
