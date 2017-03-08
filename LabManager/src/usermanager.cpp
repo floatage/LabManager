@@ -98,28 +98,33 @@ bool UserManager::removeMember(unsigned int groupId, unsigned int userId)
 
 UserManagerDB::UserManagerDB()
 {
-    createTables();
+    if (createDBConn("labManager.db")){
+        createTables();
 
-    userModel.setTable("User");
-    groupModel.setTable("UserGroup");
-    membersModel.setTable("GroupMember");
+        userModel.setTable("User");
+        groupModel.setTable("UserGroup");
+        membersModel.setTable("GroupMember");
+    }
 }
 
-UserManagerDB::~UserManagerDB()
-{
-
-}
-
-bool UserManagerDB::createTables()
+bool UserManagerDB::createDBConn(const QString& dbName)
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("labManager.db");
-    if (!db.open())
-    {
+    db.setDatabaseName(dbName);
+    if (!db.open()){
         qDebug()<<"open database failed ---"<<db.lastError().text()<<"/n";
         return false;
     }
 
+    return true;
+}
+
+UserManagerDB::~UserManagerDB()
+{
+}
+
+bool UserManagerDB::createTables()
+{
     QSqlQuery query;
     bool bUser = query.exec("CREATE TABLE IF NOT EXISTS User(uid INTEGER PRIMARY KEY AUTOINCREMENT, "
                          "uname VARCHAR(20) NOT NULL, "
@@ -145,188 +150,219 @@ bool UserManagerDB::createTables()
 
 bool UserManagerDB::addUser(const User& user)
 {
-    int row = 0;
-    userModel.insertColumn(row);
-    userModel.setData(userModel.index(row, 1), user.getName());
-    userModel.setData(userModel.index(row, 2), user.getMacSocket().ip);
-    userModel.setData(userModel.index(row, 3), user.getMacSocket().mac);
-    userModel.setData(userModel.index(row, 4), user.getMacSocket().port);
-    userModel.setData(userModel.index(row, 5), user.getPassword());
-    userModel.setData(userModel.index(row, 6), user.getPicPath());
+    QSqlQuery query(USER_INSERT);
+    query.addBindValue(user.getName());
+    query.addBindValue(user.getMacSocket().ip);
+    query.addBindValue(user.getMacSocket().mac);
+    query.addBindValue(user.getMacSocket().port);
+    query.addBindValue(user.getPassword());
+    query.addBindValue(user.getPicPath());
 
-    return userModel.submitAll();
+    if(query.exec()){
+        qDebug() << "user insert success";
+        return true;
+    }else{
+        qDebug() << "user insert failed";
+        return false;
+    }
 }
 
 bool UserManagerDB::removeUser(unsigned int id)
 {
-    QString filter;
-    userModel.setFilter(filter.sprintf("uid=%u", id));
-    userModel.select();
-    if (userModel.rowCount() > 0){
-        userModel.removeColumns(0, userModel.rowCount());
-        return userModel.submitAll();
-    }
+    QSqlQuery query(USER_REMOVE);
+    query.addBindValue(id);
 
-    return false;
+    if(query.exec()){
+        qDebug() << "user delete success";
+        return true;
+    }else{
+        qDebug() << "user delete failed";
+        return false;
+    }
 }
 
 User UserManagerDB::getUser(unsigned int id)
 {
-    QString filter;
-    userModel.setFilter(filter.sprintf("uid=%u", id));
-    userModel.select();
+    QSqlQuery query(USER_GET);
+    query.addBindValue(id);
 
-    if (userModel.rowCount() > 0){
-        QSqlRecord r = userModel.record(0);
-        unsigned int id = r.value("uid").toUInt();
-        QString ip = r.value("uip").toString();
-        QString mac = r.value("umac").toString();
-        QString port = r.value("uport").toString();
-        QString name = r.value("uname").toString();
-        QString password = r.value("upassword").toString();
-        QString pic = r.value("upic").toString();
-
-        return User(id, MACSOCKET(ip, mac, port), name, password, pic);
+    if(!query.exec() || !query.next()){
+        qDebug() << "user select failed";
+        return User();
     }
 
-    return User();
+    unsigned int uid = query.value("uid").toUInt();
+    QString ip = query.value("uip").toString();
+    QString mac = query.value("umac").toString();
+    QString port = query.value("uport").toString();
+    QString name = query.value("uname").toString();
+    QString password = query.value("upassword").toString();
+    QString pic = query.value("upic").toString();
+
+    qDebug() << "user select success";
+    return User(uid, MACSOCKET(ip, mac, port), name, password, pic);
 }
 
 std::shared_ptr<QVector<User>> UserManagerDB::getUsers()
 {
-    userModel.select();
+    QSqlQuery query(USER_GET_ALL);
     std::shared_ptr<QVector<User>> result(new QVector<User>());
-    for (int begin = 0, end = userModel.rowCount(); begin != end; ++begin)
-    {
-        QSqlRecord r = userModel.record(begin);
-        unsigned int id = r.value("uid").toUInt();
-        QString ip = r.value("uip").toString();
-        QString mac = r.value("umac").toString();
-        QString port = r.value("uport").toString();
-        QString name = r.value("uname").toString();
-        QString password = r.value("upassword").toString();
-        QString pic = r.value("upic").toString();
 
-        printf_s("loop");
-
-        result->push_back(User(id, MACSOCKET(ip, mac, port), name, password, pic));
+    if(!query.exec()){
+        qDebug() << "user select all failed";
+        return result;
     }
 
-    printf_s("%d", result->length());
+    while (query.next())
+    {
+        unsigned int uid = query.value("uid").toUInt();
+        QString ip = query.value("uip").toString();
+        QString mac = query.value("umac").toString();
+        QString port = query.value("uport").toString();
+        QString name = query.value("uname").toString();
+        QString password = query.value("upassword").toString();
+        QString pic = query.value("upic").toString();
 
+        result->push_back(User(uid, MACSOCKET(ip, mac, port), name, password, pic));
+    }
+
+    qDebug() << "user select all success";
     return result;
 }
 
 bool UserManagerDB::addUserGroup(const UserGroup& group)
 {
-    int row = 0;
-    groupModel.insertColumn(row);
-    groupModel.setData(userModel.index(row, 1), group.getId());
-    groupModel.setData(userModel.index(row, 2), group.getName());
-    groupModel.setData(userModel.index(row, 3), group.getIntro());
-    groupModel.setData(userModel.index(row, 4), group.getPicPath());
+    QSqlQuery query(GROUP_INSERT);
+    query.addBindValue(group.getId());
+    query.addBindValue(group.getName());
+    query.addBindValue(group.getIntro());
+    query.addBindValue(group.getPicPath());
 
-    return groupModel.submitAll();
+    if(query.exec()){
+        qDebug() << "group insert success";
+        return true;
+    }else{
+        qDebug() << "group insert failed";
+        return false;
+    }
 }
 
 bool UserManagerDB::removeUserGroup(unsigned int id)
 {
-    QString filter;
-    groupModel.setFilter(filter.sprintf("gid=%u", id));
-    groupModel.select();
-    if (groupModel.rowCount() > 0){
-        groupModel.removeColumns(0, groupModel.rowCount());
-        return groupModel.submitAll();
-    }
+    QSqlQuery query(GROUP_REMOVE);
+    query.addBindValue(id);
 
-    return false;
+    if(query.exec()){
+        qDebug() << "group delete success";
+        return true;
+    }else{
+        qDebug() << "group delete failed";
+        return false;
+    }
 }
 
 UserGroup UserManagerDB::getUserGroup(unsigned int id)
 {\
-    QString filter;
-    groupModel.setFilter(filter.sprintf("gid=%u", id));
-    groupModel.select();
+    QSqlQuery query(GROUP_GET);
+    query.addBindValue(id);
 
-    if (groupModel.rowCount() > 0){
-        QSqlRecord r = groupModel.record(0);
-        unsigned int id = r.value("gid").toUInt();
-        unsigned int ownerId = r.value("gowner").toUInt();
-        QString name = r.value("gname").toString();
-        QString intro = r.value("gintro").toString();
-        QString pic = r.value("gpic").toString();
-
-        return UserGroup(id, ownerId, name, intro, pic);
+    if(!query.exec() || !query.next()){
+        qDebug() << "group select failed";
+        return UserGroup();
     }
 
-    return UserGroup();
+    unsigned int gid = query.value("gid").toUInt();
+    unsigned int ownerId = query.value("gowner").toUInt();
+    QString name = query.value("gname").toString();
+    QString intro = query.value("gintro").toString();
+    QString pic = query.value("gpic").toString();
+
+    qDebug() << "group select success";
+    return UserGroup(gid, ownerId, name, intro, pic);
 }
 
 std::shared_ptr<QVector<UserGroup>> UserManagerDB::getUserGroups()
 {
-    groupModel.select();
+    QSqlQuery query(GROUP_GET_ALL);
     std::shared_ptr<QVector<UserGroup>> result(new QVector<UserGroup>());
-    for (int begin = 0, end = groupModel.rowCount(); begin != end; ++begin)
+
+    if(!query.exec()){
+        qDebug() << "group select all failed";
+        return result;
+    }
+
+    while (query.next())
     {
-        QSqlRecord r = groupModel.record(begin);
-        unsigned int id = r.value("gid").toUInt();
-        unsigned int ownerId = r.value("gowner").toUInt();
-        QString name = r.value("gname").toString();
-        QString intro = r.value("gintro").toString();
-        QString pic = r.value("gpic").toString();
+        unsigned int id = query.value("gid").toUInt();
+        unsigned int ownerId = query.value("gowner").toUInt();
+        QString name = query.value("gname").toString();
+        QString intro = query.value("gintro").toString();
+        QString pic = query.value("gpic").toString();
 
         result->push_back(UserGroup(id, ownerId, name, intro, pic));
     }
 
+    qDebug() << "group select all success";
     return result;
 }
 
 std::shared_ptr<QVector<User>> UserManagerDB::getMembers(unsigned int groupId)
 {
-    QString filter;
-    membersModel.setFilter(filter.sprintf("gid=%u", groupId));
-    membersModel.select();
-
+    QSqlQuery query(GET_GROUP_MEMBER);
     std::shared_ptr<QVector<User>> result(new QVector<User>());
-    for (int begin = 0, end = membersModel.rowCount(); begin != end; ++begin)
+    query.addBindValue(groupId);
+
+    if(!query.exec()){
+        qDebug() << "member select all failed";
+        return result;
+    }
+
+    while (query.next())
     {
-        QSqlRecord r = userModel.record(0);
-        unsigned int id = r.value("uid").toUInt();
-        QString ip = r.value("uip").toString();
-        QString mac = r.value("umac").toString();
-        QString port = r.value("uport").toString();
-        QString name = r.value("uname").toString();
-        QString password = r.value("upassword").toString();
-        QString pic = r.value("upic").toString();
+        unsigned int id = query.value("uid").toUInt();
+        QString ip = query.value("uip").toString();
+        QString mac = query.value("umac").toString();
+        QString port = query.value("uport").toString();
+        QString name = query.value("uname").toString();
+        QString password = query.value("upassword").toString();
+        QString pic = query.value("upic").toString();
 
         result->push_back(User(id, MACSOCKET(ip, mac, port), name, password, pic));
     }
 
+    qDebug() << "member select all success";
     return result;
 }
 
 bool UserManagerDB::appendMember(unsigned int groupId, unsigned int userId, const QString& type)
 {
-    int row = 0;
-    membersModel.insertColumn(row);
-    membersModel.setData(userModel.index(row, 0), groupId);
-    membersModel.setData(userModel.index(row, 1), userId);
-    membersModel.setData(userModel.index(row, 2), type);
+    QSqlQuery query(ADD_GROUP_MEMBER);
+    query.addBindValue(groupId);
+    query.addBindValue(userId);
+    query.addBindValue(type);
 
-    return membersModel.submitAll();
+    if(query.exec()){
+        qDebug() << "member add success";
+        return true;
+    }else{
+        qDebug() << "member add failed";
+        return false;
+    }
 }
 
 bool UserManagerDB::removeMember(unsigned int groupId, unsigned int userId)
 {
-    QString filter;
-    membersModel.setFilter(filter.sprintf("gid=%u and uid=%u", groupId, userId));
-    membersModel.select();
-    if (membersModel.rowCount() > 0){
-        membersModel.removeColumns(0, membersModel.rowCount());
-        return membersModel.submitAll();
-    }
+    QSqlQuery query(REMOVE_GROUP_MEMBER);
+    query.addBindValue(groupId);
+    query.addBindValue(userId);
 
-    return false;
+    if(query.exec()){
+        qDebug() << "member delete success";
+        return true;
+    }else{
+        qDebug() << "member delete failed";
+        return false;
+    }
 }
 
 

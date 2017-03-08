@@ -137,6 +137,22 @@ public:
 
 private:
     bool createTables();
+    bool createDBConn(const QString& dbName);
+
+    const QString USER_INSERT = "insert into User(uname, uip, umac, uport, upassword, upic) values(?,?,?,?,?,?)";
+    const QString USER_REMOVE = "delete from User where uid=?";
+    const QString USER_GET = "select * from User where uid=?";
+    const QString USER_GET_ALL = "select * from User";
+
+    const QString GROUP_INSERT = "insert into UserGroup(gowner,gname,gintro,gpic) values(?,?,?,?)";
+    const QString GROUP_REMOVE = "delete from UserGroup where gid=?";
+    const QString GROUP_GET = "select * from UserGroup where gid=?";
+    const QString GROUP_GET_ALL = "select * from UserGroup";
+
+    const QString GET_GROUP_MEMBER = "select * from GroupMember where gid=?";
+    const QString ADD_GROUP_MEMBER = "insert into GroupMember(gid,uid,mtype) values(?,?,?)";
+    const QString REMOVE_GROUP_MEMBER = "delete from GroupMember where gid=? and uid=?";
+
     QSqlTableModel userModel;
     QSqlTableModel groupModel;
     QSqlTableModel membersModel;
