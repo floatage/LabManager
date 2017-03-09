@@ -4,18 +4,7 @@
 #include <QObject>
 #include <QVector>
 #include <memory>
-#include <QSqlTableModel>
 #include "objectdeclare.h"
-
-class CommunicationObject:public StorableObject
-{
-public:
-    CommunicationObject(){}
-    virtual ~CommunicationObject(){}
-
-    virtual QByteArray toString()const{return QByteArray();}
-    virtual void toObject(const QByteArray&)const{}
-};
 
 struct MACSOCKET
 {
@@ -42,6 +31,7 @@ public:
     explicit User(unsigned int id, const MACSOCKET& ms, const QString& name, const QString& pass, const QString& pic);
     ~User();
 
+    QString getType()const {return "user";}
     unsigned int getId()const {return id;}
     const MACSOCKET& getMacSocket()const {return macSocket;}
     void setMacSocket(const MACSOCKET& newSocket) {macSocket = newSocket;}
@@ -69,6 +59,7 @@ public:
     UserGroup(unsigned int id, unsigned int ownerId, const QString& name, const QString& intro, const QString& pic);
     ~UserGroup();
 
+    QString getType()const {return "group";}
     unsigned int getId()const{return id;}
     unsigned int getOwnerId()const{return ownerId;}
     const QString& getName()const {return name;}
@@ -138,7 +129,7 @@ public:
 
 private:
     bool createTables();
-    bool createDBConn(const QString& dbName);
+    bool createDBConn();
 
     const QString USER_INSERT = "insert into User(uname, uip, umac, uport, upassword, upic) values(?,?,?,?,?,?)";
     const QString USER_REMOVE = "delete from User where uid=?";
@@ -154,9 +145,7 @@ private:
     const QString ADD_GROUP_MEMBER = "insert into GroupMember(gid,uid,mtype) values(?,?,?)";
     const QString REMOVE_GROUP_MEMBER = "delete from GroupMember where gid=? and uid=?";
 
-    QSqlTableModel userModel;
-    QSqlTableModel groupModel;
-    QSqlTableModel membersModel;
+    QString dbName;
 };
 
 class UserManagerMM: public UserManagerImplement

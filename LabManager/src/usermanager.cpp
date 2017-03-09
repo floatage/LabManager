@@ -136,14 +136,10 @@ bool UserManager::removeMember(unsigned int groupId, unsigned int userId)
 
 //UserManagerDB implement
 
-UserManagerDB::UserManagerDB()
+UserManagerDB::UserManagerDB():dbName("labManager.db")
 {
-    if (createDBConn("labManager.db")){
+    if (createDBConn()){
         createTables();
-
-        userModel.setTable("User");
-        groupModel.setTable("UserGroup");
-        membersModel.setTable("GroupMember");
     }
 }
 
@@ -151,7 +147,7 @@ UserManagerDB::~UserManagerDB()
 {
 }
 
-bool UserManagerDB::createDBConn(const QString& dbName)
+bool UserManagerDB::createDBConn()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(dbName);

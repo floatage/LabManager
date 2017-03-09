@@ -18,5 +18,18 @@ private:
     UnCopyable& operator =(const UnCopyable&);
 };
 
+class CommunicationObject:public StorableObject
+{
+public:
+    CommunicationObject(){}
+    virtual ~CommunicationObject(){}
+
+    virtual QByteArray toString()const{return QByteArray();}
+    virtual void toObject(const QByteArray&)const{}
+
+    virtual QString getType()const {return QString();}
+    virtual unsigned int getId()const {return 0;}
+};
+
 #endif // OBJECTDECLARE
 
