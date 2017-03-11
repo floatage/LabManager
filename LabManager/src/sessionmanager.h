@@ -11,30 +11,30 @@ class ChatMessage
 public:
     enum ChatMessageType{TEXT, PIC, EMOJI, OTHER};
 
-    ChatMessage(ChatMessageType type, QString data, unsigned int ownerId);
+    ChatMessage(ChatMessageType type, const QString& data, uint ownerId, uint sessionId, uint id);
     ~ChatMessage();
 
     ChatMessageType getType()const {return type;}
     QString getData()const {return data;}
     QDate getDate()const {return date;}
-    unsigned int getId()const {return id;}
-    unsigned int getSendId()const{return senderId;}
-    unsigned int getSessionId()const {return sessionId;}
+    uint getId()const {return id;}
+    uint getOwnerId()const{return ownerId;}
+    uint getSessionId()const {return sessionId;}
 
 private:
     ChatMessageType type;
     QString data;
     QDate date;
-    unsigned int id;
-    unsigned sessionId;
-    unsigned int owner;
+    uint id;
+    uint sessionId;
+    uint ownerId;
 };
 
 class SessionOPImplement
 {
 public:
     virtual bool appendMsg(const ChatMessage& msg)=0;
-    virtual bool removeMsg(unsigned int id)=0;
+    virtual bool removeMsg(uint id)=0;
     virtual bool removeAllMsg()=0;
     virtual std::shared_ptr<QVector<ChatMessage>> getChatMsg(int length=10)=0;
 };
@@ -42,8 +42,11 @@ public:
 class SessionOPImplementDB:public SessionOPImplement
 {
 public:
+    SessionOPImplementDB();
+    ~SessionOPImplementDB();
+
     bool appendMsg(const ChatMessage& msg);
-    bool removeMsg(unsigned int id);
+    bool removeMsg(uint id);
     bool removeAllMsg();
     std::shared_ptr<QVector<ChatMessage>> getChatMsg(int length=10);
 
@@ -62,26 +65,26 @@ public:
     Session(SessionState state, const CommunicationObject& source, const CommunicationObject& dest);
     ~Session();
 
-    unsigned int getId()const {return id;}
+    uint getId()const {return id;}
     QDate getDate()const {return date;}
 
     QString getSourceType()const{return source->getType();}
-    unsigned int getSourceId()const{return source->getId();}
+    uint getSourceId()const{return source->getId();}
     QString getDestType()const{return dest->getType();}
-    unsigned int getDestId()const{return dest->getId();}
+    uint getDestId()const{return dest->getId();}
     SessionState getState()const {return state;}
 
     bool setState(SessionState state);
 
     bool sendMsg(const ChatMessage& msg);
     bool recvMsg();
-    bool recallMsg(unsigned int id);
+    bool recallMsg(uint id);
     bool getMsg(int length=10);
 
 private:
     SessionState state;
 
-    unsigned int id;
+    uint id;
     QDate date;
     std::shared_ptr<CommunicationObject> source;
     std::shared_ptr<CommunicationObject> dest;
@@ -92,21 +95,24 @@ private:
 class SessionManagerImplement
 {
 public:
-    virtual bool appendSession(SessionState state, const CommunicationObject& source, const CommunicationObject& dest)=0;
-    virtual bool removeSession(unsigned int id)=0;
-    virtual bool getSession(unsigned int id)=0;
-    virtual bool suspendSession(unsigned int id)=0;
-    virtual bool resumeSession(unsigned int id)=0;
+    virtual bool appendSession(Session::SessionState state, const CommunicationObject& source, const CommunicationObject& dest)=0;
+    virtual bool removeSession(uint id)=0;
+    virtual bool getSession(uint id)=0;
+    virtual bool suspendSession(uint id)=0;
+    virtual bool resumeSession(uint id)=0;
 };
 
 class SessionManagerImplementDB: public SessionManagerImplement
 {
 public:
-    virtual bool appendSession(SessionState state, const CommunicationObject& source, const CommunicationObject& dest);
-    virtual bool removeSession(unsigned int id);
-    virtual bool getSession(unsigned int id);
-    virtual bool suspendSession(unsigned int id);
-    virtual bool resumeSession(unsigned int id);
+    SessionManagerImplementDB();
+    ~SessionManagerImplementDB();
+
+    virtual bool appendSession(Session::SessionState state, const CommunicationObject& source, const CommunicationObject& dest);
+    virtual bool removeSession(uint id);
+    virtual bool getSession(uint id);
+    virtual bool suspendSession(uint id);
+    virtual bool resumeSession(uint id);
 };
 
 class SessionManager: public QObject
@@ -115,11 +121,11 @@ class SessionManager: public QObject
 public:
     static SessionManager* getInstance();
 
-    bool appendSession(SessionState state, const CommunicationObject& source, const CommunicationObject& dest);
-    bool removeSession(unsigned int id);
-    bool getSession(unsigned int id);
-    bool suspendSession(unsigned int id);
-    bool resumeSession(unsigned int id);
+    bool appendSession(Session::SessionState state, const CommunicationObject& source, const CommunicationObject& dest);
+    bool removeSession(uint id);
+    bool getSession(uint id);
+    bool suspendSession(uint id);
+    bool resumeSession(uint id);
 
 private:
     explicit SessionManager(QObject* parent=0);

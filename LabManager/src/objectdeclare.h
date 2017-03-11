@@ -28,7 +28,7 @@ public:
     virtual void toObject(const QByteArray&)const{}
 
     virtual QString getType()const {return QString();}
-    virtual unsigned int getId()const {return 0;}
+    virtual uint getId()const {return 0;}
 };
 
 #endif // OBJECTDECLARE
