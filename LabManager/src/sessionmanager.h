@@ -11,12 +11,12 @@ class ChatMessage
 public:
     enum ChatMessageType{TEXT, PIC, EMOJI, OTHER};
 
-    ChatMessage(ChatMessageType type, const QString& data, uint ownerId, uint sessionId, uint id);
+    ChatMessage(ChatMessageType type, const QString& data, const QDateTime& date, uint ownerId, uint sessionId, uint id);
     ~ChatMessage();
 
     ChatMessageType getType()const {return type;}
     QString getData()const {return data;}
-    QDate getDate()const {return date;}
+    QDateTime getDate()const {return date;}
     uint getId()const {return id;}
     uint getOwnerId()const{return ownerId;}
     uint getSessionId()const {return sessionId;}
@@ -24,7 +24,7 @@ public:
 private:
     ChatMessageType type;
     QString data;
-    QDate date;
+    QDateTime date;
     uint id;
     uint sessionId;
     uint ownerId;
@@ -35,8 +35,8 @@ class SessionOPImplement
 public:
     virtual bool appendMsg(const ChatMessage& msg)=0;
     virtual bool removeMsg(uint id)=0;
-    virtual bool removeAllMsg()=0;
-    virtual std::shared_ptr<QVector<ChatMessage>> getChatMsg(int length=10)=0;
+    virtual bool removeAllMsg(uint sessionId)=0;
+    virtual std::shared_ptr<QVector<ChatMessage>> getChatMsg(uint sessionId, int length=10)=0;
 };
 
 class SessionOPImplementDB:public SessionOPImplement
@@ -47,11 +47,16 @@ public:
 
     bool appendMsg(const ChatMessage& msg);
     bool removeMsg(uint id);
-    bool removeAllMsg();
-    std::shared_ptr<QVector<ChatMessage>> getChatMsg(int length=10);
+    virtual bool removeAllMsg(uint sessionId)=0;
+    virtual std::shared_ptr<QVector<ChatMessage>> getChatMsg(uint sessionId, int length=10)=0;
 
 private:
     QString dbName;
+
+    const QString ADD_CHATMSG = "insert into ChatMsg(mession,mowner,mtype,mdata,mdate) values(?,?,?,?,datetime('now'))";
+    const QString REMOVE_CHATMSG = "delete from ChatMsg where mid=?";
+    const QString REMOVE_CHATMSG_ALL = "delete from ChatMsg where msession=?";
+    const QString GET_CHATMSG = "select * from ChatMsg where msession=? ORDER BY mdate DESC LIMIT ?";
 
     bool createTables();
     bool createDBConn();
@@ -60,32 +65,30 @@ private:
 class Session
 {
 public:
-    enum SessionState{ACTIVE, SLEEP};
+    enum SessionState{ACTIVE, SLEEP, MSG};
 
-    Session(SessionState state, const CommunicationObject& source, const CommunicationObject& dest);
+    Session(uint id, const QDateTime& date, Session::SessionState state, CommunicationObject* psource, CommunicationObject* pdest);
     ~Session();
 
     uint getId()const {return id;}
-    QDate getDate()const {return date;}
+    QDateTime getDate()const {return date;}
 
     QString getSourceType()const{return source->getType();}
     uint getSourceId()const{return source->getId();}
     QString getDestType()const{return dest->getType();}
     uint getDestId()const{return dest->getId();}
     SessionState getState()const {return state;}
-
-    bool setState(SessionState state);
+    bool setState(SessionState state){state=state;}
 
     bool sendMsg(const ChatMessage& msg);
     bool recvMsg();
     bool recallMsg(uint id);
-    bool getMsg(int length=10);
+    std::shared_ptr<QVector<ChatMessage>> getMsg(int length=10);
 
 private:
-    SessionState state;
-
     uint id;
-    QDate date;
+    QDateTime date;
+    SessionState state;
     std::shared_ptr<CommunicationObject> source;
     std::shared_ptr<CommunicationObject> dest;
 
@@ -95,11 +98,10 @@ private:
 class SessionManagerImplement
 {
 public:
-    virtual bool appendSession(Session::SessionState state, const CommunicationObject& source, const CommunicationObject& dest)=0;
+    virtual bool appendSession(const CommunicationObject& source, const CommunicationObject& dest)=0;
     virtual bool removeSession(uint id)=0;
-    virtual bool getSession(uint id)=0;
-    virtual bool suspendSession(uint id)=0;
-    virtual bool resumeSession(uint id)=0;
+    virtual std::shared_ptr<QVariantList> getSessions()=0;
+    virtual std::shared_ptr<QVariantList> getSessionMsg(uint id, uint length)=0;
 };
 
 class SessionManagerImplementDB: public SessionManagerImplement
@@ -108,11 +110,24 @@ public:
     SessionManagerImplementDB();
     ~SessionManagerImplementDB();
 
-    virtual bool appendSession(Session::SessionState state, const CommunicationObject& source, const CommunicationObject& dest);
+    virtual bool appendSession(const CommunicationObject& source, const CommunicationObject& dest);
     virtual bool removeSession(uint id);
-    virtual bool getSession(uint id);
-    virtual bool suspendSession(uint id);
-    virtual bool resumeSession(uint id);
+    virtual std::shared_ptr<QVariantList> getSessions();
+    virtual std::shared_ptr<QVariantList> getSessionMsg(uint id, uint length);
+
+private:
+    const QString ADD_SESSION = "insert into Session(ssource,sstype,sdest,sdtype,mdate) values(?,?,?,?,datetime('now'))";
+    const QString REMOVE_SESSION = "delete from Session where sid=?";
+    const QString REMOVE_SESSION_CHATMSG = "delete from ChatMsg where msession=?";
+    const QString GET_SESSION_ALL = "select * from Session where ssource=?";
+    const QString GET_DEST_USER = "select * from User where uid=?";
+    const QString GET_DEST_GROUP = "select * from UserGroup where gid=?";
+    const QString GET_SESSION_MSG = "select * from ChatMsg where msession=? ORDER BY mdate DESC LIMIT ?";
+
+    QString dbName;
+
+    bool createTables();
+    bool createDBConn();
 };
 
 class SessionManager: public QObject
@@ -121,11 +136,10 @@ class SessionManager: public QObject
 public:
     static SessionManager* getInstance();
 
-    bool appendSession(Session::SessionState state, const CommunicationObject& source, const CommunicationObject& dest);
+    bool appendSession(const CommunicationObject& source, const CommunicationObject& dest);
     bool removeSession(uint id);
-    bool getSession(uint id);
-    bool suspendSession(uint id);
-    bool resumeSession(uint id);
+    QVariantList getSessions();
+    QVariantList getSessionMsg(uint id, uint length=0);
 
 private:
     explicit SessionManager(QObject* parent=0);

@@ -3,8 +3,9 @@
 #include "datamanager.h"
 
 UserManager* UserManager::instance = nullptr;
-UserManager::UserManager(QObject *parent) : QObject(parent), imp(std::shared_ptr<UserManagerImplement>(new UserManagerDB()))
+UserManager::UserManager(QObject *parent) : QObject(parent), imp(new UserManagerDB()), user()
 {
+    registerUser();
 }
 
 UserManager::~UserManager()
@@ -18,6 +19,11 @@ UserManager* UserManager::getInstance(void)
     }
 
     return instance;
+}
+
+void UserManager::registerUser()
+{
+
 }
 
 void UserManager::scanCommunicationObject()

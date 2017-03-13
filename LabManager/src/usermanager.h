@@ -175,15 +175,18 @@ class UserManager : public QObject
 protected:
     explicit UserManager(QObject *parent = 0);
     ~UserManager();
+    void registerUser();
 
     static UserManager* instance;
 
+    User user;
     std::shared_ptr<UserManagerImplement> imp;
 
 public:
     static UserManager* getInstance(void);
 
     void scanCommunicationObject();
+    User getCurUser(){return user;}
 
     Q_INVOKABLE bool addUser(const User& user);
     Q_INVOKABLE bool removeUser(uint id);
