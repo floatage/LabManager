@@ -3,7 +3,7 @@
 #include "usermanager.h"
 
 SessionManager* SessionManager::instance = nullptr;
-SessionManager::SessionManager(QObject* parent=0)
+SessionManager::SessionManager(QObject* parent)
     :QObject(parent), imp(new SessionManagerImplementDB())
 {
 }
@@ -47,7 +47,7 @@ QVariantList SessionManager::getSessions()
     return *(imp->getSessions());
 }
 
-QVariantList SessionManager::getSessionMsg(uint id, int length)
+QVariantList SessionManager::getSessionMsg(uint id, uint length)
 {
     return *(imp->getSessionMsg(id, length));
 }
@@ -114,46 +114,46 @@ std::shared_ptr<QVariantList> SessionManagerImplementDB::getSessions()
     std::shared_ptr<QVariantList> result(new QVariantList());
     QSqlQuery query, destQuery(queryConn);
 
-//    query.prepare(GET_SESSION_ALL);
-//    query.addBindValue(curUser.getId());
-//    if(!query.exec()){
-//        qDebug() << "get session all failed";
-//        return result;
-//    }
+    query.prepare(GET_SESSION_ALL);
+    query.addBindValue(curUser.getId());
+    if(!query.exec()){
+        qDebug() << "get session all failed";
+        return result;
+    }
 
-//    //本sql语句应可得出本用户的会话消息及其会话目标的基本信息
-//    //涉及两个表User,Session
-//    //select * from User,(select * from Session where ssource=uid group by sdtype) as SR where User.uid=SR.sd
-//    //上面的语句无法根据对象类型连接不同的表
+    //本sql语句应可得出本用户的会话消息及其会话目标的基本信息
+    //涉及两个表User,Session
+    //select * from User,(select * from Session where ssource=uid group by sdtype) as SR where User.uid=SR.sd
+    //上面的语句无法根据对象类型连接不同的表
 
-//    while(query.next())
-//    {
-//        QVariantList item;
+    while(query.next())
+    {
+        QVariantList item;
 
-//        item.append(query.value("sid"));
-//        item.append(query.value("sdate"));
+        item.append(query.value("sid"));
+        item.append(query.value("sdate"));
 
-//        uint sdest = query.value("sdest").toUInt();
-//        QString destType = query.value("sdtype").toString();
+        uint sdest = query.value("sdest").toUInt();
+        QString destType = query.value("sdtype").toString();
 
-//        QString dintro, pic;
-//        destQuery.prepare(destType == "user" ? GET_DEST_USER : GET_DEST_GROUP);
-//        destQuery.addBindValue(sdest);
-//        if (destQuery.exec()){
-//            if (destType == "user"){
-//                pic = destQuery.value("upic");
-//                dintro = destQuery.value("uname").toString() + destQuery.value("uip").toString();
-//            }else{
-//                pic = destQuery.value("gpic");
-//                dintro = destQuery.value("gname");
-//            }
-//        }
+        QString dintro, pic;
+        destQuery.prepare(destType == "user" ? GET_DEST_USER : GET_DEST_GROUP);
+        destQuery.addBindValue(sdest);
+        if (destQuery.exec()){
+            if (destType == "user"){
+                pic = destQuery.value("upic").toString();
+                dintro = destQuery.value("uname").toString() + destQuery.value("uip").toString();
+            }else{
+                pic = destQuery.value("gpic").toString();
+                dintro = destQuery.value("gname").toString();
+            }
+        }
 
-//        item.append(dintro);
-//        item.append(pic);
+        item.append(dintro);
+        item.append(pic);
 
-//        result->append(item);
-//    }
+        result->append(item);
+    }
 
     QSqlDatabase::removeDatabase(connName);
     qDebug() << "get session all success";
@@ -164,25 +164,25 @@ std::shared_ptr<QVariantList> SessionManagerImplementDB::getSessionMsg(uint id, 
 {
     QSqlQuery query;
     std::shared_ptr<QVariantList> result(new QVariantList());
-//    query.prepare(GET_SESSION_MSG);
-//    query.addBindValue(id);
-//    query.addBindValue(length);
+    query.prepare(GET_SESSION_MSG);
+    query.addBindValue(id);
+    query.addBindValue(length);
 
-//    if(!query.exec()){
-//        qDebug() << "session msg select all failed";
-//        return result;
-//    }
+    if(!query.exec()){
+        qDebug() << "session msg select all failed";
+        return result;
+    }
 
-//    while (query.next())
-//    {
-//        QVariantList item;
-//        item.append(query.value("mid"));
-//        item.append(query.value("msession"));
-//        item.append(query.value("mtype"));
-//        item.append(query.value("mowner"));
-//        item.append(query.value("mdata"));
-//        item.append(query.value("mdate"));
-//    }
+    while (query.next())
+    {
+        QVariantList item;
+        item.append(query.value("mid"));
+        item.append(query.value("msession"));
+        item.append(query.value("mtype"));
+        item.append(query.value("mowner"));
+        item.append(query.value("mdata"));
+        item.append(query.value("mdate"));
+    }
 
     qDebug() << "session msg select all success";
     return result;
@@ -330,7 +330,7 @@ std::shared_ptr<QVector<ChatMessage>> SessionOPImplementDB::getChatMsg(uint sess
         QString mdata = query.value("mdata").toString();
         QDateTime mdate = query.value("mdate").toDateTime();
 
-        result->push_back(ChatMessage(type,mdata,mdate,mowner, msession, mid));
+        result->push_back(ChatMessage(ChatMessage::ChatMessageType(type),mdata,mdate,mowner, msession, mid));
     }
 
     qDebug() << "msg select all success";
@@ -369,6 +369,11 @@ bool SessionOPImplementDB::createDBConn()
 ChatMessage::ChatMessage(ChatMessageType type, const QString& data, const QDateTime& date, uint ownerId, uint sessionId, uint id)
     :type(type), data(data), date(date), ownerId(ownerId), sessionId(sessionId), id(id)
 {
+}
+
+ChatMessage::ChatMessage()
+{
+
 }
 
 ChatMessage::~ChatMessage()

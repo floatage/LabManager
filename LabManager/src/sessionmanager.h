@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVector>
 #include <memory>
+#include <QDateTime>
 #include "objectdeclare.h"
 
 class ChatMessage
@@ -11,6 +12,7 @@ class ChatMessage
 public:
     enum ChatMessageType{TEXT, PIC, EMOJI, OTHER};
 
+    ChatMessage();
     ChatMessage(ChatMessageType type, const QString& data, const QDateTime& date, uint ownerId, uint sessionId, uint id);
     ~ChatMessage();
 
@@ -47,8 +49,8 @@ public:
 
     bool appendMsg(const ChatMessage& msg);
     bool removeMsg(uint id);
-    virtual bool removeAllMsg(uint sessionId)=0;
-    virtual std::shared_ptr<QVector<ChatMessage>> getChatMsg(uint sessionId, int length=10)=0;
+    virtual bool removeAllMsg(uint sessionId);
+    virtual std::shared_ptr<QVector<ChatMessage>> getChatMsg(uint sessionId, int length=10);
 
 private:
     QString dbName;

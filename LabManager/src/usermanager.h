@@ -190,13 +190,13 @@ public:
 
     Q_INVOKABLE bool addUser(const User& user);
     Q_INVOKABLE bool removeUser(uint id);
-    Q_INVOKABLE QVariantList getUser(uint id);
-    Q_INVOKABLE QVariantList getUsers();
+//    Q_INVOKABLE QVariantList getUser(uint id);
+//    Q_INVOKABLE QVariantList getUsers();
 
     Q_INVOKABLE bool addUserGroup(const UserGroup& group);
     Q_INVOKABLE bool removeUserGroup(uint id);
-    Q_INVOKABLE QVariantList getUserGroup(uint id);
-    Q_INVOKABLE QVariantList getUserGroups();
+//    Q_INVOKABLE QVariantList getUserGroup(uint id);
+//    Q_INVOKABLE QVariantList getUserGroups();
     Q_INVOKABLE QVariantList getMembers(uint groupId);
     Q_INVOKABLE bool appendMember(uint groupId, uint userId, const QString& type);
     Q_INVOKABLE bool removeMember(uint groupId, uint userId);
