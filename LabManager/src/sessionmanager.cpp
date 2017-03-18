@@ -1,4 +1,5 @@
 #include <QtSql>
+#include <assert.h>
 #include "sessionmanager.h"
 #include "usermanager.h"
 
@@ -31,6 +32,8 @@ SessionManager* SessionManager::getInstance()
 //4. 前台可由此类获取指定会话的所有聊天信息
 //5. 用户双击通信对象若会话存在应立即跳转到之前的会话
 //6. 发送消息后才应将会话存储到后台
+//7. 后台接收到消息后发出信号改变前台会话状态，前台编写信号处理处理函数显示接收到的消息
+//8. 若接收到的消息无会话则创建一个会话，并发出创建会话由前台处理
 //前台需存储的应有通信对象图片，通信对象基本信息，最新消息，会话状态，会话Id
 bool SessionManager::appendSession(const CommunicationObject& source, const CommunicationObject& dest)
 {
@@ -50,6 +53,18 @@ QVariantList SessionManager::getSessions()
 QVariantList SessionManager::getSessionMsg(uint id, uint length)
 {
     return *(imp->getSessionMsg(id, length));
+}
+
+bool SessionManager::sendSessionMsg(const QVariantList& msg)
+{
+    //通过网络模块将消息发送出去
+    return imp->appendSessionMsg(msg);
+}
+
+void SessionManager::recvSessionMsg(const ChatMessage &msg)
+{
+   //接收消息
+    imp->recvSessionMsg(msg);
 }
 
 //SessionManagerImplementDB implement
@@ -188,6 +203,56 @@ std::shared_ptr<QVariantList> SessionManagerImplementDB::getSessionMsg(uint id, 
     return result;
 }
 
+bool SessionManagerImplementDB::sendSessionMsg(const QVariantList &msg)
+{
+    QSqlQuery query;
+    query.prepare(ADD_SESSION_MSG);
+
+    for (int begin = 0, end = msg.length(); begin != end; ++end)
+        query.addBindValue(msg[begin]);
+
+    if(query.exec()){
+        qDebug() << "session msg add success";
+        return true;
+    }else{
+        qDebug() << "session msg add failed";
+        return false;
+    }
+}
+
+QVariantList SessionManagerImplementDB::recvSessionMsg(const ChatMessage &msg)
+{
+    QVariantList result;
+    QSqlQuery query;
+    QSqlDatabase db = QSqlDatabase::database();
+    query.prepare(GET_RECV_SESSION);
+    query.addBindValue(msg.getOwnerId());
+
+    db.transaction();
+    if(!query.exec()){
+        qDebug() << "msg owner session get success";
+        return result;
+    }
+
+    if (!query.next())
+    {
+        UserManager* um = UserManager::getInstance();
+        if (appendSession(um->getImplement()->getUser(msg.getOwnerId()), um->getCurUser()))
+            query.exec(query.executedQuery());
+    }
+
+    assert(query.next());
+
+    result.append(query.value("sid"));
+    result.append(msg.getOwnerId());
+    result.append(msg.getType());
+    result.append(msg.getData());
+    sendSessionMsg(result);
+    db.commit();
+
+    return result;
+}
+
 bool SessionManagerImplementDB::createTables()
 {
     QSqlQuery query;
@@ -198,7 +263,17 @@ bool SessionManagerImplementDB::createTables()
                          "sdtype VARCHAR(10), "
                          "sdate DATETIME NOT NULL, "
                          "foreign key(ssource) references User(uid)");
-    return bSession;
+
+    bool bMsg = query.exec("CREATE TABLE IF NOT EXISTS ChatMsg(mid INTEGER PRIMARY KEY AUTOINCREMENT, "
+                         "msession INTEGER, "
+                         "mowner INTEGER, "
+                         "mtype INTEGER NOT NULL, "
+                         "mdata TEXT NOT NULL, "
+                         "mdate DATETIME NOT NULL, "
+                         "foreign key(mowner) references User(uid), "
+                         "foreign key(msession) references Session(sid))");
+
+    return bSession && bMsg;
 }
 
 bool SessionManagerImplementDB::createDBConn()
@@ -249,11 +324,8 @@ std::shared_ptr<QVector<ChatMessage>> Session::getMsg(int length)
 
 //SessionOPImplementDB implement
 
-SessionOPImplementDB::SessionOPImplementDB():dbName("labManager.db")
+SessionOPImplementDB::SessionOPImplementDB()
 {
-    if (createDBConn()){
-        createTables();
-    }
 }
 
 SessionOPImplementDB::~SessionOPImplementDB()
@@ -337,33 +409,6 @@ std::shared_ptr<QVector<ChatMessage>> SessionOPImplementDB::getChatMsg(uint sess
     return result;
 }
 
-bool SessionOPImplementDB::createTables()
-{
-    QSqlQuery query;
-    bool bMsg = query.exec("CREATE TABLE IF NOT EXISTS ChatMsg(mid INTEGER PRIMARY KEY AUTOINCREMENT, "
-                         "msession INTEGER, "
-                         "mowner INTEGER, "
-                         "mtype INTEGER NOT NULL, "
-                         "mdata TEXT NOT NULL, "
-                         "mdate DATETIME NOT NULL, "
-                         "foreign key(mowner) references User(uid), "
-                         "foreign key(msession) references Session(sid))");
-
-    return bMsg;
-}
-
-bool SessionOPImplementDB::createDBConn()
-{
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(dbName);
-    if (!db.open()){
-        qDebug()<<"session open database failed ---"<<db.lastError().text()<<"/n";
-        return false;
-    }
-
-    return true;
-}
-
 //ChatMessage implement
 
 ChatMessage::ChatMessage(ChatMessageType type, const QString& data, const QDateTime& date, uint ownerId, uint sessionId, uint id)
@@ -373,7 +418,6 @@ ChatMessage::ChatMessage(ChatMessageType type, const QString& data, const QDateT
 
 ChatMessage::ChatMessage()
 {
-
 }
 
 ChatMessage::~ChatMessage()

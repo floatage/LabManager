@@ -53,15 +53,10 @@ public:
     virtual std::shared_ptr<QVector<ChatMessage>> getChatMsg(uint sessionId, int length=10);
 
 private:
-    QString dbName;
-
     const QString ADD_CHATMSG = "insert into ChatMsg(mession,mowner,mtype,mdata,mdate) values(?,?,?,?,datetime('now'))";
     const QString REMOVE_CHATMSG = "delete from ChatMsg where mid=?";
     const QString REMOVE_CHATMSG_ALL = "delete from ChatMsg where msession=?";
     const QString GET_CHATMSG = "select * from ChatMsg where msession=? ORDER BY mdate DESC LIMIT ?";
-
-    bool createTables();
-    bool createDBConn();
 };
 
 class Session
@@ -104,6 +99,8 @@ public:
     virtual bool removeSession(uint id)=0;
     virtual std::shared_ptr<QVariantList> getSessions()=0;
     virtual std::shared_ptr<QVariantList> getSessionMsg(uint id, uint length)=0;
+    virtual bool sendSessionMsg(const QVariantList& msg)=0;
+    virtual QVariantList recvSessionMsg(const ChatMessage& msg)=0;
 };
 
 class SessionManagerImplementDB: public SessionManagerImplement
@@ -116,6 +113,8 @@ public:
     virtual bool removeSession(uint id);
     virtual std::shared_ptr<QVariantList> getSessions();
     virtual std::shared_ptr<QVariantList> getSessionMsg(uint id, uint length);
+    bool sendSessionMsg(const QVariantList& msg);
+    QVariantList recvSessionMsg(const ChatMessage& msg);
 
 private:
     const QString ADD_SESSION = "insert into Session(ssource,sstype,sdest,sdtype,mdate) values(?,?,?,?,datetime('now'))";
@@ -125,6 +124,8 @@ private:
     const QString GET_DEST_USER = "select * from User where uid=?";
     const QString GET_DEST_GROUP = "select * from UserGroup where gid=?";
     const QString GET_SESSION_MSG = "select * from ChatMsg where msession=? ORDER BY mdate DESC LIMIT ?";
+    const QString ADD_SESSION_MSG = "insert into ChatMsg(mession,mowner,mtype,mdata,mdate) values(?,?,?,?,datetime('now'))";
+    const QString GET_RECV_SESSION = "select sid from Session where sdest=?";
 
     QString dbName;
 
@@ -142,6 +143,8 @@ public:
     bool removeSession(uint id);
     QVariantList getSessions();
     QVariantList getSessionMsg(uint id, uint length=0);
+    bool sendSessionMsg(const QVariantList& msg);
+    bool recvSessionMsg(const ChatMessage& msg);
 
 private:
     explicit SessionManager(QObject* parent=0);
@@ -153,6 +156,9 @@ private:
     std::shared_ptr<SessionManagerImplement> imp;
 
     static SessionManager* instance;
+
+signals:
+    void recvMsg(QVariantList msg);
 };
 
 #endif // SESSIONMANAGER_H

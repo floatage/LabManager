@@ -347,12 +347,12 @@ ApplicationWindow {
                         height: parent.height
 
                         Component.onCompleted: {
-                            for(var count = 0, ch = '哈'; count < 10; ++count){
-                                model.append({picPath: "/img/defaultPic.jpg"
-                                                ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
-                                                ,sessionMsg: ch})
-                                ch = ch + '哈'
-                            }
+//                            for(var count = 0, ch = '哈'; count < 10; ++count){
+//                                model.append({picPath: "/img/defaultPic.jpg"
+//                                                ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
+//                                                ,sessionMsg: ch})
+//                                ch = ch + '哈'
+//                            }
                         }
 
                         model: ListModel {
