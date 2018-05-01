@@ -13,7 +13,8 @@ const StringType transferStrActionStr("TransferStr");
 const StringType transferPicActionStr("TransferPic");
 const StringType transferFileActionStr("TransferFile");
 
-SessionManager::SessionManager()
+SessionManager::SessionManager(QObject *parent)
+    :QObject(parent)
 {
     ConnectionManager::getInstance()->registerFamilyHandler(sessionFamilyStr, std::bind(&SessionManager::actionParse, this, _1, _2));
 

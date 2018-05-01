@@ -5,27 +5,30 @@
 
 #include "MsgParser.h"
 
+#include "QtCore\qobject.h"
+
 struct RequestInfo;
-class TaskManager: public boost::noncopyable, public MsgActionParser
+class TaskManager: public QObject, public boost::noncopyable, public MsgActionParser
 {
+    Q_OBJECT
 public:
 	~TaskManager();
     static TaskManager* getInstance();
 
-	int createTask(int mode, const QString& duuid, int type, QVariantHash& data);
-	int createTask(const RequestInfo& req);
-	void executeTask(int tid);
-	void pauseTask(int tid);
-	void stopTask(int tid);
-	void getTaskProgress(int tid);
+    Q_INVOKABLE int createTask(int mode, const QString& duuid, int type, QVariantHash& data);
+    Q_INVOKABLE int createTask(const RequestInfo& req);
+    Q_INVOKABLE void executeTask(int tid);
+    Q_INVOKABLE void pauseTask(int tid);
+    Q_INVOKABLE void stopTask(int tid);
+    Q_INVOKABLE void getTaskProgress(int tid);
 
-	QVariantList listRunningTask();
-	QVariantList listFinishedTask();
+    Q_INVOKABLE QVariantList listRunningTask();
+    Q_INVOKABLE QVariantList listFinishedTask();
 
-	QVariantList getSettings();
-	void setSettingOption(const QVariantList& options);
+    Q_INVOKABLE QVariantList getSettings();
+    Q_INVOKABLE void setSettingOption(const QVariantList& options);
 private:
-	TaskManager();
+    TaskManager(QObject *parent = 0);
 
 	ConnPtr getTaskConn(int tid);
 

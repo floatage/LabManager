@@ -1,8 +1,7 @@
 #include "HomeworkManager.h"
 
-
-
-HomeworkManager::HomeworkManager()
+HomeworkManager::HomeworkManager(QObject *parent)
+    :QObject(parent)
 {
 }
 

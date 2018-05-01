@@ -6,24 +6,26 @@
 
 #include "boost\noncopyable.hpp"
 
+#include "QtCore\qobject.h"
 #include "QtCore\qvariant.h"
 
-class AdminManager: public boost::noncopyable, public MsgActionParser
+class AdminManager: public QObject, public boost::noncopyable, public MsgActionParser
 {
+    Q_OBJECT
 public:
 	~AdminManager();
     static AdminManager* getInstance();
 
-	int createAdmin(const QString& name, const QString& password);
-	int deleteAdmin(const QString& name);
+    Q_INVOKABLE int createAdmin(const QString& name, const QString& password);
+    Q_INVOKABLE int deleteAdmin(const QString& name);
 	
-	int adminLogin(const QString& name, const QString& password);
-	int adminModifyPassword(const QString& name, const QString& oldPass, const QString& newPass);
+    Q_INVOKABLE int adminLogin(const QString& name, const QString& password);
+    Q_INVOKABLE int adminModifyPassword(const QString& name, const QString& oldPass, const QString& newPass);
 
-	QVariantList getSettings();
-	int setSettingOption(const QVariantList& options);
+    Q_INVOKABLE QVariantList getSettings();
+    Q_INVOKABLE int setSettingOption(const QVariantList& options);
 private:
-	AdminManager();
+    AdminManager(QObject *parent = 0);
 	void handleDbSync(JsonObjType& msg, ConnPtr conn);
 };
 

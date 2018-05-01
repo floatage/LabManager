@@ -7,7 +7,8 @@ const StringType pauseTaskActionStr("PauseTask");
 const StringType stopTaskActionStr("StopTask");
 const StringType executeTaskActionStr("ExecuteTask");
 
-TaskManager::TaskManager()
+TaskManager::TaskManager(QObject *parent)
+    :QObject(parent)
 {
     ConnectionManager::getInstance()->registerFamilyHandler(taskManagFamilyStr, std::bind(&TaskManager::actionParse, this, _1, _2));
 

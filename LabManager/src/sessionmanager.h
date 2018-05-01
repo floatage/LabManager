@@ -2,11 +2,14 @@
 #define SESSIONMANAGER_H
 
 #include "Common.h"
-#include "QtCore\qvariant.h"
 #include "MsgParser.h"
 
-class SessionManager: public boost::noncopyable, public MsgActionParser
+#include "QtCore\qobject.h"
+#include "QtCore\qvariant.h"
+
+class SessionManager: public QObject, public boost::noncopyable, public MsgActionParser
 {
+    Q_OBJECT
 public:
 	enum SessionType{ UserSession, GroupSession};
 	enum ChatMsgType { ChatText, ChatPic, ChatFile };
@@ -14,17 +17,17 @@ public:
 	~SessionManager();
     static SessionManager* getInstance();
 
-	int createSession(int type, const QString& duuid);
-	int deleteSession(int sid);
-	QVariantList listSessions();
+    Q_INVOKABLE int createSession(int type, const QString& duuid);
+    Q_INVOKABLE int deleteSession(int sid);
+    Q_INVOKABLE QVariantList listSessions();
 
-	QVariantList getChatMsgs(int sid);
-	void sendChatMsg(int sid, int stype, const QString& duuid, const QString& msg);
-	void sendPic(int sid, int stype, const QString& duuid, const QString& picPath);
-	void sendFile(int sid, int stype, const QString& duuid, const QString& filePath);
-	void publishHomework(const QString& duuid, const QVariantList& hwInfo);
+    Q_INVOKABLE QVariantList getChatMsgs(int sid);
+    Q_INVOKABLE void sendChatMsg(int sid, int stype, const QString& duuid, const QString& msg);
+    Q_INVOKABLE void sendPic(int sid, int stype, const QString& duuid, const QString& picPath);
+    Q_INVOKABLE void sendFile(int sid, int stype, const QString& duuid, const QString& filePath);
+    Q_INVOKABLE void publishHomework(const QString& duuid, const QVariantList& hwInfo);
 private:
-	SessionManager();
+    SessionManager(QObject *parent = 0);
 
 	void handleRecvChatMsg(JsonObjType& msg, ConnPtr conn);
 };

@@ -434,4 +434,8 @@ ApplicationWindow {
         anchors.leftMargin: -2
         anchors.top: parent.top
     }
+
+    FileTransfer{
+        id: daw
+    }
 }

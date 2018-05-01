@@ -8,7 +8,8 @@
 const StringType adminManageFamilyStr("AdminManage");
 const StringType dbSyncActionStr("DbSync");
 
-AdminManager::AdminManager()
+AdminManager::AdminManager(QObject *parent)
+    :QObject(parent)
 {
     ConnectionManager::getInstance()->registerFamilyHandler(adminManageFamilyStr, std::bind(&AdminManager::actionParse, this, _1, _2));
 

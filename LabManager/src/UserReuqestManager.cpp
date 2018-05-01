@@ -16,7 +16,8 @@ struct UserReuqestManagerData {
 	std::set<int> dropReqSet;
 };
 
-UserReuqestManager::UserReuqestManager()
+UserReuqestManager::UserReuqestManager(QObject *parent)
+    :QObject(parent)
 {
     ConnectionManager::getInstance()->registerFamilyHandler(requestFamilyStr, std::bind(&UserReuqestManager::actionParse, this, _1, _2));
 

@@ -15,8 +15,8 @@ const StringType dropMemberActionStr("DropMember");
 const StringType joinGroupActionStr("JoinGroup");
 const StringType quitGroupActionStr("QuitGroup");
 
-UserManager::UserManager(QObject *parent):
-	QObject(parent)
+UserManager::UserManager(QObject *parent)
+    :QObject(parent)
 {
     ConnectionManager::getInstance()->registerFamilyHandler(userManageFamilyStr, std::bind(&UserManager::actionParse, this, _1, _2));
 
