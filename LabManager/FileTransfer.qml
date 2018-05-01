@@ -269,7 +269,7 @@ DialogFrame{
 
                         NormalButton{
                             id: fileTransferSettingButton
-                            buttonText: "应 用 设 置"
+                            buttonText: "应 用 设 置";
                         }
                     }
                 }

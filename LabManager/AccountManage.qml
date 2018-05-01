@@ -88,10 +88,10 @@ DialogFrame{
                             buttonAction:
                                 Action {
                                     onTriggered:{
-                                        if (accountTextRow.value.length > 0 && passwordTextRow.value.length > 0)
-                                            AuthorityManager.adminLogin(accountTextRow.value, passwordTextRow.value)
-                                        else
-                                            console.log("can't empty")
+//                                        if (accountTextRow.value.length > 0 && passwordTextRow.value.length > 0)
+//                                            AuthorityManager.adminLogin(accountTextRow.value, passwordTextRow.value);
+//                                        else
+//                                            console.log("can't empty");
                                     }
                                 }
                         }

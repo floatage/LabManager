@@ -209,7 +209,7 @@ ApplicationWindow {
                         height: parent.height
 
                         Component.onCompleted: {
-                            var dataList = UserManager.getUsers();
+                            var dataList = UserManager.listUsers();
                             for(var begin = 0; begin < dataList.length; begin+=4){
                                 model.append({name: dataList[begin+1]
                                                 ,ip: dataList[begin+2]
@@ -278,7 +278,7 @@ ApplicationWindow {
                         height: parent.height
 
                         Component.onCompleted: {
-                            var dataList = UserManager.getUserGroups()
+                            var dataList = UserManager.listUserGroups()
                             for(var begin = 0; begin < dataList.length; begin+=4){
                                 model.append({name: dataList[begin+1]
                                                 ,memCount: dataList[begin+2]
@@ -433,9 +433,5 @@ ApplicationWindow {
         anchors.left: membersRoot.right
         anchors.leftMargin: -2
         anchors.top: parent.top
-    }
-
-    AccountManage{
-        id: contendda
     }
 }

@@ -43,7 +43,7 @@ DialogFrame{
                     }
 
                     NormalRadioButton{
-                        radioButtonText: "作业模式（禁止学生传文件）"
+                        radioButtonText: "作业模式（禁止学生传文件）";
                         rExclusiveGroup: runModeGroup
                     }
 

@@ -39,7 +39,7 @@ DialogFrame{
                     }
 
                     TextRow{
-                        rowText: "主服务端口"
+                        rowText: "主服务端口";
                         tWidth: 107
                         tPlaceholderText: "8800"
                     }

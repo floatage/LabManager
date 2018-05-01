@@ -20,7 +20,7 @@ DialogFrame {
         "broastcast":"/img/screeBctIcon.png",
         "control":"/img/remoteHelpIcon.png"
     }
-    property var requestTypeTextMap: {
+    property var requestTypeTextMap:{
         "file":"请求发送文件",
         "iGroup":"请求加入组",
         "oGroup":"邀请加入组",

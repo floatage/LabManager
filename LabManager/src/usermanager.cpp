@@ -1,612 +1,211 @@
-#include "usermanager.h"
-#include "datamanager.h"
+#include "UserManager.h"
+#include "DBop.h"
+#include "ConnectionManager.h"
+#include "NetStructureManager.h"
+#include "UserReuqestManager.h"
 
-UserManager* UserManager::instance = nullptr;
-UserManager::UserManager(QObject *parent) : QObject(parent), imp(new UserManagerDB()), user()
+#include "QtCore\quuid.h"
+
+const StringType userManageFamilyStr("UserManage");
+const StringType dbSyncActionStr("DbSync");
+const StringType queryUserActionStr("QueryUser");
+const StringType queryGroupActionStr("QueryGroup");
+const StringType inviteMemberActionStr("InviteMember");
+const StringType dropMemberActionStr("DropMember");
+const StringType joinGroupActionStr("JoinGroup");
+const StringType quitGroupActionStr("QuitGroup");
+
+UserManager::UserManager(QObject *parent):
+	QObject(parent)
 {
-    registerUser();
+    ConnectionManager::getInstance()->registerFamilyHandler(userManageFamilyStr, std::bind(&UserManager::actionParse, this, _1, _2));
+
+	registerActionHandler(dbSyncActionStr, std::bind(&UserManager::handleDbSync, this, _1, _2));
+	registerActionHandler(queryUserActionStr, std::bind(&UserManager::handleQueryUser, this, _1, _2));
+	registerActionHandler(queryGroupActionStr, std::bind(&UserManager::handleQueryGroup, this, _1, _2));
+	registerActionHandler(inviteMemberActionStr, std::bind(&UserManager::handleInviteMember, this, _1, _2));
+	registerActionHandler(dropMemberActionStr, std::bind(&UserManager::handleDropMember, this, _1, _2));
+	registerActionHandler(joinGroupActionStr, std::bind(&UserManager::handleJoinGroup, this, _1, _2));
+	registerActionHandler(quitGroupActionStr, std::bind(&UserManager::handleQuitGroup, this, _1, _2));
 }
 
 UserManager::~UserManager()
 {
 }
 
-UserManager* UserManager::getInstance(void)
+UserManager * UserManager::getInstance()
 {
-    if (UserManager::instance == nullptr){
-        UserManager::instance = new UserManager();
-    }
-
-    return instance;
+	static UserManager instance;
+    return &instance;
 }
 
-void UserManager::registerUser()
+QVariantList UserManager::listUsers()
 {
-
+	return DBOP::listUsers();
 }
 
-void UserManager::scanCommunicationObject()
+QVariantHash UserManager::getUser(const QString & userId)
 {
+	return DBOP::getUser(userId);
 }
 
-bool UserManager::addUser(const User& user)
+int UserManager::addUser(const QString & userId)
 {
-    return imp->addUser(user);
+	return 0;
 }
 
-bool UserManager::removeUser(uint id)
+int UserManager::removeUser(const QString & userId)
 {
-    return imp->removeUser(id);
+	return 0;
 }
 
-QVariantList UserManager::getUser(uint id)
+int UserManager::createUserGroup(const QString & name, const QString & intro, const QString & picPath)
 {
-    User user = imp->getUser(id);
-    QVariantList item;
-    item.append(user.getId());
-    item.append(user.getName());
-    item.append(user.getMacSocket().ip);
-    item.append(user.getPicPath());
-    return item;
+	QString groupId(QUuid::createUuid().toString());
+    QString ownerId(NetStructureManager::getInstance()->getLocalUuid().c_str());
+	UserGroupInfo group(groupId, name, ownerId, intro, picPath);
+
+	QString sql;
+	int result = DBOP::createUserGroup(group, sql);
+	if (result == 0) {
+		JsonObjType datas;
+		JsonAryType bindValues;
+		bindValues.append(group.ugid);
+		bindValues.append(group.ugname);
+		bindValues.append(group.ugowneruid);
+		bindValues.append(group.ugdate);
+		bindValues.append(group.ugintro);
+		bindValues.append(group.ugpic);
+		datas["sql"] = sql.toStdString().c_str();
+		datas["bindValues"] = bindValues;
+        ConnectionManager::getInstance()->sendActionMsg(TransferMode::Random, userManageFamilyStr, dbSyncActionStr, datas);
+		qDebug() << "create group success! start sync data!";
+	}
+	
+	return result;
 }
 
-QVariantList UserManager::getUsers()
+int UserManager::deleteUserGroup(const QString & groupId)
 {
-    QVariantList dataList;
-    std::shared_ptr<QVector<User>> result = imp->getUsers();
-    for (QVector<User>::iterator begin = result->begin(), end = result->end(); begin != end; ++begin)
-    {
-        QVariantList item;
-        item.append(begin->getId());
-        item.append(begin->getName());
-        item.append(begin->getMacSocket().ip);
-        item.append(begin->getPicPath());
+	QString sql;
+	int result = DBOP::deleteUserGroup(groupId, sql);
+	if (result == 0) {
+		JsonObjType datas;
+		JsonAryType bindValues;
+		bindValues.append(groupId.toStdString().c_str());
+		datas["sql"] = sql.toStdString().c_str();
+		datas["bindValues"] = bindValues;
+        ConnectionManager::getInstance()->sendActionMsg(TransferMode::Random, userManageFamilyStr, dbSyncActionStr, datas);
+		qDebug() << "delete group success! start sync data!";
+	}
 
-        dataList.append(item);
-    }
-
-    return dataList;
+	return result;
 }
 
-bool UserManager::addUserGroup(const UserGroup& group)
+QVariantList UserManager::listUserGroups()
 {
-    return imp->addUserGroup(group);
+	return DBOP::listUserGroups();
 }
 
-bool UserManager::removeUserGroup(uint id)
+QVariantHash UserManager::getUserGroupDetails(const QString & groupId)
 {
-    return imp->removeUserGroup(id);
+	return DBOP::getUserGroup(groupId);
 }
 
-QVariantList UserManager::getUserGroup(uint id)
+QVariantList UserManager::listUserGroupMembers(const QString& groupId)
 {
-    UserGroup group = imp->getUserGroup(id);
-    QVariantList item;
-    item.append(group.getId());
-    item.append(group.getOwnerId());
-    item.append(group.getName());
-    item.append(group.getIntro());
-    item.append(group.getPicPath());
-    item.append("10/40");
-
-    return item;
+	return DBOP::listMembers(groupId);
 }
 
-QVariantList UserManager::getUserGroups()
+void UserManager::searchUsers(const QString& queryKey)
 {
-    QVariantList dataList;
-    std::shared_ptr<QVector<UserGroup>> result = imp->getUserGroups();
-    for (QVector<UserGroup>::iterator begin = result->begin(), end = result->end(); begin != end; ++begin)
-    {
-        QVariantList item;
-        item.append(begin->getId());
-        item.append(begin->getName());
-        item.append("10/40");
-        item.append(begin->getPicPath());
-
-        dataList.append(item);
-    }
-
-    return dataList;
+	JsonObjType datas;
+	datas["key"] = queryKey.toUtf8().constData();
+	qDebug() << "query user: " << queryKey;
+    ConnectionManager::getInstance()->sendActionMsg(TransferMode::Random, userManageFamilyStr, queryUserActionStr, datas);
 }
 
-QVariantList UserManager::getMembers(uint groupId)
+void UserManager::searchUserGroups(const QString& queryKey)
 {
-    QVariantList dataList;
-    std::shared_ptr<QVector<User>> result = imp->getMembers(groupId);
-    for (QVector<User>::iterator begin = result->begin(), end = result->end(); begin != end; ++begin)
-    {
-        QVariantList item;
-        item.append(begin->getId());
-        item.append(begin->getName());
-        item.append(begin->getMacSocket().ip);
-        item.append(begin->getPicPath());
-
-        dataList.append(item);
-    }
-
-    return QVariantList();
+	JsonObjType datas;
+	datas["key"] = queryKey.toUtf8().constData();
+	qDebug() << "query group: " << queryKey;
+    ConnectionManager::getInstance()->sendActionMsg(TransferMode::Random, userManageFamilyStr, queryGroupActionStr, datas);
 }
 
-bool UserManager::appendMember(uint groupId, uint userId, const QString& type)
+void UserManager::inviteGroupMember(const QString & userId, const QString& groupId)
 {
-    return imp->appendMember(groupId, userId, type);
+	JsonObjType datas;
+	datas["dest"] = userId.toStdString().c_str();
+	datas["groupId"] = groupId.toStdString().c_str();
+    datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
+	qDebug() << "invite user: " << userId << " to group: " << groupId;
+    ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, userManageFamilyStr, inviteMemberActionStr, datas);
 }
 
-bool UserManager::removeMember(uint groupId, uint userId)
+void UserManager::dropGroupMember(const QString& userId, const QString& groupId)
 {
-    return imp->removeMember(groupId, userId);
+	QString sql;
+	int result = DBOP::removeMember(groupId, userId, sql);
+	if (result == 0) {
+		JsonObjType datas;
+		JsonAryType bindValues;
+		bindValues.append(groupId.toStdString().c_str());
+		bindValues.append(userId.toStdString().c_str());
+		datas["sql"] = sql.toStdString().c_str();
+		datas["bindValues"] = bindValues;
+		datas["dest"] = groupId;
+        ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, userManageFamilyStr, dropMemberActionStr, datas);
+	}
 }
 
-
-//UserManagerDB implement
-
-UserManagerDB::UserManagerDB():dbName("labManager.db")
+void UserManager::joinUserGroup(const QString & groupId)
 {
-    if (createDBConn()){
-        createTables();
-    }
+	//random request
+	//UserReuqestManager::getInstance().sendRequest();
 }
 
-UserManagerDB::~UserManagerDB()
+void UserManager::quitUserGroup(const QString & groupId)
 {
+	QString sql;
+    QString userId = NetStructureManager::getInstance()->getLocalUuid().c_str();
+	int result = DBOP::removeMember(groupId, userId, sql);
+	if (result == 0) {
+		JsonObjType datas;
+		JsonAryType bindValues;
+		bindValues.append(groupId.toStdString().c_str());
+		bindValues.append(userId.toStdString().c_str());
+		datas["sql"] = sql.toStdString().c_str();
+		datas["bindValues"] = bindValues;
+		datas["dest"] = groupId;
+        ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, userManageFamilyStr, dropMemberActionStr, datas);
+	}
 }
 
-bool UserManagerDB::createDBConn()
-{
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(dbName);
-    if (!db.open()){
-        qDebug()<<"open database failed ---"<<db.lastError().text()<<"/n";
-        return false;
-    }
-
-    return true;
-}
-
-bool UserManagerDB::createTables()
-{
-    QSqlQuery query;
-    bool bUser = query.exec("CREATE TABLE IF NOT EXISTS User(uid INTEGER PRIMARY KEY AUTOINCREMENT, "
-                         "uname VARCHAR(20) NOT NULL, "
-                         "uip VARCHAR(20) NOT NULL, "
-                         "umac VARCHAR(20) NOT NULL, "
-                         "uport VARCHAR(8) NOT NULL, "
-                         "upassword VARCHAR(20) NOT NULL, "
-                         "upic VARCHAR(30))");
-    bool bGroup = query.exec("CREATE TABLE IF NOT EXISTS UserGroup(gid INTEGER PRIMARY KEY AUTOINCREMENT, "
-                         "gowner INTEGER, "
-                         "gname VARCHAR(20) NOT NULL, "
-                         "gintro VARCHAR(30) NOT NULL, "
-                         "gpic VARCHAR(30), "
-                         "foreign key(gowner) references User(uid))");
-    bool bMemeber = query.exec("CREATE TABLE IF NOT EXISTS GroupMember(gid INTEGER , "
-                         "uid INTEGER, "
-                         "mtype VARCHAR(10) NOT NULL, "
-                         "foreign key(uid) references User(uid), "
-                         "foreign key(gid) references UserGroup(gid))");
-
-    return bUser && bGroup && bMemeber;
-}
-
-bool UserManagerDB::addUser(const User& user)
-{
-    QSqlQuery query(USER_INSERT);
-    query.addBindValue(user.getName());
-    query.addBindValue(user.getMacSocket().ip);
-    query.addBindValue(user.getMacSocket().mac);
-    query.addBindValue(user.getMacSocket().port);
-    query.addBindValue(user.getPassword());
-    query.addBindValue(user.getPicPath());
-
-    if(query.exec()){
-        qDebug() << "user insert success";
-        return true;
-    }else{
-        qDebug() << "user insert failed";
-        return false;
-    }
-}
-
-bool UserManagerDB::removeUser(uint id)
-{
-    QSqlQuery query(USER_REMOVE);
-    query.addBindValue(id);
-
-    if(query.exec()){
-        qDebug() << "user delete success";
-        return true;
-    }else{
-        qDebug() << "user delete failed";
-        return false;
-    }
-}
-
-User UserManagerDB::getUser(uint id)
-{
-    QSqlQuery query(USER_GET);
-    query.addBindValue(id);
-
-    if(!query.exec() || !query.next()){
-        qDebug() << "user select failed";
-        return User();
-    }
-
-    uint uid = query.value("uid").toUInt();
-    QString ip = query.value("uip").toString();
-    QString mac = query.value("umac").toString();
-    QString port = query.value("uport").toString();
-    QString name = query.value("uname").toString();
-    QString password = query.value("upassword").toString();
-    QString pic = query.value("upic").toString();
-
-    qDebug() << "user select success";
-    return User(uid, MACSOCKET(ip, mac, port), name, password, pic);
-}
-
-std::shared_ptr<QVector<User>> UserManagerDB::getUsers()
-{
-    QSqlQuery query(USER_GET_ALL);
-    std::shared_ptr<QVector<User>> result(new QVector<User>());
-
-    if(!query.exec()){
-        qDebug() << "user select all failed";
-        return result;
-    }
-
-    while (query.next())
-    {
-        uint uid = query.value("uid").toUInt();
-        QString ip = query.value("uip").toString();
-        QString mac = query.value("umac").toString();
-        QString port = query.value("uport").toString();
-        QString name = query.value("uname").toString();
-        QString password = query.value("upassword").toString();
-        QString pic = query.value("upic").toString();
-
-        result->push_back(User(uid, MACSOCKET(ip, mac, port), name, password, pic));
-    }
-
-    qDebug() << "user select all success";
-    return result;
-}
-
-bool UserManagerDB::addUserGroup(const UserGroup& group)
-{
-    QSqlQuery query(GROUP_INSERT);
-    query.addBindValue(group.getOwnerId());
-    query.addBindValue(group.getName());
-    query.addBindValue(group.getIntro());
-    query.addBindValue(group.getPicPath());
-
-    if(query.exec()){
-        qDebug() << "group insert success";
-        return true;
-    }else{
-        qDebug() << "group insert failed";
-        return false;
-    }
-}
-
-bool UserManagerDB::removeUserGroup(uint id)
-{
-    QSqlQuery query(GROUP_REMOVE);
-    query.addBindValue(id);
-
-    if(query.exec()){
-        qDebug() << "group delete success";
-        return true;
-    }else{
-        qDebug() << "group delete failed";
-        return false;
-    }
-}
-
-UserGroup UserManagerDB::getUserGroup(uint id)
-{\
-    QSqlQuery query(GROUP_GET);
-    query.addBindValue(id);
-
-    if(!query.exec() || !query.next()){
-        qDebug() << "group select failed";
-        return UserGroup();
-    }
-
-    uint gid = query.value("gid").toUInt();
-    uint ownerId = query.value("gowner").toUInt();
-    QString name = query.value("gname").toString();
-    QString intro = query.value("gintro").toString();
-    QString pic = query.value("gpic").toString();
-
-    qDebug() << "group select success";
-    return UserGroup(gid, ownerId, name, intro, pic);
-}
-
-std::shared_ptr<QVector<UserGroup>> UserManagerDB::getUserGroups()
-{
-    QSqlQuery query(GROUP_GET_ALL);
-    std::shared_ptr<QVector<UserGroup>> result(new QVector<UserGroup>());
-
-    if(!query.exec()){
-        qDebug() << "group select all failed";
-        return result;
-    }
-
-    while (query.next())
-    {
-        uint id = query.value("gid").toUInt();
-        uint ownerId = query.value("gowner").toUInt();
-        QString name = query.value("gname").toString();
-        QString intro = query.value("gintro").toString();
-        QString pic = query.value("gpic").toString();
-
-        result->push_back(UserGroup(id, ownerId, name, intro, pic));
-    }
-
-    qDebug() << "group select all success";
-    return result;
-}
-
-std::shared_ptr<QVector<User>> UserManagerDB::getMembers(uint groupId)
-{
-    QSqlQuery query(GET_GROUP_MEMBER);
-    std::shared_ptr<QVector<User>> result(new QVector<User>());
-    query.addBindValue(groupId);
-
-    if(!query.exec()){
-        qDebug() << "member select all failed";
-        return result;
-    }
-
-    while (query.next())
-    {
-        uint id = query.value("uid").toUInt();
-        QString ip = query.value("uip").toString();
-        QString mac = query.value("umac").toString();
-        QString port = query.value("uport").toString();
-        QString name = query.value("uname").toString();
-        QString password = query.value("upassword").toString();
-        QString pic = query.value("upic").toString();
-
-        result->push_back(User(id, MACSOCKET(ip, mac, port), name, password, pic));
-    }
-
-    qDebug() << "member select all success";
-    return result;
-}
-
-bool UserManagerDB::appendMember(uint groupId, uint userId, const QString& type)
-{
-    QSqlQuery query(ADD_GROUP_MEMBER);
-    query.addBindValue(groupId);
-    query.addBindValue(userId);
-    query.addBindValue(type);
-
-    if(query.exec()){
-        qDebug() << "member add success";
-        return true;
-    }else{
-        qDebug() << "member add failed";
-        return false;
-    }
-}
-
-bool UserManagerDB::removeMember(uint groupId, uint userId)
-{
-    QSqlQuery query(REMOVE_GROUP_MEMBER);
-    query.addBindValue(groupId);
-    query.addBindValue(userId);
-
-    if(query.exec()){
-        qDebug() << "member delete success";
-        return true;
-    }else{
-        qDebug() << "member delete failed";
-        return false;
-    }
-}
-
-
-//UserManagerMM implement
-
-bool UserManagerMM::addUser(const User& user)
-{
-    QVector<User>::const_iterator result = qFind(userSet, user);
-    if (result == userSet.cend())
-        return false;
-
-    userSet.push_back(user);
-    DataManager::getInstance()->add(User::getUri(), user);
-    return true;
-}
-
-bool UserManagerMM::removeUser(uint id)
-{
-    for(QVector<User>::iterator begin = userSet.begin(), end = userSet.end(); begin != end; ++begin){
-        if (begin->getId() == id){
-            userSet.erase(begin);
-            DataManager::getInstance()->remove(User::getUri(), "id="+id, std::vector<QString>());
-            return true;
-        }
-    }
-    return false;
-}
-
-User UserManagerMM::getUser(uint id)
-{
-    for(QVector<User>::iterator begin = userSet.begin(), end = userSet.end(); begin != end; ++begin){
-        if (begin->getId() == id)
-            return *begin;
-    }
-
-    return User();
-}
-
-std::shared_ptr<QVector<User>> UserManagerMM::getUsers()
-{
-    return std::shared_ptr<QVector<User>>(nullptr);
-}
-
-bool UserManagerMM::addUserGroup(const UserGroup& group)
-{
-    QVector<UserGroup>::const_iterator result = qFind(userGroupSet, group);
-    if (result == userGroupSet.cend())
-        return false;
-
-    userGroupSet.push_back(group);
-    DataManager::getInstance()->add(UserGroup::getUri(), group);
-    return true;
-}
-
-bool UserManagerMM::removeUserGroup(uint id)
-{
-    for(QVector<UserGroup>::iterator begin = userGroupSet.begin(), end = userGroupSet.end(); begin != end; ++begin){
-        if (begin->getId() == id){
-            userGroupSet.erase(begin);
-            DataManager::getInstance()->remove(UserGroup::getUri(), "id="+id, std::vector<QString>());
-            return true;
-        }
-    }
-    return false;
-}
-
-UserGroup UserManagerMM::getUserGroup(uint id)
-{\
-    for(QVector<UserGroup>::iterator begin = userGroupSet.begin(), end = userGroupSet.end(); begin != end; ++begin){
-        if (begin->getId() == id)
-            return *begin;
-    }
-    return UserGroup();
-}
-
-std::shared_ptr<QVector<UserGroup>> UserManagerMM::getUserGroups()
-{
-    return std::shared_ptr<QVector<UserGroup>>(nullptr);
-}
-
-std::shared_ptr<QVector<User>> UserManagerMM::getMembers(uint groupId)
-{
-    return std::shared_ptr<QVector<User>>(nullptr);
-}
-
-bool UserManagerMM::appendMember(uint groupId, uint userId, const QString& type)
-{
-    for(QVector<UserGroup>::iterator begin = userGroupSet.begin(), end = userGroupSet.end(); begin != end; ++begin){
-        if (begin->getId() == groupId){
-            return begin->appendMember(userId);
-        }
-    }
-    return false;
-}
-
-bool UserManagerMM::removeMember(uint groupId, uint userId)
-{
-    for(QVector<UserGroup>::iterator begin = userGroupSet.begin(), end = userGroupSet.end(); begin != end; ++begin){
-        if (begin->getId() == groupId){
-            return begin->removeMember(userId);
-        }
-    }
-    return false;
-}
-
-
-//UserGroup implement
-
-UserGroup::UserGroup()
+void UserManager::handleQueryUser(JsonObjType & msg, ConnPtr conn)
 {
 }
 
-UserGroup::UserGroup(uint id, uint ownerId, const QString& name, const QString& intro, const QString& pic)
-    :id(id), ownerId(ownerId), name(name), intro(intro), picPath(pic)
+void UserManager::handleQueryGroup(JsonObjType & msg, ConnPtr conn)
 {
 }
 
-UserGroup::~UserGroup()
+void UserManager::handleInviteMember(JsonObjType & msg, ConnPtr conn)
 {
 }
 
-bool UserGroup::isExist(uint userId)const
-{
-    QVector<uint>::const_iterator result  = qFind(memberIdSet, userId);
-    return result == memberIdSet.cend() ? true : false;
-}
-
-bool UserGroup::appendMember(uint userId)
-{
-    if (isExist(userId))
-        return false;
-
-    memberIdSet.push_back(userId);
-    return true;
-}
-
-bool UserGroup::removeMember(uint userId)\
-{
-    QVector<uint>::iterator result  = qFind(memberIdSet.begin(), memberIdSet.end(), userId);
-    if(result == memberIdSet.end())
-        return false;
-
-    memberIdSet.erase(result);
-    return true;
-}
-
-QByteArray UserGroup::toString()const
-{
-    QByteArray qbRes;
-    QDataStream qdIn(&qbRes, QIODevice::ReadWrite);
-    qdIn << id << ownerId << name << intro << memberIdSet;
-
-    return qbRes;
-}
-
-void UserGroup::toObject(const QByteArray& str)
-{
-    QDataStream qdOut(str);
-    qdOut >> id >> ownerId >> name >> intro >> memberIdSet;
-}
-
-
-//User implement
-
-User::User():CommunicationObject()
+void UserManager::handleDropMember(JsonObjType & msg, ConnPtr conn)
 {
 }
 
-User::User(uint id, const MACSOCKET& ms, const QString& name, const QString& pass, const QString& pic)
-    :CommunicationObject(),id(id), macSocket(ms), name(name), password(pass), picPath(pic)
+void UserManager::handleJoinGroup(JsonObjType & msg, ConnPtr conn)
 {
 }
 
-User::~User()
+void UserManager::handleQuitGroup(JsonObjType & msg, ConnPtr conn)
 {
 }
 
-QByteArray User::toString()const
-{
-    QByteArray qbRes;
-    QDataStream qdIn(&qbRes, QIODevice::ReadWrite);
-    qdIn << id << macSocket.ip << macSocket.mac << macSocket.port << name << password << picPath;
-    return qbRes;
-}
-
-void User::toObject(const QByteArray& str)
-{
-    QDataStream qbOut(str);
-    qbOut >> id >> macSocket.ip >> macSocket.mac >> macSocket.port >> name >> password >> picPath;
-}
-
-
-//MACSOCKET implement
-
-MACSOCKET::MACSOCKET()
-{
-}
-
-MACSOCKET::MACSOCKET(const QString& ip, const QString& mac, const QString& port)
-    :ip(ip), mac(mac), port(port)
-{
-}
-
-MACSOCKET::~MACSOCKET()
+void UserManager::handleDbSync(JsonObjType & msg, ConnPtr conn)
 {
 }

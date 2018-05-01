@@ -1,425 +1,106 @@
-#include <QtSql>
-#include <assert.h>
-#include "sessionmanager.h"
-#include "usermanager.h"
+#include "SessionManager.h"
+#include "DBop.h"
+#include "ConnectionManager.h"
+#include "NetStructureManager.h"
+#include "UserReuqestManager.h"
+#include "TaskManager.h"
+#include "HomeworkManager.h"
 
-SessionManager* SessionManager::instance = nullptr;
-SessionManager::SessionManager(QObject* parent)
-    :QObject(parent), imp(new SessionManagerImplementDB())
+#include "QtCore\qfileinfo.h"
+
+const StringType sessionFamilyStr("SeesionManage");
+const StringType transferStrActionStr("TransferStr");
+const StringType transferPicActionStr("TransferPic");
+const StringType transferFileActionStr("TransferFile");
+
+SessionManager::SessionManager()
 {
+    ConnectionManager::getInstance()->registerFamilyHandler(sessionFamilyStr, std::bind(&SessionManager::actionParse, this, _1, _2));
+
+	registerActionHandler(transferStrActionStr, std::bind(&SessionManager::handleRecvChatMsg, this, _1, _2));
 }
 
 SessionManager::~SessionManager()
 {
 }
 
-SessionManager* SessionManager::getInstance()
+SessionManager * SessionManager::getInstance()
 {
-    if (instance == nullptr){
-        SessionManager::instance = new SessionManager();
-    }
-
-    return instance;
+	static SessionManager instance;
+    return &instance;
 }
 
-//编写代码从底层开始可能造成代码冗余，以后先从前台交互类开始编写代码
-
-//本类主要负责与前台交互
-//本类的负责的交互有：
-//1. 提供用户之前的所有会话
-//2. 用户双击某通信对象时，前台可识别点击的对象并将其传送到此类处理存储
-//3. 用户点击删除会话也由此类处理
-//4. 前台可由此类获取指定会话的所有聊天信息
-//5. 用户双击通信对象若会话存在应立即跳转到之前的会话
-//6. 发送消息后才应将会话存储到后台
-//7. 后台接收到消息后发出信号改变前台会话状态，前台编写信号处理处理函数显示接收到的消息
-//8. 若接收到的消息无会话则创建一个会话，并发出创建会话由前台处理
-//前台需存储的应有通信对象图片，通信对象基本信息，最新消息，会话状态，会话Id
-bool SessionManager::appendSession(const CommunicationObject& source, const CommunicationObject& dest)
+int SessionManager::createSession(int type, const QString & duuid)
 {
-    return imp->appendSession(source, dest);
+    QString suid = NetStructureManager::getInstance()->getLocalUuid().c_str();
+	return DBOP::createSession(SessionInfo(-1, type, suid, duuid));
 }
 
-bool SessionManager::removeSession(uint id)
+int SessionManager::deleteSession(int sid)
 {
-    return imp->removeSession(id);
+	return DBOP::deleteSession(sid);
 }
 
-QVariantList SessionManager::getSessions()
+QVariantList SessionManager::listSessions()
 {
-    return *(imp->getSessions());
+	return DBOP::listSessions();
 }
 
-QVariantList SessionManager::getSessionMsg(uint id, uint length)
+QVariantList SessionManager::getChatMsgs(int sid)
 {
-    return *(imp->getSessionMsg(id, length));
+	return DBOP::listSessionMessages(sid);
 }
 
-bool SessionManager::sendSessionMsg(const QVariantList& msg)
+void SessionManager::sendChatMsg(int sid, int stype, const QString & duuid, const QString & msg)
 {
-    //通过网络模块将消息发送出去
-    return imp->appendSessionMsg(msg);
+	MessageInfo msgInfo(sid, int(ChatMsgType::ChatText), msg);
+	DBOP::createMessage(msgInfo);
+
+	JsonObjType datas;
+	datas["type"] = msgInfo.mtype;
+    datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
+	datas["dest"] = duuid.toStdString().c_str();
+	datas["data"] = msgInfo.mdata.toUtf8().toStdString().c_str();
+	datas["date"] = msgInfo.mdate;
+
+	if (SessionType::UserSession == SessionType(stype))
+        ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, transferStrActionStr, datas);
+	else if (SessionType::GroupSession == SessionType(stype))
+        ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, sessionFamilyStr, transferStrActionStr, datas);
 }
 
-void SessionManager::recvSessionMsg(const ChatMessage &msg)
+void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QString & picPath)
 {
-   //接收消息
-    imp->recvSessionMsg(msg);
+	//TaskManager::getInstance().createTask();
 }
 
-//SessionManagerImplementDB implement
-
-SessionManagerImplementDB::SessionManagerImplementDB():dbName("labManager.db")
+void SessionManager::sendFile(int sid, int stype, const QString & duuid, const QString & filePath)
 {
-    if (createDBConn()){
-        createTables();
-    }
+	QVariantHash sendFileInfor;
+	QFileInfo fileInfo(filePath);
+	sendFileInfor["filename"] = fileInfo.baseName();
+	sendFileInfor["size"] = fileInfo.size();
+    UserReuqestManager::getInstance()->sendRequest(sid, duuid, ReqType::FileTransferReq, sendFileInfor);
 }
 
-SessionManagerImplementDB::~SessionManagerImplementDB()
+void SessionManager::publishHomework(const QString & duuid, const QVariantList & hwInfo)
 {
+    HomeworkManager::getInstance()->publishHomework();
 }
 
-bool SessionManagerImplementDB::appendSession(const CommunicationObject& source, const CommunicationObject& dest)
+void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 {
-    QSqlQuery query;
-    query.prepare(ADD_SESSION);
-    query.addBindValue(source.getId());
-    query.addBindValue(source.getType());
-    query.addBindValue(dest.getId());
-    query.addBindValue(dest.getType());
+	/*MessageInfo msgInfo(sid, int(ChatMsgType::ChatText), msg);
+	DBOP::createMessage(msgInfo);
 
-    if(query.exec()){
-        qDebug() << "session add success";
-        return true;
-    }else{
-        qDebug() << "session add failed";
-        return false;
-    }
-}
+	JsonObjType datas;
+	datas["type"] = msgInfo.mtype;
+	datas["dest"] = duuid.toStdString().c_str();
+	datas["data"] = msgInfo.mdata.toUtf8().toStdString().c_str();
+	datas["date"] = msgInfo.mdate;
 
-bool SessionManagerImplementDB::removeSession(uint id)
-{
-    QSqlDatabase db = QSqlDatabase::database();
-    QSqlQuery query;
-
-    if (db.transaction()){
-        query.prepare(REMOVE_SESSION);
-        query.addBindValue(id);
-        query.exec();
-        query.prepare(REMOVE_SESSION_CHATMSG);
-        query.addBindValue(id);
-        query.exec();
-
-        if(db.commit()){
-            qDebug() << "session delete success";
-            return true;
-        }
-    }
-
-    qDebug() << "session delete failed";
-    return false;
-}
-
-std::shared_ptr<QVariantList> SessionManagerImplementDB::getSessions()
-{
-    const QString connName = "queryConn";
-    User curUser = UserManager::getInstance()->getCurUser();
-    QSqlDatabase queryConn = QSqlDatabase::addDatabase("QSQLITE", connName);
-    std::shared_ptr<QVariantList> result(new QVariantList());
-    QSqlQuery query, destQuery(queryConn);
-
-    query.prepare(GET_SESSION_ALL);
-    query.addBindValue(curUser.getId());
-    if(!query.exec()){
-        qDebug() << "get session all failed";
-        return result;
-    }
-
-    //本sql语句应可得出本用户的会话消息及其会话目标的基本信息
-    //涉及两个表User,Session
-    //select * from User,(select * from Session where ssource=uid group by sdtype) as SR where User.uid=SR.sd
-    //上面的语句无法根据对象类型连接不同的表
-
-    while(query.next())
-    {
-        QVariantList item;
-
-        item.append(query.value("sid"));
-        item.append(query.value("sdate"));
-
-        uint sdest = query.value("sdest").toUInt();
-        QString destType = query.value("sdtype").toString();
-
-        QString dintro, pic;
-        destQuery.prepare(destType == "user" ? GET_DEST_USER : GET_DEST_GROUP);
-        destQuery.addBindValue(sdest);
-        if (destQuery.exec()){
-            if (destType == "user"){
-                pic = destQuery.value("upic").toString();
-                dintro = destQuery.value("uname").toString() + destQuery.value("uip").toString();
-            }else{
-                pic = destQuery.value("gpic").toString();
-                dintro = destQuery.value("gname").toString();
-            }
-        }
-
-        item.append(dintro);
-        item.append(pic);
-
-        result->append(item);
-    }
-
-    QSqlDatabase::removeDatabase(connName);
-    qDebug() << "get session all success";
-    return result;
-}
-
-std::shared_ptr<QVariantList> SessionManagerImplementDB::getSessionMsg(uint id, uint length)
-{
-    QSqlQuery query;
-    std::shared_ptr<QVariantList> result(new QVariantList());
-    query.prepare(GET_SESSION_MSG);
-    query.addBindValue(id);
-    query.addBindValue(length);
-
-    if(!query.exec()){
-        qDebug() << "session msg select all failed";
-        return result;
-    }
-
-    while (query.next())
-    {
-        QVariantList item;
-        item.append(query.value("mid"));
-        item.append(query.value("msession"));
-        item.append(query.value("mtype"));
-        item.append(query.value("mowner"));
-        item.append(query.value("mdata"));
-        item.append(query.value("mdate"));
-    }
-
-    qDebug() << "session msg select all success";
-    return result;
-}
-
-bool SessionManagerImplementDB::sendSessionMsg(const QVariantList &msg)
-{
-    QSqlQuery query;
-    query.prepare(ADD_SESSION_MSG);
-
-    for (int begin = 0, end = msg.length(); begin != end; ++end)
-        query.addBindValue(msg[begin]);
-
-    if(query.exec()){
-        qDebug() << "session msg add success";
-        return true;
-    }else{
-        qDebug() << "session msg add failed";
-        return false;
-    }
-}
-
-QVariantList SessionManagerImplementDB::recvSessionMsg(const ChatMessage &msg)
-{
-    QVariantList result;
-    QSqlQuery query;
-    QSqlDatabase db = QSqlDatabase::database();
-    query.prepare(GET_RECV_SESSION);
-    query.addBindValue(msg.getOwnerId());
-
-    db.transaction();
-    if(!query.exec()){
-        qDebug() << "msg owner session get success";
-        return result;
-    }
-
-    if (!query.next())
-    {
-        UserManager* um = UserManager::getInstance();
-        if (appendSession(um->getImplement()->getUser(msg.getOwnerId()), um->getCurUser()))
-            query.exec(query.executedQuery());
-    }
-
-    assert(query.next());
-
-    result.append(query.value("sid"));
-    result.append(msg.getOwnerId());
-    result.append(msg.getType());
-    result.append(msg.getData());
-    sendSessionMsg(result);
-    db.commit();
-
-    return result;
-}
-
-bool SessionManagerImplementDB::createTables()
-{
-    QSqlQuery query;
-    bool bSession = query.exec("CREATE TABLE IF NOT EXISTS Session(sid INTEGER PRIMARY KEY AUTOINCREMENT, "
-                         "ssource INTEGER, "
-                         "sstype VARCHAR(10), "
-                         "sdest INTEGER, "
-                         "sdtype VARCHAR(10), "
-                         "sdate DATETIME NOT NULL, "
-                         "foreign key(ssource) references User(uid)");
-
-    bool bMsg = query.exec("CREATE TABLE IF NOT EXISTS ChatMsg(mid INTEGER PRIMARY KEY AUTOINCREMENT, "
-                         "msession INTEGER, "
-                         "mowner INTEGER, "
-                         "mtype INTEGER NOT NULL, "
-                         "mdata TEXT NOT NULL, "
-                         "mdate DATETIME NOT NULL, "
-                         "foreign key(mowner) references User(uid), "
-                         "foreign key(msession) references Session(sid))");
-
-    return bSession && bMsg;
-}
-
-bool SessionManagerImplementDB::createDBConn()
-{
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(dbName);
-    if (!db.open()){
-        qDebug()<<"session manager open database failed ---"<<db.lastError().text()<<"/n";
-        return false;
-    }
-
-    return true;
-}
-
-//Session implement
-
-Session::Session(uint id, const QDateTime& date, Session::SessionState state, CommunicationObject* psource, CommunicationObject* pdest)
-    :id(id), date(date), state(state), source(psource), dest(pdest), imp(new SessionOPImplementDB)
-{
-}
-
-Session::~Session()
-{
-}
-
-//底层接收到消息后先插入数据库，后根据发过来发送者确定消息属于哪个会话，休眠时将会话设置为有消息状态，否则发出接收消息信号（带聊天信息）由前台处理并显示
-bool Session::sendMsg(const ChatMessage& msg)
-{
-    //这里是网络部分
-    return imp->appendMsg(msg);
-}
-
-bool Session::recvMsg()
-{
-    return false;
-}
-
-bool Session::recallMsg(uint id)
-{
-    //此处应考虑会话双方聊天信息同步的问题，暂时不处理
-    return imp->removeMsg(id);
-}
-
-std::shared_ptr<QVector<ChatMessage>> Session::getMsg(int length)
-{
-    return imp->getChatMsg(id, length);
-}
-
-//SessionOPImplementDB implement
-
-SessionOPImplementDB::SessionOPImplementDB()
-{
-}
-
-SessionOPImplementDB::~SessionOPImplementDB()
-{
-}
-
-bool SessionOPImplementDB::appendMsg(const ChatMessage& msg)
-{
-    QSqlQuery query;
-    query.prepare(ADD_CHATMSG);
-    query.addBindValue(msg.getSessionId());
-    query.addBindValue(msg.getOwnerId());
-    query.addBindValue(uint(msg.getType()));
-    query.addBindValue(msg.getData());
-
-    if(query.exec()){
-        qDebug() << "msg add success";
-        return true;
-    }else{
-        qDebug() << "msg add failed";
-        return false;
-    }
-}
-
-bool SessionOPImplementDB::removeMsg(uint id)
-{
-    QSqlQuery query;
-    query.prepare(REMOVE_CHATMSG);
-    query.addBindValue(id);
-
-    if(query.exec()){
-        qDebug() << "msg add success";
-        return true;
-    }else{
-        qDebug() << "msg add failed";
-        return false;
-    }
-}
-
-bool SessionOPImplementDB::removeAllMsg(uint sessionId)
-{
-    QSqlQuery query;
-    query.prepare(REMOVE_CHATMSG_ALL);
-    query.addBindValue(sessionId);
-
-    if(query.exec()){
-        qDebug() << "msg add success";
-        return true;
-    }else{
-        qDebug() << "msg add failed";
-        return false;
-    }
-}
-
-std::shared_ptr<QVector<ChatMessage>> SessionOPImplementDB::getChatMsg(uint sessionId, int length)
-{
-    QSqlQuery query;
-    std::shared_ptr<QVector<ChatMessage>> result(new QVector<ChatMessage>());
-    query.prepare(GET_CHATMSG);
-    query.addBindValue(sessionId);
-    query.addBindValue(length);
-
-    if(!query.exec()){
-        qDebug() << "msg select all failed";
-        return result;
-    }
-
-    while (query.next())
-    {
-        uint mid = query.value("mid").toUInt();
-        uint msession = query.value("msession").toUInt();
-        uint type = query.value("mtype").toUInt();
-        uint mowner = query.value("mowner").toUInt();
-        QString mdata = query.value("mdata").toString();
-        QDateTime mdate = query.value("mdate").toDateTime();
-
-        result->push_back(ChatMessage(ChatMessage::ChatMessageType(type),mdata,mdate,mowner, msession, mid));
-    }
-
-    qDebug() << "msg select all success";
-    return result;
-}
-
-//ChatMessage implement
-
-ChatMessage::ChatMessage(ChatMessageType type, const QString& data, const QDateTime& date, uint ownerId, uint sessionId, uint id)
-    :type(type), data(data), date(date), ownerId(ownerId), sessionId(sessionId), id(id)
-{
-}
-
-ChatMessage::ChatMessage()
-{
-}
-
-ChatMessage::~ChatMessage()
-{
+	if (SessionType::UserSession == SessionType(stype))
+		ConnectionManager::getInstance().sendActionMsg(TransferMode::Single, sessionFamilyStr, transferStrActionStr, datas);
+	else if (SessionType::GroupSession == SessionType(stype))
+		ConnectionManager::getInstance().sendActionMsg(TransferMode::Group, sessionFamilyStr, transferStrActionStr, datas);*/
 }

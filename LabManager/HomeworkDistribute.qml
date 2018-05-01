@@ -41,7 +41,7 @@ DialogFrame{
                     }
 
                     TextRow{
-                        rowText: "开始时间"
+                        rowText: "开始时间";
                         tPlaceholderText: "8:30 4/12"
                     }
 
