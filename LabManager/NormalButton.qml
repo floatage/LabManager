@@ -13,6 +13,7 @@ Item {
     property real buttonTextSize: 12
     property color buttonTextColor: "#169BD5"
     property bool hasBorder: true
+    property bool reversal: false
     property alias buttonAction: sourceButton.action
 
     Button{
@@ -21,7 +22,7 @@ Item {
 
         style: ButtonStyle {
                 label: Label{
-                    color: control.hovered ? "#FFF": buttonTextColor
+                    color: (reversal ? !control.hovered : control.hovered) ? "#FFF": buttonTextColor
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignHCenter
                     font.family: "宋体"
@@ -43,9 +44,9 @@ Item {
                     implicitWidth: textInfor.contentWidth + fillWidth
                     implicitHeight: textInfor.contentHeight + fillHeight
                     radius: 10
-                    border.color: control.pressed ? "#6FF" : "#6CF"
+                    border.color: (reversal ? !control.pressed : control.pressed) ? "#6FF" : "#6CF"
                     border.width: hasBorder ? (control.pressed ? 2 : 1) : 0
-                    color: control.hovered ? buttonTextColor : "#FFF"
+                    color: (reversal ? !control.hovered : control.hovered) ? buttonTextColor : "#FFF"
                 }
         }
     }

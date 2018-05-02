@@ -17,22 +17,23 @@
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
 
-    std::thread netWorkingThred([]() {
-        DBOP::createTables();
-        auto msgm = MessageManager::getInstance();
-        msgm->run();
+//    std::thread netWorkingThred([]() {
+//        DBOP::createTables();
+//        auto msgm = MessageManager::getInstance();
+//        msgm->run();
 
-        auto iom = IOContextManager::getInstance();
-        iom->init();
-        iom->run();
+//        auto iom = IOContextManager::getInstance();
+//        iom->init();
+//        iom->run();
 
-        NetStructureManager::getInstance()->buildNetStructure(1);
-        iom->wait();
-    });
+//        NetStructureManager::getInstance()->buildNetStructure(1);
+//        iom->wait();
+//    });
 
     engine.rootContext()->setContextProperty("UserManager", UserManager::getInstance());
     engine.rootContext()->setContextProperty("AdminManager", AdminManager::getInstance());
@@ -41,6 +42,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("TaskManager", TaskManager::getInstance());
     engine.rootContext()->setContextProperty("HomeworkManager", HomeworkManager::getInstance());
 
+    engine.addImportPath(":/imports");
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     //需要定制退出函数
 

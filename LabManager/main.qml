@@ -190,7 +190,6 @@ ApplicationWindow {
                 target:uploadIcon.item
                 onPicLoad: img.source = "/img/uploadIcon.png"
             }
-
         }
     }
 }

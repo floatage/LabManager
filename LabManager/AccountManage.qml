@@ -12,19 +12,19 @@ DialogFrame{
     property real colSpacing: 35
 
     Connections{
-        target: AuthorityManager;
-        onUsernameFalse:{
-            console.log("username false")
-        }
-        onPasswordFalse:{
-            console.log("password false")
-        }
-        onModifyPasswordSuccess:{
-            console.log("modify success")
-        }
-        onLoginSuccess:{
-            console.log("login success")
-        }
+//        target: AdminManager;
+//        onUsernameFalse:{
+//            console.log("username false")
+//        }
+//        onPasswordFalse:{
+//            console.log("password false")
+//        }
+//        onModifyPasswordSuccess:{
+//            console.log("modify success")
+//        }
+//        onLoginSuccess:{
+//            console.log("login success")
+//        }
     }
 
     Component{
@@ -154,17 +154,17 @@ DialogFrame{
                             buttonAction:
                                 Action {
                                     onTriggered:{
-                                        if (nowPasswordTextRow.value.length > 0 && newPasswordTextRow.value.length > 0 && newPasswordAgainTextRow.value.length > 0){
-                                            if (newPasswordAgainTextRow.value === newPasswordTextRow.value){
-                                                AuthorityManager.adminModifyPassword(nowPasswordTextRow.value, newPasswordTextRow.value)
-                                            }
-                                            else{
-                                                 console.log("not same")
-                                            }
-                                        }
-                                        else{
-                                            console.log("can't empty")
-                                        }
+//                                        if (nowPasswordTextRow.value.length > 0 && newPasswordTextRow.value.length > 0 && newPasswordAgainTextRow.value.length > 0){
+//                                            if (newPasswordAgainTextRow.value === newPasswordTextRow.value){
+//                                                AuthorityManager.adminModifyPassword(nowPasswordTextRow.value, newPasswordTextRow.value)
+//                                            }
+//                                            else{
+//                                                 console.log("not same")
+//                                            }
+//                                        }
+//                                        else{
+//                                            console.log("can't empty")
+//                                        }
                                     }
                                 }
                         }

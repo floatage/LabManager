@@ -10,16 +10,13 @@ Rectangle {
     color: sleepColor
 
     property alias iconPath: iconPic.source
-    property alias font: ipText.font
-    property alias textColor: ipText.color
     property color sleepColor: "#58F"
     property color activeColor: "#6CF"
+    property string fontFamily: "方正兰亭超细黑简体"
     property var target: null
 
     Component.onCompleted: {
         titleArea.iconPath = "/img/appEasyIcon.png"
-        titleArea.font.family = "微软雅黑"
-        titleArea.textColor = "#FFF"
     }
 
     Flow{
@@ -56,37 +53,37 @@ Rectangle {
         }
 
         Rectangle {
-            id: ipArea
-            height: parent.height
-            width: parent.width * 0.4
-            color: titleArea.color
-
-            Text {
-                id: ipText
-                text: "10.15.15.10"
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                font.bold: true
-                font.pixelSize: 13
-            }
-        }
-
-        Rectangle {
             id: nameArea
             height: parent.height
             width: parent.width * 0.28
             color: titleArea.color
 
             Text {
-                text: "李老师.."
+                text: "刘飞飞飞"
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                font.family: "黑体"
+                font.pixelSize: 14
                 font.bold: true
-                color: ipText.color
-                font.pixelSize: 12
+                font.family: fontFamily
+                color: "#FFF"
             }
         }
+
+//        Rectangle {
+//            id: ipArea
+//            height: parent.height
+//            width: parent.width * 0.4
+//            color: titleArea.color
+
+//            Text {
+//                id: ipText
+//                text: "10.15.15.10"
+//                anchors.left: parent.left
+//                anchors.verticalCenter: parent.verticalCenter
+//                font.bold: true
+//                font.pixelSize: 13
+//            }
+//        }
     }
 
     MouseArea {

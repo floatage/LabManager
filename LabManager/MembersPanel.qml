@@ -130,11 +130,28 @@ ApplicationWindow {
                     }
 
                     Loader {
+                        id: sessionIcon
+                        sourceComponent: iconItem
+                        onLoaded: {
+                            item.checked = true
+                            item.iconImg.source = "/img/curSeesionIcon_light.png"
+                        }
+
+                        Connections {
+                            target: sessionIcon.item
+                            onIconClicked: {
+                                iconRow.setIconTrue(sessionIcon)
+                                iconRow.replaceToStackTop(memStackView,
+                                                          sessionListView)
+                            }
+                        }
+                    }
+
+                    Loader {
                         id: memIcon
                         sourceComponent: iconItem
                         onLoaded: {
                             item.iconImg.source = "/img/personIcon_light.png"
-                            item.checked = true
                         }
 
                         Connections {
@@ -160,21 +177,6 @@ ApplicationWindow {
                             }
                         }
                     }
-
-                    Loader {
-                        id: sessionIcon
-                        sourceComponent: iconItem
-                        onLoaded: item.iconImg.source = "/img/curSeesionIcon_light.png"
-
-                        Connections {
-                            target: sessionIcon.item
-                            onIconClicked: {
-                                iconRow.setIconTrue(sessionIcon)
-                                iconRow.replaceToStackTop(memStackView,
-                                                          sessionListView)
-                            }
-                        }
-                    }
                 }
             }
 
@@ -189,7 +191,101 @@ ApplicationWindow {
 
                 Component.onCompleted: {
                     if (memStackView.depth === 0) {
-                        memStackView.push(memListView)
+                        memStackView.push(sessionListView)
+                    }
+                }
+            }
+
+            Component {
+                id: sessionListView
+
+                Rectangle {
+                    width: parent.width
+                    height: parent.height
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+
+                    ListView {
+                        id: sessionListViewContent
+                        width: parent.width
+                        height: parent.height
+
+                        Component.onCompleted: {
+//                            for(var count = 0, ch = '哈'; count < 10; ++count){
+//                                model.append({picPath: "/img/defaultPic.jpg"
+//                                                ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
+//                                                ,sessionMsg: ch})
+//                                ch = ch + '哈'
+//                            }
+                        }
+
+                        model: ListModel {
+                            ListElement {
+                                picPath: "/img/defaultPic.jpg"
+                                sessionObjectInfor: "应用141班(10/40)"
+                                sessionMsg: "哈哈：哈哈哈"
+                            }
+                        }
+
+                        delegate: Item {
+                            width: parent.width
+                            height: 50
+
+                            Rectangle {
+                                id: sessionPic
+                                width: parent.height * 0.5
+                                height: width
+                                anchors.left: parent.left
+                                anchors.top: parent.top
+                                anchors.leftMargin: (parent.height - height) * 0.6
+                                anchors.topMargin: (parent.height - height) * 0.5
+
+                                Image {
+                                    id: sessionImg
+                                    anchors.fill: parent
+                                    source: picPath
+                                }
+                            }
+
+                            Text {
+                                id: sessionInfor
+                                width: parent.width - sessionPic.width * 4
+                                anchors.top: sessionPic.top
+                                anchors.left: sessionPic.right
+                                anchors.leftMargin: sessionPic.anchors.leftMargin
+                                font.family: "方正兰亭超细黑简体"
+                                font.letterSpacing: 1
+                                color: "#555"
+                                font.pixelSize: 12
+                                font.bold: true
+                                text: membersRoot.ingnoreStr(sessionObjectInfor, 10)
+
+                                CustemToolTip{
+                                    text: membersRoot.insertFlag(sessionObjectInfor, 10)
+                                    width: (sessionObjectInfor.length+1) * sessionInfor.font.pixelSize
+                                    target: parent
+                                }
+                            }
+
+                            Text {
+                                id: sessionMsgArea
+                                width: parent.width - sessionPic.width * 4
+                                anchors.bottom: sessionPic.bottom
+                                anchors.left: sessionPic.right
+                                anchors.leftMargin: sessionPic.anchors.leftMargin
+                                font.family: "方正兰亭超细黑简体"
+                                font.letterSpacing: 1
+                                color: "#999"
+                                font.pixelSize: 11
+                                text: membersRoot.ingnoreStr(sessionMsg, 12)
+
+                                CustemToolTip{
+                                    text: membersRoot.insertFlag(sessionMsg, 10)
+                                    width: (sessionMsg.length+4) * sessionMsgArea.font.pixelSize
+                                    target: parent
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -246,13 +342,13 @@ ApplicationWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: memPic.right
                                 anchors.leftMargin: memPic.anchors.leftMargin
-                                font.family: "宋体"
+                                font.family: "方正兰亭超细黑简体"
                                 font.letterSpacing: 1
                                 color: "#555"
                                 font.pixelSize: 12
                                 text: membersRoot.ingnoreStr(name + '(' + ip + ')', 10)
 
-                                ToolTip{
+                                CustemToolTip{
                                     text: membersRoot.insertFlag(name + '(' + ip + ')', 10)
                                     width: ((name + '(' + ip + ')').length+1) * memInfor.font.pixelSize
                                     target: parent
@@ -315,109 +411,15 @@ ApplicationWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: groupPic.right
                                 anchors.leftMargin: groupPic.anchors.leftMargin
-                                font.family: "宋体"
+                                font.family: "方正兰亭超细黑简体"
                                 font.letterSpacing: 1
                                 color: "#555"
                                 font.pixelSize: 12
                                 text: membersRoot.ingnoreStr(name, 10) + membersRoot.ingnoreStr('(' + memCount +')', 7)
 
-                                ToolTip{
+                                CustemToolTip{
                                     text: membersRoot.insertFlag(name + '(' + memCount +')', 10)
                                     width: ((name + '(' + memCount +')').length+1) * groupInfor.font.pixelSize
-                                    target: parent
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            Component {
-                id: sessionListView
-
-                Rectangle {
-                    width: parent.width
-                    height: parent.height
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-
-                    ListView {
-                        id: sessionListViewContent
-                        width: parent.width
-                        height: parent.height
-
-                        Component.onCompleted: {
-//                            for(var count = 0, ch = '哈'; count < 10; ++count){
-//                                model.append({picPath: "/img/defaultPic.jpg"
-//                                                ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
-//                                                ,sessionMsg: ch})
-//                                ch = ch + '哈'
-//                            }
-                        }
-
-                        model: ListModel {
-                            ListElement {
-                                picPath: "/img/defaultPic.jpg"
-                                sessionObjectInfor: "应用141班(10/40)"
-                                sessionMsg: "哈哈：哈哈哈"
-                            }
-                        }
-
-                        delegate: Item {
-                            width: parent.width
-                            height: 50
-
-                            Rectangle {
-                                id: sessionPic
-                                width: parent.height * 0.5
-                                height: width
-                                anchors.left: parent.left
-                                anchors.top: parent.top
-                                anchors.leftMargin: (parent.height - height) * 0.6
-                                anchors.topMargin: (parent.height - height) * 0.5
-
-                                Image {
-                                    id: sessionImg
-                                    anchors.fill: parent
-                                    source: picPath
-                                }
-                            }
-
-                            Text {
-                                id: sessionInfor
-                                width: parent.width - sessionPic.width * 4
-                                anchors.top: sessionPic.top
-                                anchors.left: sessionPic.right
-                                anchors.leftMargin: sessionPic.anchors.leftMargin
-                                font.family: "宋体"
-                                font.letterSpacing: 1
-                                color: "#555"
-                                font.pixelSize: 12
-                                font.bold: true
-                                text: membersRoot.ingnoreStr(sessionObjectInfor, 10)
-
-                                ToolTip{
-                                    text: membersRoot.insertFlag(sessionObjectInfor, 10)
-                                    width: (sessionObjectInfor.length+1) * sessionInfor.font.pixelSize
-                                    target: parent
-                                }
-                            }
-
-                            Text {
-                                id: sessionMsgArea
-                                width: parent.width - sessionPic.width * 4
-                                anchors.bottom: sessionPic.bottom
-                                anchors.left: sessionPic.right
-                                anchors.leftMargin: sessionPic.anchors.leftMargin
-                                font.family: "宋体"
-                                font.letterSpacing: 1
-                                color: "#999"
-                                font.pixelSize: 11
-                                text: membersRoot.ingnoreStr(sessionMsg, 12)
-
-                                ToolTip{
-                                    text: membersRoot.insertFlag(sessionMsg, 10)
-                                    width: (sessionMsg.length+4) * sessionMsgArea.font.pixelSize
                                     target: parent
                                 }
                             }
@@ -435,7 +437,5 @@ ApplicationWindow {
         anchors.top: parent.top
     }
 
-    FileTransfer{
-        id: daw
-    }
+    FileTransfer{}
 }

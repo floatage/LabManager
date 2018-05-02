@@ -245,11 +245,17 @@ Rectangle {
             anchors.leftMargin: 1
             anchors.rightMargin: 1
 
-//            Component.onCompleted: {
-//                if (contentStackView.depth == 0) {
-//                    contentStackView.push(memListView)
-//                }
-//            }
+            Component.onCompleted: {
+                if (contentStackView.depth == 0) {
+                    contentStackView.push(chatMsgArea)
+                }
+            }
+
+            ChatPanel{
+                id: chatMsgArea
+                width: parent.width
+                height: parent.height
+            }
         }
     }
 }

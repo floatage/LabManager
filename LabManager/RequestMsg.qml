@@ -91,7 +91,7 @@ DialogFrame {
                             font.pixelSize: 11
                             text: membersRoot.ingnoreStr(requestInfor, 18)
 
-                            ToolTip{
+                            CustemToolTip{
                                 text: membersRoot.insertFlag(requestInforText.requestInfor, 18)
                                 width: (requestInforText.requestInfor.length+1) * requestInforText.font.pixelSize
                                 target: parent

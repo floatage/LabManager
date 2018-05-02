@@ -79,7 +79,7 @@ DialogFrame{
                             font.pixelSize: 12
                             text: membersRoot.ingnoreStr(name, 15)
 
-                            ToolTip{
+                            CustemToolTip{
                                 text: membersRoot.insertFlag(name, 20)
                                 width: (name.length+1) * fileName.font.pixelSize
                                 target: parent
@@ -184,7 +184,7 @@ DialogFrame{
                             font.pixelSize: 12
                             text: membersRoot.ingnoreStr(name, 15)
 
-                            ToolTip{
+                            CustemToolTip{
                                 text: membersRoot.insertFlag(name, 20)
                                 width: (name.length+1) * fileName.font.pixelSize
                                 target: parent

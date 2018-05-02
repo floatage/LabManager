@@ -12,7 +12,7 @@
         <file>img/settingIcon.png</file>
         <file>img/testIcon.png</file>
         <file>img/uploadIcon.png</file>
-        <file>ToolTip.qml</file>
+        <file>CustemToolTip.qml</file>
         <file>MembersPanel.qml</file>
         <file>AppTitleBar.qml</file>
         <file>MainForm.ui.qml</file>
@@ -47,5 +47,13 @@
         <file>img/curTask.png</file>
         <file>img/finishedTask.png</file>
         <file>img/fileType_pdf.png</file>
+        <file>ChatPanel.qml</file>
+        <file>imports/Theme/qmldir</file>
+        <file>imports/Theme/Theme.qml</file>
+        <file>img/folder.svg</file>
+        <file>img/pic.svg</file>
+        <file>img/Smile.svg</file>
+        <file>img/text.svg</file>
+        <file>FileSharedPanel.qml</file>
     </qresource>
 </RCC>

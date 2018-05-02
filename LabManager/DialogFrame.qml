@@ -44,7 +44,7 @@ Item {
                     id: titleTextContent
                     anchors.verticalCenter: parent.verticalCenter
                     verticalAlignment: Text.AlignVCenter
-                    font.family: "微软雅黑"
+                    font.family: "方正兰亭超细黑简体"
                     font.pixelSize: 12
                     font.letterSpacing: 1
                     color: "#999"

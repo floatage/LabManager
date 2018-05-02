@@ -41,9 +41,10 @@ Rectangle {
                     Text{
                         id: menuText
                         verticalAlignment: Text.AlignVCenter
-                        font.family: "微软雅黑"
-                        font.pixelSize: 12
+                        font.family: "方正兰亭超细黑简体"
+                        font.pixelSize: 14
                         font.letterSpacing: 1
+                        font.bold: true
                         anchors.fill: parent
                         anchors.leftMargin: 5
                         anchors.rightMargin: anchors.leftMargin
