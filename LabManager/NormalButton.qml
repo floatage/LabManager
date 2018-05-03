@@ -45,7 +45,7 @@ Item {
                     implicitHeight: textInfor.contentHeight + fillHeight
                     radius: 10
                     border.color: (reversal ? !control.pressed : control.pressed) ? "#6FF" : "#6CF"
-                    border.width: hasBorder ? (control.pressed ? 2 : 1) : 0
+                    border.width: hasBorder || control.pressed ? (control.pressed ? 2 : 1) : 0
                     color: (reversal ? !control.hovered : control.hovered) ? buttonTextColor : "#FFF"
                 }
         }

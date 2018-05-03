@@ -5,6 +5,7 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame{
     id: fileTransfer
     titleText: "我的文件传输"
+    fileName: "FileTransfer.qml"
     viewMap: {"/img/curTask.png":[curFileTransfer, 'curFileTransfer', true],
               "/img/finishedTask.png":[fileTransferHistory, 'fileTransferHistory', false],
               "/img/settingIcon.png":[fileTransferSetting,'fileTransferSetting', false]}
@@ -13,7 +14,7 @@ DialogFrame{
     property color textUDColor: "#333"
     property real colSpacing: 35
     property var fileTypePicMap: {
-        "pdf" : "/img/fileType_pdf.png"
+        "pdf" : "/img/pdf.png"
     }
 
 

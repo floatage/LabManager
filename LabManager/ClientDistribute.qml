@@ -5,6 +5,7 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame{
     id: clientDistribute
     titleText: "客户端分发"
+    fileName: "ClientDistribute.qml"
     viewMap: {"/img/distributionIcon.png":[clientDistributeContent,"clientDistributeContent",true]};
 
     property real colSpacing: 30

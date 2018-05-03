@@ -1,16 +1,18 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.3
+import QtQuick 2.10
+import QtQuick.Controls 2.3
 import QtGraphicalEffects 1.0
 
 Rectangle {
     id: userViewRoot
     width: 750
     height: 580
-//    flags: Qt.FramelessWindowHint | Qt.Window
+
+    property var panelMap: {'a':0}
+    property alias target: appMenuBarInView.target
 
     AppMenuBar{
         id: appMenuBarInView
-        target: userViewRoot
+        target: target
     }
 
     Rectangle {
@@ -94,15 +96,16 @@ Rectangle {
                     var resultItem = stack.find(function (item) {
                         return item === targetItem ? true : false
                     })
-                    if (resultItem === null)
+                    if (resultItem === null){
                         stack.push(targetItem)
-                    else
+                    }
+                    else{
                         stack.pop(resultItem)
+                    }
                 }
 
                 function setIconTrue(targetIcon) {
-                    var iconList = [chattingIcon, testIcon, broadcastIcon,
-                                    downLoadIcon, fileTransferIcon, upLoadIcon, msgIcon, screeControlIcon]
+                    var iconList = [chattingIcon, testIcon, broadcastIcon,fileTransferIcon, screeControlIcon]
                     for (var j = 0, len = iconList.length; j < len; j++) {
                         if (iconList[j] === targetIcon)
                             iconList[j].item.checked = true
@@ -123,53 +126,7 @@ Rectangle {
                         target: chattingIcon.item
                         onIconClicked: {
                             iconRow.setIconTrue(chattingIcon)
-                            iconRow.replaceToStackTop(contentStackView, memListView)
-                        }
-                    }
-                }
-
-                Loader {
-                    id: testIcon
-                    sourceComponent: iconItem
-                    onLoaded: item.iconImg.source = "/img/testIcon.png"
-
-                    Connections {
-                        target: testIcon.item
-                        onIconClicked: {
-                            iconRow.setIconTrue(testIcon)
-                            iconRow.replaceToStackTop(contentStackView,
-                                                      memGroupListView)
-                        }
-                    }
-                }
-
-                Loader {
-                    id: broadcastIcon
-                    sourceComponent: iconItem
-                    onLoaded: item.iconImg.source = "/img/screeBctIcon.png"
-
-                    Connections {
-                        target: broadcastIcon.item
-                        onIconClicked: {
-                            iconRow.setIconTrue(broadcastIcon)
-                            iconRow.replaceToStackTop(contentStackView,
-                                                      sessionListView)
-                        }
-                    }
-                }
-
-                Loader {
-                    id: downLoadIcon
-                    sourceComponent: iconItem
-                    onLoaded: {
-                        item.iconImg.source = "/img/downLoadIcon.png"
-                    }
-
-                    Connections {
-                        target: downLoadIcon.item
-                        onIconClicked: {
-                            iconRow.setIconTrue(downLoadIcon)
-                            iconRow.replaceToStackTop(contentStackView, memListView)
+                            iconRow.replaceToStackTop(contentStackView, chatMsgArea)
                         }
                     }
                 }
@@ -183,38 +140,47 @@ Rectangle {
                         target: fileTransferIcon.item
                         onIconClicked: {
                             iconRow.setIconTrue(fileTransferIcon)
-                            iconRow.replaceToStackTop(contentStackView,
-                                                      memGroupListView)
+
+                            if (panelMap && !panelMap.hasOwnProperty("fileSharedPanel")){
+                                var panel = Qt.createComponent("FileSharedPanel.qml")
+                                panelMap["fileSharedPanel"] = panel.createObject(null, {visible: false, width: contentStackView.width, height: contentStackView.height})
+                            }
+
+                            iconRow.replaceToStackTop(contentStackView, panelMap["fileSharedPanel"])
                         }
                     }
                 }
 
                 Loader {
-                    id: upLoadIcon
+                    id: testIcon
                     sourceComponent: iconItem
-                    onLoaded: item.iconImg.source = "/img/uploadIcon.png"
+                    onLoaded: item.iconImg.source = "/img/testIcon.png"
 
                     Connections {
-                        target: upLoadIcon.item
+                        target: testIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(upLoadIcon)
-                            iconRow.replaceToStackTop(contentStackView,
-                                                      sessionListView)
+                            iconRow.setIconTrue(testIcon)
+
+                            if (panelMap && !panelMap.hasOwnProperty("HomeworkManagePanel")){
+                                var panel = Qt.createComponent("HomeworkManagePanel.qml")
+                                panelMap["HomeworkManagePanel"] = panel.createObject(null, {visible: false, width: contentStackView.width, height: contentStackView.height})
+                            }
+
+                            iconRow.replaceToStackTop(contentStackView, panelMap["HomeworkManagePanel"])
                         }
                     }
                 }
 
                 Loader {
-                    id: msgIcon
+                    id: broadcastIcon
                     sourceComponent: iconItem
-                    onLoaded: item.iconImg.source = "/img/msgIcon.png"
+                    onLoaded: item.iconImg.source = "/img/screeBctIcon.png"
 
                     Connections {
-                        target: msgIcon.item
+                        target: broadcastIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(msgIcon)
-                            iconRow.replaceToStackTop(contentStackView,
-                                                      memGroupListView)
+                            iconRow.setIconTrue(broadcastIcon)
+                            iconRow.replaceToStackTop(contentStackView, chatMsgArea)
                         }
                     }
                 }
@@ -228,8 +194,33 @@ Rectangle {
                         target: screeControlIcon.item
                         onIconClicked: {
                             iconRow.setIconTrue(screeControlIcon)
-                            iconRow.replaceToStackTop(contentStackView,
-                                                      sessionListView)
+                            iconRow.replaceToStackTop(contentStackView, chatMsgArea)
+                        }
+                    }
+                }
+
+                Loader {
+                    id: msgIcon
+                    sourceComponent: iconItem
+                    onLoaded: item.iconImg.source = "/img/msgIcon.png"
+
+                    Connections {
+                        target: msgIcon.item
+                        onIconClicked: {
+                            userView.createOrReplacePanel("RequestMsg.qml")
+                        }
+                    }
+                }
+
+                Loader {
+                    id: taskIcon
+                    sourceComponent: iconItem
+                    onLoaded: item.iconImg.source = "/img/downLoadIcon.png"
+
+                    Connections {
+                        target: taskIcon.item
+                        onIconClicked: {
+                            userView.createOrReplacePanel("FileTransfer.qml")
                         }
                     }
                 }
@@ -245,16 +236,50 @@ Rectangle {
             anchors.leftMargin: 1
             anchors.rightMargin: 1
 
+            pushEnter: Transition {
+              PropertyAnimation {
+                  property: "opacity"
+                  from: 0
+                  to:1
+                  duration: 200
+              }
+            }
+            pushExit: Transition {
+              PropertyAnimation {
+                  property: "opacity"
+                  from: 1
+                  to:0
+                  duration: 200
+              }
+            }
+            popEnter: Transition {
+              PropertyAnimation {
+                  property: "opacity"
+                  from: 0
+                  to:1
+                  duration: 200
+              }
+            }
+            popExit: Transition {
+              PropertyAnimation {
+                  property: "opacity"
+                  from: 1
+                  to:0
+                  duration: 200
+              }
+            }
+
             Component.onCompleted: {
-                if (contentStackView.depth == 0) {
+                if (contentStackView.depth === 0) {
                     contentStackView.push(chatMsgArea)
                 }
             }
 
-            ChatPanel{
+            ChatPanel {
                 id: chatMsgArea
                 width: parent.width
                 height: parent.height
+                visible: false
             }
         }
     }

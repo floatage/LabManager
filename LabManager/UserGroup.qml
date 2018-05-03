@@ -5,6 +5,7 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame{
     id: userGroup
     titleText: "我的用户组"
+    fileName: "UserGroup.qml"
     viewMap: {"/img/memGroupIcon_light.png":[getUserGroup, "getUserGroup", true],
               "/img/inforManageIcon.png":[editUserGroup, "editUserGroup", false]}
 

@@ -5,6 +5,7 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame{
     id: homeworkDistribute
     titleText: "我的作业分发"
+    fileName: "HomeworkDistribute.qml"
     viewMap: {"/img/hwkDistributeIcon.png":[hwkDistributeContent, "hwkDistributeContent", true],
               "/img/settingIcon.png":[hwkDistributeSetting, "hwkDistributeSetting", false]}
 

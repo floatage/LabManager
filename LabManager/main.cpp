@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("HomeworkManager", HomeworkManager::getInstance());
 
     engine.addImportPath(":/imports");
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/MembersPanel.qml")));
     //需要定制退出函数
 
     return app.exec();

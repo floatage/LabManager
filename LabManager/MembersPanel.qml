@@ -1,10 +1,33 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.3
+import QtQuick 2.10
+import QtQuick.Controls 2.3
 import QtGraphicalEffects 1.0
 
 ApplicationWindow {
     id: userView
+    visible: true
+    width: 975
+    height: 580
     flags: Qt.FramelessWindowHint | Qt.Window
+
+    property var panelDict : {'a':1}
+    property var curPanel : undefined
+
+    function deletePanel(panelFileName){
+        if (panelDict.hasOwnProperty(panelFileName)){
+            delete panelDict[panelFileName]
+        }
+    }
+
+    function createOrReplacePanel(panelFileName){
+        if (!panelDict.hasOwnProperty(panelFileName)){
+            var panel = Qt.createComponent(panelFileName)
+            panelDict[panelFileName] = panel.createObject(userView, {visible: true, y:42, x:765})
+        }
+
+        if (curPanel && curPanel !== undefined)curPanel.visible = false
+        curPanel = panelDict[panelFileName]
+        curPanel.visible = true
+    }
 
     Rectangle{
         id: membersRoot
@@ -30,7 +53,7 @@ ApplicationWindow {
 
         AppTitleBar {
             id: userMsgBarInMem
-            target: membersRoot
+            target: userView
         }
 
         Rectangle {
@@ -202,48 +225,89 @@ ApplicationWindow {
                 Rectangle {
                     width: parent.width
                     height: parent.height
-                    anchors.left: parent.left
-                    anchors.top: parent.top
 
                     ListView {
                         id: sessionListViewContent
-                        width: parent.width
-                        height: parent.height
+                        anchors.fill: parent
+                        clip: true
+                        ScrollBar.vertical: ScrollBar { }
 
                         Component.onCompleted: {
-//                            for(var count = 0, ch = '哈'; count < 10; ++count){
-//                                model.append({picPath: "/img/defaultPic.jpg"
-//                                                ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
-//                                                ,sessionMsg: ch})
-//                                ch = ch + '哈'
-//                            }
-                        }
-
-                        model: ListModel {
-                            ListElement {
-                                picPath: "/img/defaultPic.jpg"
-                                sessionObjectInfor: "应用141班(10/40)"
-                                sessionMsg: "哈哈：哈哈哈"
+                            for(var count = 0, ch = '哈'; count < 20; ++count){
+                                model.append({picPath: "/img/defaultPic.jpg"
+                                                ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
+                                                ,sessionMsg: ch})
+                                ch = ch + '哈'
                             }
                         }
 
-                        delegate: Item {
+                        model: ListModel {
+//                            ListElement {
+//                                picPath: "/img/defaultPic.jpg"
+//                                sessionObjectInfor: "应用141班(10/40)"
+//                                sessionMsg: "哈哈：哈哈哈"
+//                            }
+                        }
+
+                        delegate: Rectangle {
+                            id: sessionListViewItem
                             width: parent.width
-                            height: 50
+                            height: 54
+                            color: ListView.isCurrentItem ? "#FEE" : "#FFF"
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                propagateComposedEvents: true
+
+                                onClicked: {
+                                    sessionListViewContent.currentItem.color = "#FFF"
+                                    sessionListViewContent.currentIndex = index
+                                }
+                                onEntered: {
+                                    if (sessionListViewContent.currentIndex !== index)
+                                        sessionListViewItem.color = "#FEE"
+                                }
+                                onExited: {
+                                    if (sessionListViewContent.currentIndex !== index)
+                                        sessionListViewItem.color = "#FFF"
+                                }
+                            }
 
                             Rectangle {
                                 id: sessionPic
-                                width: parent.height * 0.5
+                                width: parent.height * 0.7
                                 height: width
+                                radius: width * 0.5
                                 anchors.left: parent.left
-                                anchors.top: parent.top
-                                anchors.leftMargin: (parent.height - height) * 0.6
-                                anchors.topMargin: (parent.height - height) * 0.5
+                                anchors.leftMargin: (parent.height - height) * 0.5
+                                anchors.verticalCenter: parent.verticalCenter
 
                                 Image {
                                     id: sessionImg
+                                    smooth: true
+                                    visible: false
+                                    antialiasing: true
                                     anchors.fill: parent
                                     source: picPath
+                                    sourceSize: Qt.size(parent.size, parent.size)
+                                }
+
+                                Rectangle{
+                                    id: mask
+                                    anchors.fill: parent
+                                    radius: width * 0.5
+                                    visible: false
+                                    smooth: true
+                                    antialiasing: true
+                                }
+
+                                OpacityMask {
+                                    anchors.fill: sessionPic
+                                    source: sessionImg
+                                    maskSource: mask
+                                    visible: true
+                                    antialiasing: true
                                 }
                             }
 
@@ -251,6 +315,7 @@ ApplicationWindow {
                                 id: sessionInfor
                                 width: parent.width - sessionPic.width * 4
                                 anchors.top: sessionPic.top
+                                anchors.topMargin: 3
                                 anchors.left: sessionPic.right
                                 anchors.leftMargin: sessionPic.anchors.leftMargin
                                 font.family: "方正兰亭超细黑简体"
@@ -259,18 +324,13 @@ ApplicationWindow {
                                 font.pixelSize: 12
                                 font.bold: true
                                 text: membersRoot.ingnoreStr(sessionObjectInfor, 10)
-
-                                CustemToolTip{
-                                    text: membersRoot.insertFlag(sessionObjectInfor, 10)
-                                    width: (sessionObjectInfor.length+1) * sessionInfor.font.pixelSize
-                                    target: parent
-                                }
                             }
 
                             Text {
                                 id: sessionMsgArea
                                 width: parent.width - sessionPic.width * 4
                                 anchors.bottom: sessionPic.bottom
+                                anchors.bottomMargin: 3
                                 anchors.left: sessionPic.right
                                 anchors.leftMargin: sessionPic.anchors.leftMargin
                                 font.family: "方正兰亭超细黑简体"
@@ -278,12 +338,6 @@ ApplicationWindow {
                                 color: "#999"
                                 font.pixelSize: 11
                                 text: membersRoot.ingnoreStr(sessionMsg, 12)
-
-                                CustemToolTip{
-                                    text: membersRoot.insertFlag(sessionMsg, 10)
-                                    width: (sessionMsg.length+4) * sessionMsgArea.font.pixelSize
-                                    target: parent
-                                }
                             }
                         }
                     }
@@ -296,13 +350,12 @@ ApplicationWindow {
                 Rectangle {
                     width: parent.width
                     height: parent.height
-                    anchors.left: parent.left
-                    anchors.top: parent.top
 
                     ListView {
                         id: memListViewContent
                         width: parent.width
                         height: parent.height
+                        ScrollBar.vertical: ScrollBar { }
 
                         Component.onCompleted: {
                             var dataList = UserManager.listUsers();
@@ -365,13 +418,12 @@ ApplicationWindow {
                 Rectangle {
                     width: parent.width
                     height: parent.height
-                    anchors.left: parent.left
-                    anchors.top: parent.top
 
                     ListView {
                         id: memGroupListViewContent
                         width: parent.width
                         height: parent.height
+                        ScrollBar.vertical: ScrollBar { }
 
                         Component.onCompleted: {
                             var dataList = UserManager.listUserGroups()
@@ -432,10 +484,9 @@ ApplicationWindow {
 
     ContentPanel{
         id: contend
+        target: userView
         anchors.left: membersRoot.right
         anchors.leftMargin: -2
         anchors.top: parent.top
     }
-
-    FileTransfer{}
 }

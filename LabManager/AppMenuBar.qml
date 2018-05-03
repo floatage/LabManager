@@ -1,5 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.3
+import QtQuick 2.10
+import QtQuick.Controls 2.3
+import QtGraphicalEffects 1.0
 
 Rectangle {
     id: titleMenuArea
@@ -28,6 +29,7 @@ Rectangle {
 
             Component{
                 id: textMenuItem
+
                 Rectangle{
                     id: itemArea
                     width: menuText.contentWidth + 20
@@ -37,6 +39,7 @@ Rectangle {
                     color: backColor
 
                     property alias itemText: menuText.text
+                    signal itemClicked()
 
                     Text{
                         id: menuText
@@ -57,24 +60,43 @@ Rectangle {
                         id: textArea
                         anchors.fill: parent
                         acceptedButtons: Qt.LeftButton
+                        hoverEnabled: true
+
+                        onClicked: itemArea.itemClicked()
+                        onEntered: {menuText.color = "#FEE"}
+                        onExited: {menuText.color = "#FFF"}
                     }
                 }
             }
 
 
             Loader{
-                id: modelMenuItem
+                id: modeMenuItem
                 sourceComponent: textMenuItem
                 Component.onCompleted: {
                     item.itemText = "模式"
                 }
+
+                Connections{
+                    target: modeMenuItem.item
+                    onItemClicked: {
+                        titleMenuArea.target.createOrReplacePanel("RunMode.qml")
+                    }
+                }
             }
 
             Loader{
-                id: numberMenuItem
+                id: accountMenuItem
                 sourceComponent: textMenuItem
                 Component.onCompleted: {
                     item.itemText = "账号"
+                }
+
+                Connections{
+                    target: accountMenuItem.item
+                    onItemClicked: {
+                        titleMenuArea.target.createOrReplacePanel("AccountManage.qml")
+                    }
                 }
             }
 
@@ -84,6 +106,13 @@ Rectangle {
                 Component.onCompleted: {
                     item.itemText = "安装"
                 }
+
+                Connections{
+                    target: installMenuItem.item
+                    onItemClicked: {
+                        titleMenuArea.target.createOrReplacePanel("ClientDistribute.qml")
+                    }
+                }
             }
 
             Loader{
@@ -91,6 +120,13 @@ Rectangle {
                 sourceComponent: textMenuItem
                 Component.onCompleted: {
                     item.itemText = "设置"
+                }
+
+                Connections{
+                    target: settingMenuItem.item
+                    onItemClicked: {
+                        titleMenuArea.target.createOrReplacePanel("GeneralSetting.qml")
+                    }
                 }
             }
 
@@ -117,9 +153,7 @@ Rectangle {
                     item.itemText = "关于"
                 }
             }
-
         }
-
     }
 
     Rectangle{
@@ -146,36 +180,56 @@ Rectangle {
                     color: backColor
 
                     property alias iconPath: iconImg.source
-                    property var mask: null
+                    signal iconClicked()
 
                     Image {
                         id: iconImg
                         anchors.centerIn: parent
-                        scale: 0.85
+                        sourceSize.width: 16
+                        sourceSize.height: 16
 
                         MouseArea {
                             anchors.fill: parent
                             acceptedButtons: Qt.LeftButton
+                            hoverEnabled: true
+
+                            onClicked: iconArea.iconClicked()
+                            onEntered: {iconMask.color = "#FFF"}
+                            onExited: {iconMask.color = "#EEE"}
                         }
+                    }
+
+                    ColorOverlay {
+                        id: iconMask
+                        anchors.fill: iconImg
+                        source: iconImg
+                        color: "#EEE"
                     }
                 }
             }
 
-            Loader{
+            Loader {
                 id: hideIcon
                 sourceComponent: iconMenuItem
 
                 Component.onCompleted: {
-                    item.iconPath = "/img/hideIcon.png"
+                    item.iconPath = "/img/back.svg"
                 }
             }
 
-            Loader{
+            Loader {
                 id: minIcon
                 sourceComponent: iconMenuItem
 
                 Component.onCompleted: {
-                    item.iconPath = "/img/minIcon.png"
+                    item.iconPath = "/img/subtract.svg"
+                }
+
+                Connections{
+                    target: minIcon.item
+                    onIconClicked: {
+                        titleMenuArea.target.showMinimized()
+                    }
                 }
             }
 
@@ -184,10 +238,16 @@ Rectangle {
                 sourceComponent: iconMenuItem
 
                 Component.onCompleted: {
-                    item.iconPath = "/img/closeIcon.png"
+                    item.iconPath = "/img/close.svg"
+                }
+
+                Connections{
+                    target: closeIcon.item
+                    onIconClicked: {
+                        Qt.quit()
+                    }
                 }
             }
-
         }
     }
 
@@ -196,7 +256,6 @@ Rectangle {
         property int mousePosPreX
         property int mousePosPreY
 
-        id: mouseArea
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
         propagateComposedEvents: true

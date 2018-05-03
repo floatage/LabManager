@@ -2,7 +2,7 @@ import QtQuick 2.10
 import QtQuick.Controls 2.3
 
 Rectangle {
-    id: fileShareImpPanel
+    id: homeworkManageImpPanel
     width: 750
     height: 580
 
@@ -17,13 +17,13 @@ Rectangle {
     property int textRenderMode: Text.NativeRendering
 
     Rectangle{
-        id: fileShareImpPanelArea
+        id: homeworkManageImpPanelArea
         width: parent.width - 30
         height: parent.height - 10
         anchors.centerIn: parent
 
         Rectangle{
-            id: fileShareImpPanelMenu
+            id: homeworkManageImpPanelMenu
             width: parent.width
             height: 40
             anchors.left: parent.left
@@ -38,14 +38,14 @@ Rectangle {
         }
 
         Rectangle{
-            id: fileShareImpPanelDir
+            id: homeworkManageImpPanelList
             width: parent.width
-            height: parent.height - fileShareImpPanelMenu.height
+            height: parent.height - homeworkManageImpPanelMenu.height
             anchors.left: parent.left
-            anchors.top: fileShareImpPanelMenu.bottom
+            anchors.top: homeworkManageImpPanelMenu.bottom
 
             ListView {
-                id: sharedFileListView
+                id: homeworkListView
                 anchors.fill: parent
                 clip: true
 
@@ -53,10 +53,12 @@ Rectangle {
 
                 Component.onCompleted: {
                     for(var count = 0; count < 10; ++count){
-                        model.append({picTypePicInfor: "/img/fileTransferIcon.png"
-                                        ,fileNameInfor: "FileDir2"
-                                        ,fileUpdateDateInfor: "21:05 2016/12/3"
-                                        ,fileSizeInfor: "28.5 KB"})
+                        model.append({homeworkPicInfor: "/img/testIcon.png"
+                                        ,homeworkNameInfor: "软件工程考试"
+                                        ,homeworkStartDateInfor: "21:05 2016/12/3"
+                                        ,homeworkGroupInfor: "应用141班"
+                                        ,homeworkTimeInfor: "90 分钟"
+                                        ,homeworkStateInfor: "正在进行"})
                     }
                 }
 
@@ -64,7 +66,7 @@ Rectangle {
                 }
 
                 delegate: Rectangle {
-                    id: shareFileItem
+                    id: homeworkItem
                     width: parent.width
                     height: 50
 
@@ -73,35 +75,34 @@ Rectangle {
                         hoverEnabled: true
                         propagateComposedEvents: true
 
-                        onEntered: shareFileItem.color = itemHoverColor
-                        onExited: shareFileItem.color = itemNormalColor
+                        onEntered: homeworkItem.color = itemHoverColor
+                        onExited: homeworkItem.color = itemNormalColor
                     }
 
                     Rectangle {
-                        id: fileTypePic
+                        id: homeworkPic
                         width: 30
                         height: width
                         color: parent.color
                         anchors.verticalCenter: parent.verticalCenter
 
                         Image {
-                            id: fileTypeImg
+                            id: homeworkImg
                             anchors.centerIn: parent
-                            source: picTypePicInfor
-                            sourceSize: Qt.size(17, 19)
-                            scale: 1.2
+                            source: homeworkPicInfor
+                            scale: 0.8
                         }
                     }
 
                     Row{
                         width: parent.width - 60
                         height: parent.height
-                        anchors.left: fileTypePic.right
+                        anchors.left: homeworkPic.right
                         anchors.leftMargin: 30
 
-                        Text {
-                            id: fileName
-                            width: parent.width * 0.38
+                        Label {
+                            id: homeworkName
+                            width: parent.width * 0.25
                             anchors.verticalCenter: parent.verticalCenter
                             font.family: fontFamily
                             font.letterSpacing: fontSpacing
@@ -109,24 +110,11 @@ Rectangle {
                             font.bold: fontBolder
                             font.pixelSize: fontSize
                             renderType: textRenderMode
-                            text: membersRoot.ingnoreStr(fileNameInfor, 20)
+                            text: membersRoot.ingnoreStr(homeworkNameInfor, 20)
                         }
 
-                        Text {
-                            id: fileUpdateDate
-                            width: parent.width * 0.37
-                            anchors.verticalCenter: parent.verticalCenter
-                            font.family: fontFamily
-                            font.letterSpacing: fontSpacing
-                            color: fontColor
-                            font.bold: fontBolder
-                            font.pixelSize: fontSize
-                            renderType: textRenderMode
-                            text: membersRoot.ingnoreStr(fileUpdateDateInfor, 20)
-                        }
-
-                        Text {
-                            id: fileSize
+                        Label {
+                            id: homeworkGroup
                             width: parent.width * 0.25
                             anchors.verticalCenter: parent.verticalCenter
                             font.family: fontFamily
@@ -135,7 +123,46 @@ Rectangle {
                             color: fontColor
                             font.pixelSize: fontSize
                             renderType: textRenderMode
-                            text: membersRoot.ingnoreStr(fileSizeInfor, 20)
+                            text: membersRoot.ingnoreStr(homeworkGroupInfor, 20)
+                        }
+
+                        Label {
+                            id: homeworkStartDate
+                            width: parent.width * 0.2
+                            anchors.verticalCenter: parent.verticalCenter
+                            font.family: fontFamily
+                            font.letterSpacing: fontSpacing
+                            color: fontColor
+                            font.bold: fontBolder
+                            font.pixelSize: fontSize
+                            renderType: textRenderMode
+                            text: membersRoot.ingnoreStr(homeworkStartDateInfor, 20)
+                        }
+
+                        Label {
+                            id: homeworkTime
+                            width: parent.width * 0.15
+                            anchors.verticalCenter: parent.verticalCenter
+                            font.family: fontFamily
+                            font.letterSpacing: fontSpacing
+                            font.bold: fontBolder
+                            color: fontColor
+                            font.pixelSize: fontSize
+                            renderType: textRenderMode
+                            text: membersRoot.ingnoreStr(homeworkTimeInfor, 20)
+                        }
+
+                        Label {
+                            id: homeworkState
+                            width: parent.width * 0.15
+                            anchors.verticalCenter: parent.verticalCenter
+                            font.family: fontFamily
+                            font.letterSpacing: fontSpacing
+                            font.bold: fontBolder
+                            color: fontColor
+                            font.pixelSize: fontSize
+                            renderType: textRenderMode
+                            text: membersRoot.ingnoreStr(homeworkStateInfor, 20)
                         }
                     }
 

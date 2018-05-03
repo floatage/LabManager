@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.10
 
 Rectangle {
     id: titleArea
@@ -33,22 +33,10 @@ Rectangle {
             height: parent.height
             color: titleArea.color
 
-
             Image {
                 id: iconPic
                 anchors.centerIn: parent
                 focus: true
-            }
-
-            MouseArea{
-                acceptedButtons: Qt.LeftButton
-                anchors.fill: parent
-
-                onClicked: {
-                    target.visible = false
-                    appEasy.visible = true
-                    mouse.accepted = true
-                }
             }
         }
 
@@ -69,21 +57,17 @@ Rectangle {
             }
         }
 
-//        Rectangle {
-//            id: ipArea
-//            height: parent.height
-//            width: parent.width * 0.4
-//            color: titleArea.color
+        Rectangle {
+            id: controlArea
+            height: parent.height
+            width: parent.width * 0.52
+            color: titleArea.color
 
-//            Text {
-//                id: ipText
-//                text: "10.15.15.10"
-//                anchors.left: parent.left
-//                anchors.verticalCenter: parent.verticalCenter
-//                font.bold: true
-//                font.pixelSize: 13
-//            }
-//        }
+            Flow{
+                anchors.fill: parent
+                layoutDirection: Qt.RightToLeft
+            }
+        }
     }
 
     MouseArea {
@@ -96,18 +80,6 @@ Rectangle {
         acceptedButtons: Qt.LeftButton
         hoverEnabled: true
         propagateComposedEvents: true
-
-        onDoubleClicked: {
-            Qt.quit();
-        }
-
-        onEntered: {
-           titleArea.color = titleArea.activeColor
-        }
-
-        onExited: {
-           titleArea.color = titleArea.sleepColor
-        }
 
         onPressed: {
             isPress = true

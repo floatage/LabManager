@@ -1,19 +1,19 @@
-import QtQuick 2.0
+import QtQuick 2.10
 import QtGraphicalEffects 1.0
-import QtQuick.Controls 1.3
+import QtQuick.Controls 2.3
 
 Item {
     id: dialogFrame
     width: 210
     height: 538
 
-    signal dialogClose()
-    signal dialogHide()
-
     property color backColor: "#FFF"
     property color lineColor: "#6FF"
     property var viewMap: null
     property alias titleText: titleTextContent.text
+    property string fileName: ""
+
+    signal destroyPanel(string fileName)
 
     Rectangle{
         id: dialogTitleBarRoot
@@ -45,6 +45,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     verticalAlignment: Text.AlignVCenter
                     font.family: "方正兰亭超细黑简体"
+                    font.bold: true
                     font.pixelSize: 12
                     font.letterSpacing: 1
                     color: "#999"
@@ -82,7 +83,8 @@ Item {
                             Image {
                                 id: iconImg
                                 anchors.centerIn: parent
-                                scale: 0.7
+                                sourceSize.width: 15
+                                sourceSize.height: 15
 
                                 MouseArea {
                                     anchors.fill: parent
@@ -108,10 +110,13 @@ Item {
                         id: closeIcon
                         sourceComponent: titleIconItem
 
-                        Component.onCompleted: {item.iconPath = "/img/closeIcon.png"}
+                        Component.onCompleted: {item.iconPath = "/img/close.svg"}
                         Connections{
                             target: closeIcon.item
-                            onIconClicked: dialogFrame.dialogClose()
+                            onIconClicked: {
+                                userView.deletePanel(fileName)
+                                dialogFrame.destroy()
+                            }
                         }
                     }
 
@@ -119,10 +124,12 @@ Item {
                         id: minIcon
                         sourceComponent: titleIconItem
 
-                        Component.onCompleted: {item.iconPath = "/img/minIcon.png"}
+                        Component.onCompleted: {item.iconPath = "/img/subtract.svg"}
                         Connections{
                             target: minIcon.item
-                            onIconClicked: dialogFrame.dialogHide()
+                            onIconClicked: {
+                                dialogFrame.visible = false
+                            }
                         }
                     }
                 }
@@ -286,6 +293,39 @@ Item {
                 anchors.top: viewIconTitle.bottom
                 anchors.leftMargin: 1
                 anchors.rightMargin: 1
+
+                pushEnter: Transition {
+                  PropertyAnimation {
+                      property: "opacity"
+                      from: 0
+                      to:1
+                      duration: 200
+                  }
+                }
+                pushExit: Transition {
+                  PropertyAnimation {
+                      property: "opacity"
+                      from: 1
+                      to:0
+                      duration: 200
+                  }
+                }
+                popEnter: Transition {
+                  PropertyAnimation {
+                      property: "opacity"
+                      from: 0
+                      to:1
+                      duration: 200
+                  }
+                }
+                popExit: Transition {
+                  PropertyAnimation {
+                      property: "opacity"
+                      from: 1
+                      to:0
+                      duration: 200
+                  }
+                }
 
                 Component.onCompleted: {
                     if (viewsStackView.depth === 0) {

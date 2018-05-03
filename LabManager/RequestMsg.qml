@@ -5,6 +5,7 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame {
     id: requestMsgRoot
     titleText: "我的请求消息"
+    fileName: "RequestMsg.qml"
     viewMap: {
         "/img/msgIcon.png": [requestMsgList, "requestMsgList", true],
         "/img/settingIcon.png": [requestMsgSetting, "requestMsgSetting", false]

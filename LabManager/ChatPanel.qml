@@ -1,11 +1,31 @@
 import QtQuick 2.10
-import QtQuick.Controls 2.2
+import QtQuick.Controls 2.3
+import QtQuick.Dialogs 1.3
 
-Rectangle{
+Item{
     id: chatMsgControler
-    anchors.fill: parent
 
     property int commonLeftMargin: 15
+
+    FileDialog{
+        id: picSelectFileDialog
+        title: qsTr("请选择发送图片")
+        selectFolder: false
+        selectMultiple: false
+        nameFilters: ['Pictures (*.png *.jpg *.jpeg *.bmp *.svg *.gif)']
+        onAccepted: {
+        }
+    }
+
+    FileDialog{
+        id: fileSelectFileDialog
+        title: qsTr("请选择发送文件")
+        selectFolder: false
+        selectMultiple: false
+        nameFilters: ['All Files (*.*)']
+        onAccepted: {
+        }
+    }
 
     Column{
         anchors.fill: parent
@@ -217,6 +237,7 @@ Rectangle{
                         target:sendPicIcon.item
                         onPicLoad: img.source = "/img/pic.svg"
                         onIconClicked: {
+                            picSelectFileDialog.open()
                         }
                     }
                 }
@@ -230,6 +251,7 @@ Rectangle{
                         target:sendFileIcon.item
                         onPicLoad: img.source = "/img/folder.svg"
                         onIconClicked: {
+                            fileSelectFileDialog.open()
                         }
                     }
                 }

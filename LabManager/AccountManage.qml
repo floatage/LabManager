@@ -5,6 +5,7 @@ import QtQuick.Controls.Styles 1.3
 DialogFrame{
     id: accountManageRoot
     titleText: "我的账号管理"
+    fileName: "AccountManage.qml"
     viewMap: {"/img/personIcon_light.png":[accountLogin, 'accountLogin', true],
               "/img/accountPass.png":[editAccountPassword, 'editAccountPassword', false],
               "/img/settingIcon.png":[accountSetting,'accountSetting', false]}

@@ -23,9 +23,6 @@
         <file>AppMenuBar.qml</file>
         <file>img/downLoadIcon.png</file>
         <file>img/fileTransferIcon.png</file>
-        <file>img/closeIcon.png</file>
-        <file>img/hideIcon.png</file>
-        <file>img/minIcon.png</file>
         <file>img/showIcon.png</file>
         <file>AccountManage.qml</file>
         <file>DialogFrame.qml</file>
@@ -33,7 +30,6 @@
         <file>NormalButton.qml</file>
         <file>NormalCheckbox.qml</file>
         <file>TextRow.qml</file>
-        <file>img/defaultPic.jpg</file>
         <file>RunMode.qml</file>
         <file>NormalRadioButton.qml</file>
         <file>RequestMsg.qml</file>
@@ -46,7 +42,6 @@
         <file>FileTransfer.qml</file>
         <file>img/curTask.png</file>
         <file>img/finishedTask.png</file>
-        <file>img/fileType_pdf.png</file>
         <file>ChatPanel.qml</file>
         <file>imports/Theme/qmldir</file>
         <file>imports/Theme/Theme.qml</file>
@@ -55,5 +50,12 @@
         <file>img/Smile.svg</file>
         <file>img/text.svg</file>
         <file>FileSharedPanel.qml</file>
+        <file>img/add.svg</file>
+        <file>img/back.svg</file>
+        <file>img/close.svg</file>
+        <file>img/subtract.svg</file>
+        <file>img/defaultPic.jpg</file>
+        <file>img/pdf.png</file>
+        <file>HomeworkManagePanel.qml</file>
     </qresource>
 </RCC>
