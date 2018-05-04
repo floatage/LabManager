@@ -29,7 +29,7 @@ Item{
 
     Column{
         anchors.fill: parent
-        spacing: 0
+
 
         Rectangle {
             id: chatMsgControlerTitle
@@ -50,9 +50,10 @@ Item{
                     anchors.left: parent.left
                     horizontalAlignment: Text.AlignVCenter
                     text: "我是娃哈哈"
-                    font.family: "方正兰亭超细黑简体"
+                    font.family: "微软雅黑"
                     font.letterSpacing: 1
-                    font.pixelSize: 14
+                    font.pixelSize: 15
+                    renderType: Text.NativeRendering
                 }
             }
 
@@ -76,68 +77,6 @@ Item{
                 height: parent.height
 
                 Component.onCompleted: {
-//                            for(var count = 0, ch = '哈'; count < 10; ++count){
-//                                model.append({picPath: "/img/defaultPic.jpg"
-//                                                ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
-//                                                ,sessionMsg: ch})
-//                                ch = ch + '哈'
-//                            }
-                }
-
-                model: ListModel {
-                    ListElement {
-                        picPath: "/img/defaultPic.jpg"
-                        sessionObjectInfor: "应用141班(10/40)"
-                        sessionMsg: "哈哈：哈哈哈"
-                    }
-                }
-
-                delegate: Item {
-                    width: parent.width
-                    height: 50
-
-                    Rectangle {
-                        id: sessionPic
-                        width: parent.height * 0.5
-                        height: width
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.leftMargin: (parent.height - height) * 0.6
-                        anchors.topMargin: (parent.height - height) * 0.5
-
-                        Image {
-                            id: sessionImg
-                            anchors.fill: parent
-                            source: picPath
-                        }
-                    }
-
-                    Text {
-                        id: sessionInfor
-                        width: parent.width - sessionPic.width * 4
-                        anchors.top: sessionPic.top
-                        anchors.left: sessionPic.right
-                        anchors.leftMargin: sessionPic.anchors.leftMargin
-                        font.family: "方正兰亭超细黑简体"
-                        font.letterSpacing: 1
-                        color: "#555"
-                        font.pixelSize: 12
-                        font.bold: true
-                        text: membersRoot.ingnoreStr(sessionObjectInfor, 10)
-                    }
-
-                    Text {
-                        id: sessionMsgArea
-                        width: parent.width - sessionPic.width * 4
-                        anchors.bottom: sessionPic.bottom
-                        anchors.left: sessionPic.right
-                        anchors.leftMargin: sessionPic.anchors.leftMargin
-                        font.family: "方正兰亭超细黑简体"
-                        font.letterSpacing: 1
-                        color: "#999"
-                        font.pixelSize: 11
-                        text: membersRoot.ingnoreStr(sessionMsg, 12)
-                    }
                 }
             }
         }

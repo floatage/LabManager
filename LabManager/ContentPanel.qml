@@ -152,26 +152,6 @@ Rectangle {
                 }
 
                 Loader {
-                    id: testIcon
-                    sourceComponent: iconItem
-                    onLoaded: item.iconImg.source = "/img/testIcon.png"
-
-                    Connections {
-                        target: testIcon.item
-                        onIconClicked: {
-                            iconRow.setIconTrue(testIcon)
-
-                            if (panelMap && !panelMap.hasOwnProperty("HomeworkManagePanel")){
-                                var panel = Qt.createComponent("HomeworkManagePanel.qml")
-                                panelMap["HomeworkManagePanel"] = panel.createObject(null, {visible: false, width: contentStackView.width, height: contentStackView.height})
-                            }
-
-                            iconRow.replaceToStackTop(contentStackView, panelMap["HomeworkManagePanel"])
-                        }
-                    }
-                }
-
-                Loader {
                     id: broadcastIcon
                     sourceComponent: iconItem
                     onLoaded: item.iconImg.source = "/img/screeBctIcon.png"
@@ -195,6 +175,26 @@ Rectangle {
                         onIconClicked: {
                             iconRow.setIconTrue(screeControlIcon)
                             iconRow.replaceToStackTop(contentStackView, chatMsgArea)
+                        }
+                    }
+                }
+
+                Loader {
+                    id: testIcon
+                    sourceComponent: iconItem
+                    onLoaded: item.iconImg.source = "/img/testIcon.png"
+
+                    Connections {
+                        target: testIcon.item
+                        onIconClicked: {
+                            iconRow.setIconTrue(testIcon)
+
+                            if (panelMap && !panelMap.hasOwnProperty("HomeworkManagePanel")){
+                                var panel = Qt.createComponent("HomeworkManagePanel.qml")
+                                panelMap["HomeworkManagePanel"] = panel.createObject(null, {visible: false, target:userViewRoot.target, width: contentStackView.width, height: contentStackView.height})
+                            }
+
+                            iconRow.replaceToStackTop(contentStackView, panelMap["HomeworkManagePanel"])
                         }
                     }
                 }

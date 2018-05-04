@@ -226,6 +226,73 @@ ApplicationWindow {
                     width: parent.width
                     height: parent.height
 
+                    Menu {
+                        id: userManageMenu
+
+                        background: Rectangle {
+                            id: menuback
+                            implicitWidth: 160
+                            color: "#FFF"
+                            border.width: 0
+                            radius: 4
+
+                            layer.enabled: true
+                            layer.effect: DropShadow {
+                                transparentBorder: true
+                                horizontalOffset: 0
+                                verticalOffset: 0
+                                color: "#999"
+                                radius: 5
+                            }
+                        }
+
+                        delegate: MenuItem {
+                            id:menuCustemItem
+                            width: parent.width
+                            height: 35
+
+                            contentItem: Text {
+                                text: menuCustemItem.text
+                                font.family: "微软雅黑"
+                                font.pixelSize: 13
+                                color: "#111"
+                                renderType: Text.NativeRendering
+                                horizontalAlignment: Text.AlignLeft
+                                verticalAlignment: Text.AlignVCenter
+                                leftPadding: 40
+                            }
+                        }
+
+                        Action{
+                            text: "刷新现存用户"
+                            onTriggered: {
+                                console.log("刷新现存用户")
+                            }
+                        }
+
+                        Action{
+                            text: "查找用户"
+                            onTriggered: {
+                                console.log("查找用户")
+                            }
+                        }
+
+                        Action{
+                            text: "增加用户"
+                            onTriggered: {
+                                console.log("增加用户")
+                            }
+                        }
+
+                        Action{
+                            text: "删除用户"
+                            onTriggered: {
+                                console.log("删除用户")
+                            }
+                        }
+
+                    }
+
                     ListView {
                         id: sessionListViewContent
                         anchors.fill: parent
@@ -242,27 +309,27 @@ ApplicationWindow {
                         }
 
                         model: ListModel {
-//                            ListElement {
-//                                picPath: "/img/defaultPic.jpg"
-//                                sessionObjectInfor: "应用141班(10/40)"
-//                                sessionMsg: "哈哈：哈哈哈"
-//                            }
                         }
 
                         delegate: Rectangle {
                             id: sessionListViewItem
                             width: parent.width
-                            height: 54
+                            height: 60
                             color: ListView.isCurrentItem ? "#FEE" : "#FFF"
 
                             MouseArea {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 propagateComposedEvents: true
+                                acceptedButtons: Qt.RightButton | Qt.LeftButton
 
                                 onClicked: {
                                     sessionListViewContent.currentItem.color = "#FFF"
                                     sessionListViewContent.currentIndex = index
+
+                                    if (mouse.button === Qt.RightButton){
+                                        userManageMenu.popup()
+                                    }
                                 }
                                 onEntered: {
                                     if (sessionListViewContent.currentIndex !== index)
@@ -315,14 +382,14 @@ ApplicationWindow {
                                 id: sessionInfor
                                 width: parent.width - sessionPic.width * 4
                                 anchors.top: sessionPic.top
-                                anchors.topMargin: 3
+                                anchors.topMargin: 2
                                 anchors.left: sessionPic.right
                                 anchors.leftMargin: sessionPic.anchors.leftMargin
-                                font.family: "方正兰亭超细黑简体"
-                                font.letterSpacing: 1
-                                color: "#555"
-                                font.pixelSize: 12
-                                font.bold: true
+                                font.family: "微软雅黑"
+                                font.letterSpacing: 0
+                                color: "#444"
+                                font.pixelSize: 14
+                                renderType: Text.NativeRendering
                                 text: membersRoot.ingnoreStr(sessionObjectInfor, 10)
                             }
 
@@ -330,13 +397,14 @@ ApplicationWindow {
                                 id: sessionMsgArea
                                 width: parent.width - sessionPic.width * 4
                                 anchors.bottom: sessionPic.bottom
-                                anchors.bottomMargin: 3
+                                anchors.bottomMargin: 2
                                 anchors.left: sessionPic.right
                                 anchors.leftMargin: sessionPic.anchors.leftMargin
-                                font.family: "方正兰亭超细黑简体"
-                                font.letterSpacing: 1
-                                color: "#999"
-                                font.pixelSize: 11
+                                font.family: "微软雅黑"
+                                font.letterSpacing: 0
+                                color: "#AAA"
+                                font.pixelSize: 12
+                                renderType: Text.NativeRendering
                                 text: membersRoot.ingnoreStr(sessionMsg, 12)
                             }
                         }
@@ -368,46 +436,6 @@ ApplicationWindow {
 
                         model: ListModel {
                         }
-
-                        delegate: Item {
-                            width: parent.width
-                            height: 50
-
-                            Rectangle {
-                                id: memPic
-                                width: parent.height * 0.5
-                                height: width
-                                anchors.left: parent.left
-                                anchors.top: parent.top
-                                anchors.leftMargin: (parent.height - height) * 0.6
-                                anchors.topMargin: (parent.height - height) * 0.5
-
-                                Image {
-                                    id: memImg
-                                    anchors.fill: parent
-                                    source: picPath
-                                }
-                            }
-
-                            Text {
-                                id: memInfor
-                                width: parent.width - memPic.width * 4
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: memPic.right
-                                anchors.leftMargin: memPic.anchors.leftMargin
-                                font.family: "方正兰亭超细黑简体"
-                                font.letterSpacing: 1
-                                color: "#555"
-                                font.pixelSize: 12
-                                text: membersRoot.ingnoreStr(name + '(' + ip + ')', 10)
-
-                                CustemToolTip{
-                                    text: membersRoot.insertFlag(name + '(' + ip + ')', 10)
-                                    width: ((name + '(' + ip + ')').length+1) * memInfor.font.pixelSize
-                                    target: parent
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -435,46 +463,6 @@ ApplicationWindow {
                         }
 
                         model: ListModel {
-                        }
-
-                        delegate: Item {
-                            width: parent.width
-                            height: 50
-
-                            Rectangle {
-                                id: groupPic
-                                width: parent.height * 0.5
-                                height: width
-                                anchors.left: parent.left
-                                anchors.top: parent.top
-                                anchors.leftMargin: (parent.height - height) * 0.6
-                                anchors.topMargin: (parent.height - height) * 0.5
-
-                                Image {
-                                    id: groupImg
-                                    anchors.fill: parent
-                                    source: picPath
-                                }
-                            }
-
-                            Text {
-                                id: groupInfor
-                                width: parent.width - groupPic.width * 4
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: groupPic.right
-                                anchors.leftMargin: groupPic.anchors.leftMargin
-                                font.family: "方正兰亭超细黑简体"
-                                font.letterSpacing: 1
-                                color: "#555"
-                                font.pixelSize: 12
-                                text: membersRoot.ingnoreStr(name, 10) + membersRoot.ingnoreStr('(' + memCount +')', 7)
-
-                                CustemToolTip{
-                                    text: membersRoot.insertFlag(name + '(' + memCount +')', 10)
-                                    width: ((name + '(' + memCount +')').length+1) * groupInfor.font.pixelSize
-                                    target: parent
-                                }
-                            }
                         }
                     }
                 }

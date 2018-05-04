@@ -44,11 +44,12 @@ Item {
                     id: titleTextContent
                     anchors.verticalCenter: parent.verticalCenter
                     verticalAlignment: Text.AlignVCenter
-                    font.family: "方正兰亭超细黑简体"
-                    font.bold: true
+                    font.family: "微软雅黑"
+                    font.bold: false
                     font.pixelSize: 12
                     font.letterSpacing: 1
-                    color: "#999"
+                    renderType: Text.NativeRendering
+                    color: "#AAA"
                 }
             }
 

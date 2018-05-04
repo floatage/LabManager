@@ -57,5 +57,9 @@
         <file>img/defaultPic.jpg</file>
         <file>img/pdf.png</file>
         <file>HomeworkManagePanel.qml</file>
+        <file>img/download.svg</file>
+        <file>img/home.svg</file>
+        <file>img/set.svg</file>
+        <file>img/refresh.svg</file>
     </qresource>
 </RCC>
