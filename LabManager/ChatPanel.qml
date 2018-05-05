@@ -1,6 +1,7 @@
 import QtQuick 2.10
 import QtQuick.Controls 2.3
 import QtQuick.Dialogs 1.3
+import QtGraphicalEffects 1.0
 
 Item{
     id: chatMsgControler
@@ -73,10 +74,171 @@ Item{
 
             ListView {
                 id: chatMsgControlerContentListView
-                width: parent.width
-                height: parent.height
+                width: parent.width - 20
+                height: parent.height - 20
+                anchors.centerIn: parent
+                spacing: 15
+                clip: true
+                ScrollBar.vertical: ScrollBar {}
 
                 Component.onCompleted: {
+                }
+
+                model: ListModel{
+                    ListElement{
+                        isGroup: true
+                        msgSenderPic: "/img/defaultPic.jpg"
+                        msgSenderRole:"admin"
+                        msgSender:"test"
+                        msgSenderUuid:"4626fd"
+                        msgDate:" 2018/5/5 20:33:03"
+                        msgType:"msg"
+                        msgRealData:"我我哦哦哦哦哦哦哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦"
+                    }
+
+                    ListElement{
+                        isGroup: true
+                        msgSenderPic: "/img/defaultPic.jpg"
+                        msgSenderRole:"admin"
+                        msgSender:"test"
+                        msgSenderUuid:"4626fd"
+                        msgDate:" 2018/5/5 20:33:03"
+                        msgType:"msg"
+                        msgRealData:"ddawwwwwwwwwwwwwwwwwwwwwwwww"
+                    }
+
+                    ListElement{
+                        isGroup: true
+                        msgSenderPic: "/img/defaultPic.jpg"
+                        msgSenderRole:"admin"
+                        msgSender:"test"
+                        msgSenderUuid:"4626fd"
+                        msgDate:" 2018/5/5 20:33:03"
+                        msgType:"msg"
+                        msgRealData:"我我哦哦哦哦哦哦哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦\发发额嘎嘎好吧"
+                    }
+
+                    ListElement{
+                        isGroup: true
+                        msgSenderPic: "/img/defaultPic.jpg"
+                        msgSenderRole:"admin"
+                        msgSender:"test"
+                        msgSenderUuid:"4626fd"
+                        msgDate:" 2018/5/5 20:33:03"
+                        msgType:"msg"
+                        msgRealData:"我我哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦\发发额嘎嘎好吧"
+                    }
+
+                    ListElement{
+                        isGroup: true
+                        msgSenderPic: "/img/defaultPic.jpg"
+                        msgSenderRole:"admin"
+                        msgSender:"test"
+                        msgSenderUuid:"4626fd"
+                        msgDate:" 2018/5/5 20:33:03"
+                        msgType:"msg"
+                        msgRealData:"我我哦\n哦哦哦哦哦\n哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦\发发额嘎嘎好吧"
+                    }
+
+                    ListElement{
+                        isGroup: true
+                        msgSenderPic: "/img/defaultPic.jpg"
+                        msgSenderRole:"admin"
+                        msgSender:"test"
+                        msgSenderUuid:"4626fd"
+                        msgDate:" 2018/5/5 20:33:03"
+                        msgType:"msg"
+                        msgRealData:"我我哦\n哦哦哦哦哦\n哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦\发发额嘎嘎好吧\nn哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦"
+                    }
+                }
+
+                delegate: Rectangle{
+                    id: msgItem
+                    width: chatMsgControlerContentListView.width + msgItemSenderPic.width
+                    height: msgItemDescription.height + (msgType === "msg" ? msgItemRealmsg.height : 0) + (msgType === "pic" ? msgItemPic.height : 0)
+
+                    Rectangle {
+                        id: msgItemSenderPic
+                        width: 36
+                        height: width
+                        radius: width * 0.5
+                        anchors.left: parent.left
+
+                        Image {
+                            id: msgItemSenderPicImg
+                            smooth: true
+                            visible: false
+                            antialiasing: true
+                            anchors.fill: parent
+                            source: msgSenderPic
+                            sourceSize: Qt.size(parent.width, parent.height)
+                        }
+
+                        Rectangle{
+                            id: mask
+                            anchors.fill: parent
+                            radius: width * 0.5
+                            visible: false
+                            smooth: true
+                            antialiasing: true
+                        }
+
+                        OpacityMask {
+                            anchors.fill: msgItemSenderPic
+                            source: msgItemSenderPicImg
+                            maskSource: mask
+                            visible: true
+                            antialiasing: true
+                        }
+                    }
+
+                    Rectangle{
+                        id: msgItemDescription
+                        anchors.left: msgItemSenderPic.right
+                        anchors.leftMargin: 10
+                        height: 16
+
+                        Label{
+                            id: msgItemDescriptionText
+                            anchors.verticalCenter: parent.verticalCenter
+                            font.family: "微软雅黑"
+                            font.pixelSize: 12
+                            color: "#6d757a"
+                            renderType: Text.NativeRendering
+                            text: "" + (isGroup ? "【" + msgSenderRole + "】 " : "") + msgSender + "(" + msgSenderUuid + ")" + msgDate
+                        }
+                    }
+
+                    Rectangle {
+                        id: msgItemRealmsg
+                        visible: msgType === 'msg' ? true : false
+                        width: msgItemRealmsgText.width + 20
+                        height: msgItemRealmsgText.height + 16
+                        anchors.left: msgItemSenderPic.right
+                        anchors.leftMargin: 10
+                        anchors.top: msgItemDescription.bottom
+                        anchors.topMargin: 3
+                        radius: 4
+                        color: "#FEE"
+
+                        Label{
+                            id: msgItemRealmsgText
+                            font.family: "微软雅黑"
+                            font.pixelSize: 13
+                            color: "#333"
+                            renderType: Text.NativeRendering
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.left: parent.left
+                            anchors.leftMargin: 10
+                            text: msgRealData
+                        }
+                    }
+
+                    Rectangle{
+                        id: msgItemPic
+                        height: 50
+                        visible: msgType === 'pic' ? true : false
+                    }
                 }
             }
         }
