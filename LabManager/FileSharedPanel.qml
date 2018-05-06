@@ -16,6 +16,7 @@ Rectangle {
     property int fontSize: 12
     property int fontSpacing: 0
     property bool fontBolder: false
+    property int fontWeight: Font.Thin
     property int textRenderMode: Text.NativeRendering
 
     Menu {
@@ -45,7 +46,8 @@ Rectangle {
 
             contentItem: Text {
                 text: menuCustemItem.text
-                font.family: "微软雅黑"
+                font.family: fontFamily
+                font.weight: fontWeight
                 font.pixelSize: 13
                 color: "#111"
                 renderType: Text.NativeRendering
@@ -98,6 +100,7 @@ Rectangle {
                         text: "我是娃哈哈：/FolderOne"
                         font.family: fontFamily
                         font.bold: fontBolder
+                        font.weight: fontWeight
                         font.pixelSize: fontSize
                         font.letterSpacing: fontSpacing
                         renderType: Text.NativeRendering
@@ -282,6 +285,7 @@ Rectangle {
                             color: fontColor
                             font.bold: fontBolder
                             font.pixelSize: fontSize
+                            font.weight: fontWeight
                             renderType: textRenderMode
                             text: "文件"
                         }
@@ -390,6 +394,7 @@ Rectangle {
                             font.letterSpacing: fontSpacing
                             color: "#444"
                             font.bold: fontBolder
+                            font.weight: fontWeight
                             font.pixelSize: fontSize
                             renderType: textRenderMode
                             text: membersRoot.ingnoreStr(fileNameInfor, 20)

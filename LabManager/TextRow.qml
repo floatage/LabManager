@@ -15,6 +15,7 @@ Item {
     property bool hasButton: false
     property string bButtonText: "default"
     property string value: rowTextField.text
+    property alias inputType: rowTextField.echoMode
 
     Row{
         id: textRowCotent

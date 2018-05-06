@@ -14,6 +14,7 @@ Rectangle {
     property color borderColor: "#6FF"
     property color fontColor : "#888"
     property int fontSize: 12
+    property int fontWeight: Font.Thin
     property int fontSpacing: 0
     property bool fontBolder: false
     property int textRenderMode: Text.NativeRendering
@@ -45,7 +46,8 @@ Rectangle {
 
             contentItem: Text {
                 text: menuCustemItem.text
-                font.family: "微软雅黑"
+                font.family: fontFamily
+                font.weight: fontWeight
                 font.pixelSize: 13
                 color: "#111"
                 renderType: Text.NativeRendering
@@ -118,6 +120,7 @@ Rectangle {
                         anchors.left: parent.left
                         text: "作业/考试管理"
                         font.family: fontFamily
+                        font.weight: fontWeight
                         font.bold: fontBolder
                         font.pixelSize: fontSize
                         font.letterSpacing: fontSpacing
@@ -274,6 +277,7 @@ Rectangle {
                             width: parent.width * 0.25 + 55
                             anchors.verticalCenter: parent.verticalCenter
                             font.family: fontFamily
+                            font.weight: fontWeight
                             font.letterSpacing: fontSpacing
                             color: fontColor
                             font.bold: fontBolder
@@ -395,6 +399,7 @@ Rectangle {
                             width: parent.width * 0.25
                             anchors.verticalCenter: parent.verticalCenter
                             font.family: fontFamily
+                            font.weight: fontWeight
                             font.letterSpacing: fontSpacing
                             color: "#444"
                             font.bold: fontBolder

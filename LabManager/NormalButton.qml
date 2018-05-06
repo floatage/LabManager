@@ -14,11 +14,13 @@ Item {
     property color buttonTextColor: "#169BD5"
     property bool hasBorder: true
     property bool reversal: false
-    property alias buttonAction: sourceButton.action
+
+    signal buttonClicked()
 
     Button{
         id: sourceButton
         property string bText: "value"
+        onClicked: buttonClicked()
 
         style: ButtonStyle {
                 label: Label{

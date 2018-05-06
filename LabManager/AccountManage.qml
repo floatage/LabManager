@@ -12,22 +12,6 @@ DialogFrame{
 
     property real colSpacing: 35
 
-    Connections{
-//        target: AdminManager;
-//        onUsernameFalse:{
-//            console.log("username false")
-//        }
-//        onPasswordFalse:{
-//            console.log("password false")
-//        }
-//        onModifyPasswordSuccess:{
-//            console.log("modify success")
-//        }
-//        onLoginSuccess:{
-//            console.log("login success")
-//        }
-    }
-
     Component{
         id: accountLogin
 
@@ -59,6 +43,7 @@ DialogFrame{
                         id: passwordTextRow
                         rowText:"我的密码"
                         tPlaceholderText: "Password"
+                        inputType: TextInput.Password
                     }
 
                     Row{
@@ -85,16 +70,6 @@ DialogFrame{
                         NormalButton{
                             id: loginButton
                             buttonText: "登 录"
-
-                            buttonAction:
-                                Action {
-                                    onTriggered:{
-//                                        if (accountTextRow.value.length > 0 && passwordTextRow.value.length > 0)
-//                                            AuthorityManager.adminLogin(accountTextRow.value, passwordTextRow.value);
-//                                        else
-//                                            console.log("can't empty");
-                                    }
-                                }
                         }
                     }
                 }
@@ -126,19 +101,22 @@ DialogFrame{
                     TextRow{
                         id:nowPasswordTextRow
                         rowText: "当前密码";
-                        tPlaceholderText: "Account";
+                        tPlaceholderText: "Account"
+                        inputType: TextInput.Password
                     }
 
                     TextRow{
                         id:newPasswordTextRow
                         rowText: "新的密码";
                         tPlaceholderText: "Password"
+                        inputType: TextInput.Password
                     }
 
                     TextRow{
                         id:newPasswordAgainTextRow
                         rowText: "确认密码"
                         tPlaceholderText: "Password again"
+                        inputType: TextInput.Password
                     }
 
                     Row{
@@ -152,22 +130,6 @@ DialogFrame{
                         NormalButton{
                             id: passEditButton
                             buttonText: "修 改 密 码"
-                            buttonAction:
-                                Action {
-                                    onTriggered:{
-//                                        if (nowPasswordTextRow.value.length > 0 && newPasswordTextRow.value.length > 0 && newPasswordAgainTextRow.value.length > 0){
-//                                            if (newPasswordAgainTextRow.value === newPasswordTextRow.value){
-//                                                AuthorityManager.adminModifyPassword(nowPasswordTextRow.value, newPasswordTextRow.value)
-//                                            }
-//                                            else{
-//                                                 console.log("not same")
-//                                            }
-//                                        }
-//                                        else{
-//                                            console.log("can't empty")
-//                                        }
-                                    }
-                                }
                         }
                     }
                 }

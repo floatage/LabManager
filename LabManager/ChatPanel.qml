@@ -23,6 +23,7 @@ Item{
         selectMultiple: false
         nameFilters: ['Pictures (*.png *.jpg *.jpeg *.bmp *.svg *.gif)']
         onAccepted: {
+            console.log("You chose: " + picSelectFileDialog.fileUrls)
         }
     }
 
@@ -33,6 +34,7 @@ Item{
         selectMultiple: false
         nameFilters: ['All Files (*.*)']
         onAccepted: {
+            console.log("You chose: " + fileSelectFileDialog.fileUrls)
         }
     }
 
@@ -60,6 +62,7 @@ Item{
                     horizontalAlignment: Text.AlignVCenter
                     text: "我是娃哈哈"
                     font.family: "微软雅黑"
+                    font.weight: Font.Thin
                     font.letterSpacing: 1
                     font.pixelSize: 15
                     renderType: Text.NativeRendering
@@ -162,7 +165,7 @@ Item{
                         msgSenderUuid:"4626fd"
                         msgDate:" 2018/5/5 20:33:03"
                         msgType:"msg"
-                        msgRealData:"我我哦\n哦哦哦哦哦\n哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦\发发额嘎嘎好吧\nn哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦"
+                        msgRealData:"我我哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦发发额嘎嘎好吧哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦发发额嘎嘎好吧哦哦哦哦哦哦哦哦哦哦"
                     }
 
                     ListElement{
@@ -288,6 +291,7 @@ Item{
                             id: msgItemDescriptionText
                             font.family: "微软雅黑"
                             font.pixelSize: 12
+                            font.weight: Font.Thin
                             color: "#6d757a"
                             selectByMouse: true
                             readOnly: true
@@ -313,6 +317,7 @@ Item{
                             id: msgItemRealmsgText
                             font.family: "微软雅黑"
                             font.pixelSize: 13
+                            font.weight: Font.Thin
                             color: isRecv ? "#333" : "#FFF"
                             selectByMouse: true
                             selectionColor: isRecv ? "#2683F5" : "#59B0E0E6"
@@ -485,7 +490,14 @@ Item{
                  anchors.fill: parent
 
                  TextArea {
+                     id: chatMsgControlerInputArea
                      selectByMouse: true
+                     font.family: "微软雅黑"
+                     font.pixelSize: 13
+                     font.weight: Font.Thin
+                     color: "#333"
+                     wrapMode: TextEdit.Wrap
+                     renderType: Text.NativeRendering
                  }
             }
         }
@@ -504,11 +516,20 @@ Item{
                 NormalButton {
                     reversal: true
                     buttonText: "发送"
+                    onButtonClicked: {
+                        var sendText = chatMsgControlerInputArea.text.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '')
+                        if (sendText.length !== 0)
+                            console.log(sendText)
+                        chatMsgControlerInputArea.clear()
+                    }
                 }
 
                 NormalButton{
                     reversal: true
                     buttonText: "清空"
+                    onButtonClicked: {
+                        chatMsgControlerInputArea.clear()
+                    }
                 }
             }
         }

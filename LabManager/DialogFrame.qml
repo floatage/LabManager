@@ -45,6 +45,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     verticalAlignment: Text.AlignVCenter
                     font.family: "微软雅黑"
+                    font.weight: Font.Thin
                     font.bold: false
                     font.pixelSize: 12
                     font.letterSpacing: 1

@@ -254,6 +254,7 @@ ApplicationWindow {
                             contentItem: Text {
                                 text: menuCustemItem.text
                                 font.family: "微软雅黑"
+                                font.weight: Font.Thin
                                 font.pixelSize: 13
                                 color: "#111"
                                 renderType: Text.NativeRendering
@@ -387,6 +388,7 @@ ApplicationWindow {
                                 anchors.leftMargin: sessionPic.anchors.leftMargin
                                 font.family: "微软雅黑"
                                 font.letterSpacing: 0
+                                font.weight: Font.Thin
                                 color: "#444"
                                 font.pixelSize: 14
                                 renderType: Text.NativeRendering
@@ -401,6 +403,7 @@ ApplicationWindow {
                                 anchors.left: sessionPic.right
                                 anchors.leftMargin: sessionPic.anchors.leftMargin
                                 font.family: "微软雅黑"
+                                font.weight: Font.Thin
                                 font.letterSpacing: 0
                                 color: "#AAA"
                                 font.pixelSize: 12
