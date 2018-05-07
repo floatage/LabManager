@@ -29,7 +29,7 @@ AdminManager * AdminManager::getInstance()
 int AdminManager::createAdmin(const QString & name, const QString & password)
 {
 	auto passStr = password.toStdString();
-	auto reallyPassStr = QCryptographicHash::hash(QByteArray(passStr.c_str(), passStr.length()), QCryptographicHash::Md5).toStdString();
+	auto reallyPassStr = QCryptographicHash::hash(QByteArray(passStr.c_str(), passStr.length()), QCryptographicHash::Md5).toHex().toStdString();
 	
 	QString sql;
 	int result = DBOP::createAdmin(AdminInfo(name, reallyPassStr.c_str()), sql);

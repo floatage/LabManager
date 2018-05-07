@@ -29,6 +29,18 @@ ApplicationWindow {
         curPanel.visible = true
     }
 
+    ListModel{
+        id: sessionModel
+    }
+
+    ListModel{
+        id: userModel
+    }
+
+    ListModel{
+        id: groupModel
+    }
+
     Rectangle{
         id: membersRoot
         width: 225
@@ -163,9 +175,10 @@ ApplicationWindow {
                         Connections {
                             target: sessionIcon.item
                             onIconClicked: {
-                                iconRow.setIconTrue(sessionIcon)
-                                iconRow.replaceToStackTop(memStackView,
-                                                          sessionListView)
+                                if (sessionIcon.item.checked !== true){
+                                    iconRow.setIconTrue(sessionIcon)
+                                    iconRow.replaceToStackTop(memStackView, sessionListView)
+                                }
                             }
                         }
                     }
@@ -180,8 +193,10 @@ ApplicationWindow {
                         Connections {
                             target: memIcon.item
                             onIconClicked: {
-                                iconRow.setIconTrue(memIcon)
-                                iconRow.replaceToStackTop(memStackView, memListView)
+                                if (memIcon.item.checked !== true){
+                                    iconRow.setIconTrue(memIcon)
+                                    iconRow.replaceToStackTop(memStackView, memListView)
+                                }
                             }
                         }
                     }
@@ -194,9 +209,10 @@ ApplicationWindow {
                         Connections {
                             target: memGroupIcon.item
                             onIconClicked: {
-                                iconRow.setIconTrue(memGroupIcon)
-                                iconRow.replaceToStackTop(memStackView,
-                                                          memGroupListView)
+                                if (memGroupIcon.item.checked !== true){
+                                    iconRow.setIconTrue(memGroupIcon)
+                                    iconRow.replaceToStackTop(memStackView, memGroupListView)
+                                }
                             }
                         }
                     }
@@ -225,6 +241,8 @@ ApplicationWindow {
                 Rectangle {
                     width: parent.width
                     height: parent.height
+
+                    property alias listview: sessionListViewContent
 
                     Menu {
                         id: userManageMenu
@@ -301,16 +319,22 @@ ApplicationWindow {
                         ScrollBar.vertical: ScrollBar { }
 
                         Component.onCompleted: {
-                            for(var count = 0, ch = '哈'; count < 20; ++count){
-                                model.append({picPath: "/img/defaultPic.jpg"
-                                                ,sessionObjectInfor: "哇哈" + ch + "（10.15.15.10）"
-                                                ,sessionMsg: ch})
-                                ch = ch + '哈'
+                            var userList = SessionManager.listSessions()
+                            sessionListViewContent.model.clear()
+                            for (var begin = 0; begin < userList.length; ++begin){
+                                //sid, stype, duuid, uname, lastmsg, name, pic
+                                sessionListViewContent.model.append({
+                                    sessionId: userList[begin][0]
+                                    , sessionType:userList[begin][1]
+                                    , sessionDestUuid:userList[begin][2]
+                                    , sessionLastMsg: userList[begin][3]
+                                    , sessionDestName:userList[begin][4]
+                                    , sessionPicPath: userList[begin][5] === "" ? "/img/defaultPic.jpg" : userList[begin][5]
+                                })
                             }
                         }
 
-                        model: ListModel {
-                        }
+                        model: sessionModel
 
                         delegate: Rectangle {
                             id: sessionListViewItem
@@ -357,7 +381,7 @@ ApplicationWindow {
                                     visible: false
                                     antialiasing: true
                                     anchors.fill: parent
-                                    source: picPath
+                                    source: sessionPicPath
                                     sourceSize: Qt.size(parent.size, parent.size)
                                 }
 
@@ -379,36 +403,66 @@ ApplicationWindow {
                                 }
                             }
 
-                            Text {
+                            TextArea {
                                 id: sessionInfor
-                                width: parent.width - sessionPic.width * 4
+                                width: parent.width - sessionPic.width * 2
                                 anchors.top: sessionPic.top
                                 anchors.topMargin: 2
                                 anchors.left: sessionPic.right
                                 anchors.leftMargin: sessionPic.anchors.leftMargin
+                                padding: 0
+
+                                verticalAlignment: Text.AlignVCenter
                                 font.family: "微软雅黑"
                                 font.letterSpacing: 0
                                 font.weight: Font.Thin
                                 color: "#444"
                                 font.pixelSize: 14
                                 renderType: Text.NativeRendering
-                                text: membersRoot.ingnoreStr(sessionObjectInfor, 10)
+                                text: sessionDestName + "(" + sessionDestUuid + ")"
+
+                                selectByMouse: true
+                                readOnly: true
+                                hoverEnabled: true
+                                clip: true
+
+                                ToolTip {
+                                    delay: 1000
+                                    parent: sessionInfor
+                                    visible: sessionInfor.hovered
+                                    text: sessionInfor.text
+                                }
                             }
 
-                            Text {
+                            TextArea {
                                 id: sessionMsgArea
-                                width: parent.width - sessionPic.width * 4
+                                width: sessionInfor.width
                                 anchors.bottom: sessionPic.bottom
                                 anchors.bottomMargin: 2
                                 anchors.left: sessionPic.right
                                 anchors.leftMargin: sessionPic.anchors.leftMargin
+                                padding: 0
+
+                                verticalAlignment: Text.AlignVCenter
                                 font.family: "微软雅黑"
                                 font.weight: Font.Thin
                                 font.letterSpacing: 0
                                 color: "#AAA"
                                 font.pixelSize: 12
                                 renderType: Text.NativeRendering
-                                text: membersRoot.ingnoreStr(sessionMsg, 12)
+                                text: sessionLastMsg ? "" : sessionLastMsg
+
+                                selectByMouse: true
+                                readOnly: true
+                                hoverEnabled: true
+                                clip: true
+
+                                ToolTip {
+                                    delay: 1000
+                                    parent: sessionMsgArea
+                                    visible: sessionMsgArea.hovered
+                                    text: sessionMsgArea.text
+                                }
                             }
                         }
                     }
@@ -426,18 +480,166 @@ ApplicationWindow {
                         id: memListViewContent
                         width: parent.width
                         height: parent.height
+                        clip: true
                         ScrollBar.vertical: ScrollBar { }
 
                         Component.onCompleted: {
-                            var dataList = UserManager.listUsers();
-                            for(var begin = 0; begin < dataList.length; begin+=4){
-                                model.append({name: dataList[begin+1]
-                                                ,ip: dataList[begin+2]
-                                                ,picPath: dataList[begin+3]})
+                            var userList = UserManager.listUsers()
+                            memListViewContent.model.clear()
+                            for (var begin = 0; begin < userList.length; ++begin){
+                                //uid, uname, uip, umac, urole, upic
+                                memListViewContent.model.append({
+                                    userId: userList[begin][0]
+                                    , userName:userList[begin][1]
+                                    , userIp: userList[begin][2]
+                                    , userPicPath: userList[begin][5] === "" ? "/img/defaultPic.jpg" : userList[begin][5]
+                                })
                             }
                         }
 
-                        model: ListModel {
+                        model: userModel
+
+                        delegate: Rectangle {
+                            id: userListViewItem
+                            width: parent.width
+                            height: 60
+                            color: ListView.isCurrentItem ? "#FEE" : "#FFF"
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                propagateComposedEvents: true
+                                acceptedButtons: Qt.RightButton | Qt.LeftButton
+
+                                onClicked: {
+                                    memListViewContent.currentItem.color = "#FFF"
+                                    memListViewContent.currentIndex = index
+
+                                    if (mouse.button === Qt.RightButton){
+                                        userManageMenu.popup()
+                                    }
+                                }
+
+                                onDoubleClicked: {
+                                    var curUserId = memListViewContent.model.get(index).userId
+                                    var sessionId = SessionManager.getSeesionIdByUuid(curUserId, 1)
+                                    if (sessionId === ""){
+                                        sessionId = SessionManager.createSession(1, curUserId)
+                                    }
+
+                                    sessionIcon.item.iconClicked()
+
+                                    for (var index=0; index < sessionModel.count; ++index){
+                                        if (sessionModel.get(index).sessionId == sessionId){
+                                            sessionModel.move(index, 0, 1)
+                                            console.log("move to session!")
+                                            return
+                                        }
+                                    }
+                                    console.log("don't move to session!")
+                                }
+
+                                onEntered: {
+                                    if (memListViewContent.currentIndex !== index)
+                                        userListViewItem.color = "#FEE"
+                                }
+                                onExited: {
+                                    if (memListViewContent.currentIndex !== index)
+                                        userListViewItem.color = "#FFF"
+                                }
+                            }
+
+                            Rectangle {
+                                id: userPic
+                                width: parent.height * 0.7
+                                height: width
+                                radius: width * 0.5
+                                anchors.left: parent.left
+                                anchors.leftMargin: (parent.height - height) * 0.5
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                Image {
+                                    id: userImg
+                                    smooth: true
+                                    visible: false
+                                    antialiasing: true
+                                    anchors.fill: parent
+                                    source: userPicPath
+                                    sourceSize: Qt.size(parent.size, parent.size)
+                                }
+
+                                Rectangle{
+                                    id: mask
+                                    anchors.fill: parent
+                                    radius: width * 0.5
+                                    visible: false
+                                    smooth: true
+                                    antialiasing: true
+                                }
+
+                                OpacityMask {
+                                    anchors.fill: parent
+                                    source: userImg
+                                    maskSource: mask
+                                    visible: true
+                                    antialiasing: true
+                                }
+                            }
+
+                            TextArea {
+                                id: userInforText
+                                width: parent.width - userPic.width*2
+                                anchors.top: userPic.top
+                                anchors.topMargin: 2
+                                anchors.left: userPic.right
+                                anchors.leftMargin: userPic.anchors.leftMargin
+                                padding: 0
+
+                                verticalAlignment: Text.AlignVCenter
+                                font.family: "微软雅黑"
+                                font.letterSpacing: 0
+                                font.weight: Font.Thin
+                                color: "#444"
+                                font.pixelSize: 14
+                                renderType: Text.NativeRendering
+                                text: userName + "(" + userId + ")"
+
+                                selectByMouse: true
+                                readOnly: true
+                                hoverEnabled: true
+                                clip: true
+
+                                ToolTip {
+                                    delay: 1000
+                                    parent: userInforText
+                                    visible: userInforText.hovered
+                                    text: userInforText.text
+                                }
+                            }
+
+                            TextArea {
+                                id: userIpText
+                                width: userInforText.width
+                                anchors.bottom: userPic.bottom
+                                anchors.bottomMargin: 2
+                                anchors.left: userPic.right
+                                anchors.leftMargin: userPic.anchors.leftMargin
+                                padding: 0
+
+                                verticalAlignment: Text.AlignVCenter
+                                font.family: "微软雅黑"
+                                font.weight: Font.Thin
+                                font.letterSpacing: 0
+                                color: "#AAA"
+                                font.pixelSize: 12
+                                renderType: Text.NativeRendering
+                                text: userIp
+
+                                selectByMouse: true
+                                readOnly: true
+                                hoverEnabled: true
+                                clip: true
+                            }
                         }
                     }
                 }
@@ -465,8 +667,7 @@ ApplicationWindow {
                             }
                         }
 
-                        model: ListModel {
-                        }
+                        model: groupModel
                     }
                 }
             }

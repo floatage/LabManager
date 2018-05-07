@@ -11,12 +11,12 @@ struct UserInfo
 	ModelStringType uname;
 	ModelStringType uip;
 	ModelStringType umac;
-	ModelStringType urole;
+    int urole;
 	ModelStringType upic;
 
 	UserInfo();
 	UserInfo(const ModelStringType &uid, const ModelStringType &uname, const ModelStringType &uip,
-		const ModelStringType &umac, const ModelStringType &urole, const ModelStringType &upic);
+        const ModelStringType &umac, int urole, const ModelStringType &upic);
 };
 
 struct UserGroupInfo
@@ -59,9 +59,11 @@ struct SessionInfo
 	int stype;
 	ModelStringType suid;
 	ModelStringType duuid;
+	ModelStringType lastmsg;
 
 	SessionInfo();
-	SessionInfo(int sid, int stype, const ModelStringType &suid, const ModelStringType &duuid);
+	SessionInfo(int stype, const ModelStringType &suid, const ModelStringType &duuid);
+	SessionInfo(int stype, const ModelStringType &suid, const ModelStringType &duuid, const ModelStringType& lastmsg);
 };
 
 struct MessageInfo

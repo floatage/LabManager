@@ -99,6 +99,10 @@ enum ReqState { ReqWaiting, ReqAgree, ReqReject, ReqCancel, ReqTimeout, ReqError
 
 enum MsgMode { ControlMsgMode, DataMsgMode };
 
+enum ChatMsgType { ChatText, ChatPic, ChatAnimation, ChatFile };
+
+enum SessionType { UserSession=1, GroupSession=2 };
+
 typedef int ConnImplType;
 
 struct ConnType

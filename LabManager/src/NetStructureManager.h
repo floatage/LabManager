@@ -34,6 +34,7 @@ private:
 
 	void connLevelup(JsonObjType& msg, ConnPtr conn);
 	void buildInitMsgAndConnectDest(JsonObjType& dest, ConnImplType type);
+	void dumpUserToDB();
 
 	void setRole(HostRole newRole) { role = newRole; localHost["role"] = newRole; }
 

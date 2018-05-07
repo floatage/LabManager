@@ -22,18 +22,18 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-//    std::thread netWorkingThred([]() {
-//        DBOP::createTables();
-//        auto msgm = MessageManager::getInstance();
-//        msgm->run();
+    std::thread netWorkingThred([]() {
+        DBOP::createTables();
+        auto msgm = MessageManager::getInstance();
+        msgm->run();
 
-//        auto iom = IOContextManager::getInstance();
-//        iom->init();
-//        iom->run();
+        auto iom = IOContextManager::getInstance();
+        iom->init();
+        iom->run();
 
-//        NetStructureManager::getInstance()->buildNetStructure(1);
-//        iom->wait();
-//    });
+        NetStructureManager::getInstance()->buildNetStructure(1);
+        iom->wait();
+    });
 
     engine.rootContext()->setContextProperty("UserManager", UserManager::getInstance());
     engine.rootContext()->setContextProperty("AdminManager", AdminManager::getInstance());

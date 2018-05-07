@@ -15,6 +15,7 @@ public:
 
 	//User operation
 	static int addUser(const UserInfo& user);
+    static int addUsers(std::shared_ptr<std::vector<UserInfo>> userList);
 	static int removeUser(const ModelStringType& userId);
 	static QVariantHash getUser(const ModelStringType& userId);
 	static QVariantList listUsers();

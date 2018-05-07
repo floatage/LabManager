@@ -34,7 +34,7 @@ SessionManager * SessionManager::getInstance()
 int SessionManager::createSession(int type, const QString & duuid)
 {
     QString suid = NetStructureManager::getInstance()->getLocalUuid().c_str();
-	return DBOP::createSession(SessionInfo(-1, type, suid, duuid));
+	return DBOP::createSession(SessionInfo(type, suid, duuid));
 }
 
 int SessionManager::deleteSession(int sid)
@@ -45,6 +45,12 @@ int SessionManager::deleteSession(int sid)
 QVariantList SessionManager::listSessions()
 {
 	return DBOP::listSessions();
+}
+
+QString SessionManager::getSeesionIdByUuid(const QString& uuid, int type) 
+{
+	auto result = DBOP::getSession(type, -1, uuid);
+	return result.empty() ? QString() : result["sid"].toString();
 }
 
 QVariantList SessionManager::getChatMsgs(int sid)

@@ -8,6 +8,10 @@ Item{
 
     property int commonLeftMargin: 15
 
+    function insertMsg(msgModel){
+        chatMsgControlerContentListView.model.append(msgModel)
+    }
+
     function maxNum(numList){
         var result = 1000000
         for (var num in numList){
@@ -80,7 +84,7 @@ Item{
 
         Rectangle {
             id: chatMsgControlerContent
-            height: parent.height / 16 * 9.5
+            height: parent.height / 16 * 10.5
             width: parent.width
 
             ListView {
@@ -97,126 +101,6 @@ Item{
 
                 model: ListModel{
                     ListElement{
-                        isRecv: true
-                        isGroup: true
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"msg"
-                        msgRealData:"我我哦哦哦哦哦哦哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦"
-                    }
-
-                    ListElement{
-                        isRecv: true
-                        isGroup: true
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"msg"
-                        msgRealData:"ddawwwwwwwwwwwwwwwwwwwwwwwww"
-                    }
-
-                    ListElement{
-                        isRecv: true
-                        isGroup: true
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"msg"
-                        msgRealData:"我我哦哦哦哦哦哦哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦\发发额嘎嘎好吧"
-                    }
-
-                    ListElement{
-                        isRecv: false
-                        isGroup: false
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"msg"
-                        msgRealData:"我我哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦\发发额嘎嘎好吧"
-                    }
-
-                    ListElement{
-                        isRecv: false
-                        isGroup: false
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"msg"
-                        msgRealData:"我我哦\n哦哦哦哦哦\n哦哦哦哦哦哦哦哦\n哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦\发发额嘎嘎好吧"
-                    }
-
-                    ListElement{
-                        isRecv: false
-                        isGroup: false
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"msg"
-                        msgRealData:"我我哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦发发额嘎嘎好吧哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦哦发发额嘎嘎好吧哦哦哦哦哦哦哦哦哦哦"
-                    }
-
-                    ListElement{
-                        isRecv: false
-                        isGroup: false
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"pic"
-                        msgRealData:"file:///E:/迅雷下载/C/sc/pic/3e112a0d0508f6ee2bea102daaa44dd8.jpg"
-                    }
-
-                    ListElement{
-                        isRecv: true
-                        isGroup: true
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"msg"
-                        msgRealData:"ddawwwwwwwwwwwwwwwwwwwwwwwww"
-                    }
-
-                    ListElement{
-                        isRecv: true
-                        isGroup: true
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"pic"
-                        msgRealData:"file:///E:/迅雷下载/C/sc/pic/011de444e3c140e92f7da94539e2df58.jpg"
-                    }
-
-                    ListElement{
-                        isRecv: false
-                        isGroup: false
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"pic"
-                        msgRealData:"file:///E:/迅雷下载/C/sc/svg/Smile.svg"
-                    }
-
-                    ListElement{
                         isRecv: false
                         isGroup: false
                         msgSenderPic: "/img/defaultPic.jpg"
@@ -226,18 +110,6 @@ Item{
                         msgDate:" 2018/5/5 20:33:03"
                         msgType:"animate"
                         msgRealData:"file:///E:/迅雷下载/C/sc/pic/7ab11bb1942e88d45163025827e43df2.gif"
-                    }
-
-                    ListElement{
-                        isRecv: false
-                        isGroup: false
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"pic"
-                        msgRealData:"file:///E:/迅雷下载/C/sc/pic/mainui.bmp"
                     }
                 }
 
@@ -483,7 +355,7 @@ Item{
 
         Rectangle {
             id: chatMsgControlerInput
-            height: parent.height / 16 * 3
+            height: parent.height / 16 * 2
             width: parent.width
 
             ScrollView {

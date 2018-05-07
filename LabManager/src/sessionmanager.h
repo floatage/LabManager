@@ -11,15 +11,13 @@ class SessionManager: public QObject, public boost::noncopyable, public MsgActio
 {
     Q_OBJECT
 public:
-	enum SessionType{ UserSession, GroupSession};
-	enum ChatMsgType { ChatText, ChatPic, ChatFile };
-
 	~SessionManager();
     static SessionManager* getInstance();
 
     Q_INVOKABLE int createSession(int type, const QString& duuid);
     Q_INVOKABLE int deleteSession(int sid);
     Q_INVOKABLE QVariantList listSessions();
+    Q_INVOKABLE QString getSeesionIdByUuid(const QString& uuid, int type);
 
     Q_INVOKABLE QVariantList getChatMsgs(int sid);
     Q_INVOKABLE void sendChatMsg(int sid, int stype, const QString& duuid, const QString& msg);

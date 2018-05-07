@@ -11,7 +11,7 @@
 
 #include "boost\asio\steady_timer.hpp"
 
-#include "QtCore\quuid.h"
+#include "QtCore\qcryptographichash.h"
 
 using namespace std::chrono;
 
@@ -70,8 +70,7 @@ void NetStructureManager::initHost()
 	auto cpuFrequency = getCpuFrequency();
 	auto ip = getLocalIp();
 	auto mac = getMac(ip);
-	auto uuid = QUuid::createUuid().toString().toStdString();
-	uuid = uuid.substr(1, uuid.size() - 2);
+    auto uuid = QCryptographicHash::hash(QByteArray((ip + mac).c_str(), ip.length() + mac.length()), QCryptographicHash::Md5).toHex().toStdString();
 
 	localHost["uuid"] =  uuid.c_str();
 	localHost["availRam"] = (int)availRam;
@@ -118,6 +117,7 @@ void NetStructureManager::buildNetStructure(int stage)
 		if (stage >= maxStage) {
 			qDebug() << "max stage became master";
 			becomeMaster(1);
+			dumpUserToDB();
 			return;
 		}
 
@@ -248,6 +248,23 @@ void NetStructureManager::structureInit(JsonObjType& msg, ConnPtr conn)
 		for (auto& childObj : children) {
 			buildInitMsgAndConnectDest(childObj.toObject(), ConnType::CONN_CHILD);
 		}
+	}
+
+	dumpUserToDB();
+}
+
+void NetStructureManager::dumpUserToDB() 
+{
+	if (!hostSet.empty()) {
+		auto userList = std::make_shared<std::vector<UserInfo>>();
+		for (auto& host : hostSet) {
+			userList->push_back(UserInfo(host["uuid"].toString(), "匿名", host["ip"].toString(), host["mac"].toString(), HostRole::ROLE_NULL, ""));
+		}
+
+		IOContextManager::getInstance()->getIOLoop().post([userList]() {
+			DBOP::addUsers(userList);
+		});
+		hostSet.clear();
 	}
 }
 

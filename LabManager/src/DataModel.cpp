@@ -7,7 +7,7 @@ UserInfo::UserInfo()
 }
 
 UserInfo::UserInfo(const ModelStringType &uid, const ModelStringType &uname, const ModelStringType &uip,
-	const ModelStringType &umac, const ModelStringType &urole, const ModelStringType &upic)
+    const ModelStringType &umac, int urole, const ModelStringType &upic)
 	:uid(uid), uname(uname), uip(uip), umac(umac), urole(urole), upic(upic)
 {
 }
@@ -48,8 +48,13 @@ SessionInfo::SessionInfo()
 {
 }
 
-SessionInfo::SessionInfo(int sid,  int stype, const ModelStringType &suid, const ModelStringType &duuid)
-	:sid(sid), stype(stype), suid(suid), duuid(duuid)
+SessionInfo::SessionInfo(int stype, const ModelStringType &suid, const ModelStringType &duuid)
+	:sid(-1), stype(stype), suid(suid), duuid(duuid)
+{
+}
+
+SessionInfo::SessionInfo(int stype, const ModelStringType & suid, const ModelStringType & duuid, const ModelStringType & lastmsg)
+	: sid(-1), stype(stype), suid(suid), duuid(duuid), lastmsg(lastmsg.left(30))
 {
 }
 
