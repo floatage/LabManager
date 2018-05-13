@@ -13,7 +13,7 @@ public:
 
 	void run();
 
-	void sendtoHost(JsonObjType& addr, JsonObjType msg, SendtoHandler&& handler);
+	void sendtoHost(const JsonObjType& addr, JsonObjType msg, SendtoHandler&& handler);
 	void broadcast(JsonObjType msg, SendtoHandler&& handler);
 
 	void do_accept();

@@ -22,6 +22,7 @@ public:
 	void init();
 	void run();
 	void wait();
+	void stop();
 
     static IOContextManager* getInstance(void);
 };

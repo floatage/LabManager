@@ -7,17 +7,62 @@ Item{
     id: chatMsgControler
 
     property int commonLeftMargin: 15
+    property alias curSessionName: chatMsgControlerDestObjectName.text
+    property int curSeesionId: -1
+    property var curSeesionDestId
+    property string curSeesionDestPic: ""
+    property int curSeesionType: 1
+
+    function updateMsgModel(){
+        var msgList = SessionManager.getChatMsgs(curSeesionId, curSeesionDestId)
+        chatMsgControlerContentListView.model.clear()
+
+        //0:msg, 1:pic, 2:anemation
+        //mid, sid, mduuid, mtype, mdata, mdate
+        //msgSenderPic,isGroup,msgSenderRole,msgSender,msgSenderUuid,msgDate,isRecv,msgType,msgRealData
+        for (var begin = 0; begin < msgList.length; ++begin){
+            chatMsgControlerContentListView.model.append({
+                msgSenderPic: curSeesionDestPic
+                , isGroup: curSeesionType == 1 ? false : true
+                , msgSenderRole: ""
+                , msgSender: msgList[begin][1] === -1 ? curSessionName : "我"
+                , msgSenderUuid: msgList[begin][2]
+                , msgDate: msgList[begin][5]
+                , isRecv: msgList[begin][1] === -1 ? true : false
+                , msgType: msgList[begin][3]
+                , msgRealData: msgList[begin][4]
+            })
+        }
+
+        chatMsgControlerContentListView.positionViewAtEnd()
+    }
+
+    onCurSeesionIdChanged: {
+        console.log(curSessionName + " " + curSeesionId + " " + curSeesionDestId + " " + curSeesionDestPic + " " + curSeesionType)
+        updateMsgModel()
+    }
 
     function insertMsg(msgModel){
         chatMsgControlerContentListView.model.append(msgModel)
     }
 
-    function maxNum(numList){
-        var result = 1000000
-        for (var num in numList){
-            result = result < num ? num : result
+    Connections{
+        target: SessionManager
+        onSessionMsgRecv: {
+            console.log("Recv text and update model")
+            chatMsgControlerContentListView.model.append({
+                msgSenderPic: curSeesionDestPic
+                , isGroup: curSeesionType == 1 ? false : true
+                , msgSenderRole: ""
+                , msgSender: recvMsg[1] === -1 ? curSessionName : "我"
+                , msgSenderUuid: recvMsg[2]
+                , msgDate: recvMsg[5]
+                , isRecv: recvMsg[1] === -1 ? true : false
+                , msgType: recvMsg[3]
+                , msgRealData: recvMsg[4]
+            })
+            chatMsgControlerContentListView.positionViewAtEnd()
         }
-        return result
     }
 
     FileDialog{
@@ -28,6 +73,13 @@ Item{
         nameFilters: ['Pictures (*.png *.jpg *.jpeg *.bmp *.svg *.gif)']
         onAccepted: {
             console.log("You chose: " + picSelectFileDialog.fileUrls)
+            console.log(picSelectFileDialog.fileUrl.toString().match(/.*\.gif/) ? true : false)
+
+            SessionManager.sendPic(curSeesionId, curSeesionType,
+                                   curSeesionDestId,
+                                   picSelectFileDialog.fileUrl,
+                                   picSelectFileDialog.fileUrl.toString().match(/.*\.gif/))
+            updateMsgModel()
         }
     }
 
@@ -39,12 +91,12 @@ Item{
         nameFilters: ['All Files (*.*)']
         onAccepted: {
             console.log("You chose: " + fileSelectFileDialog.fileUrls)
+            SessionManager.sendFile(curSeesionId, curSeesionType, curSeesionDestId, picSelectFileDialog.fileUrls)
         }
     }
 
     Column{
         anchors.fill: parent
-
 
         Rectangle {
             id: chatMsgControlerTitle
@@ -61,10 +113,11 @@ Item{
                 anchors.leftMargin: commonLeftMargin
 
                 Label{
+                    id: chatMsgControlerDestObjectName
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left
                     horizontalAlignment: Text.AlignVCenter
-                    text: "我是娃哈哈"
+                    text: "请选择聊天对象"
                     font.family: "微软雅黑"
                     font.weight: Font.Thin
                     font.letterSpacing: 1
@@ -96,27 +149,13 @@ Item{
                 clip: true
                 ScrollBar.vertical: ScrollBar {}
 
-                Component.onCompleted: {
-                }
-
                 model: ListModel{
-                    ListElement{
-                        isRecv: false
-                        isGroup: false
-                        msgSenderPic: "/img/defaultPic.jpg"
-                        msgSenderRole:"admin"
-                        msgSender:"test"
-                        msgSenderUuid:"4626fd"
-                        msgDate:" 2018/5/5 20:33:03"
-                        msgType:"animate"
-                        msgRealData:"file:///E:/迅雷下载/C/sc/pic/7ab11bb1942e88d45163025827e43df2.gif"
-                    }
                 }
 
                 delegate: Rectangle{
                     id: msgItem
                     width: chatMsgControlerContentListView.width + msgItemSenderPic.width
-                    height: msgItemDescription.height + (msgType === "msg" ? msgItemRealmsg.height : 0) + (msgType === "pic" || msgType === "animate" ? msgItemPic.height : 0)
+                    height: msgItemDescription.height + (msgType === 0 ? msgItemRealmsg.height : 0) + (msgType === 1 || msgType === 2 ? msgItemPic.height : 0)
 
                     Rectangle {
                         id: msgItemSenderPic
@@ -171,13 +210,13 @@ Item{
                             leftPadding: 0
                             topPadding: 0
                             bottomPadding: 3
-                            text: "" + (isGroup ? "【" + msgSenderRole + "】 " : "") + msgSender + "(" + msgSenderUuid + ")" + msgDate
+                            text: "" + (isGroup ? "【" + msgSenderRole + "】 " : " ") + msgSender + (isRecv ? "(" + msgSenderUuid + ") " : " ") + msgDate
                         }
                     }
 
                     Rectangle {
                         id: msgItemRealmsg
-                        visible: msgType === 'msg' ? true : false
+                        visible: msgType === 0 ? true : false
                         width: msgItemRealmsgText.width
                         height: msgItemRealmsgText.height
                         anchors.left: msgItemDescription.left
@@ -207,30 +246,30 @@ Item{
 
                     Rectangle{
                         id: msgItemPic
-                        width: 12 + (msgType === 'pic' ? msgItemPicImg.width : 0) + (msgType === 'animate' ? msgItemPicAnimatedImg.width : 0)
-                        height: 12 + (msgType === 'pic' ? msgItemPicImg.height : 0) + (msgType === 'animate' ? msgItemPicAnimatedImg.height : 0)
+                        width: 12 + (msgType === 1 ? msgItemPicImg.width : 0) + (msgType === 2 ? msgItemPicAnimatedImg.width : 0)
+                        height: 12 + (msgType === 1 ? msgItemPicImg.height : 0) + (msgType === 2 ? msgItemPicAnimatedImg.height : 0)
                         anchors.left: msgItemDescription.left
                         anchors.top: msgItemDescription.bottom
                         radius: 4
                         color: isRecv ? "#FEE" : "#2683F5"
-                        visible: msgType === 'pic' || msgType === 'animate' ? true : false
+                        visible: msgType === 1 || msgType === 2 ? true : false
 
                         Image {
                             id: msgItemPicImg
-                            visible: msgType === 'pic' ? true : false
+                            visible: msgType === 1 ? true : false
                             asynchronous: true
                             anchors.centerIn: parent
-                            source: msgType === 'pic' ? msgRealData : ""
+                            source: msgType === 1 ? msgRealData : ""
                             sourceSize.width: 600
                             sourceSize.height: 400
                         }
 
                         AnimatedImage{
                             id: msgItemPicAnimatedImg
-                            visible: msgType === 'animate' ? true : false
+                            visible: msgType === 2 ? true : false
                             asynchronous: true
                             anchors.centerIn: parent
-                            source: msgType === 'animate' ? msgRealData : ""
+                            source: msgType === 2 ? msgRealData : ""
                         }
                     }
                 }
@@ -389,9 +428,12 @@ Item{
                     reversal: true
                     buttonText: "发送"
                     onButtonClicked: {
+                        if (curSeesionId === -1) return
+
                         var sendText = chatMsgControlerInputArea.text.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '')
-                        if (sendText.length !== 0)
-                            console.log(sendText)
+                        if (sendText.length !== 0){
+                            SessionManager.sendChatMsg(curSeesionId, curSeesionType, curSeesionDestId, sendText)
+                        }
                         chatMsgControlerInputArea.clear()
                     }
                 }

@@ -29,7 +29,40 @@ ApplicationWindow {
         curPanel.visible = true
     }
 
-    ListModel{
+    function updateSessionModel(){
+        var userList = SessionManager.listSessions()
+        sessionListViewContent.model.clear()
+        for (var begin = 0; begin < userList.length; ++begin){
+            //sid, stype, duuid, uname, lastmsg, name, pic
+            sessionListViewContent.model.append({
+                sessionId: userList[begin][0]
+                , sessionType:userList[begin][1]
+                , sessionDestUuid:userList[begin][2]
+                , sessionLastMsg: userList[begin][3]
+                , sessionDestName:userList[begin][4]
+                , sessionPicPath: userList[begin][5] === "" ? "/img/defaultPic.jpg" : userList[begin][5]
+            })
+        }
+    }
+
+    function updateUserModel(){
+        var userList = UserManager.listUsers()
+        memListViewContent.model.clear()
+        for (var begin = 0; begin < userList.length; ++begin){
+            //uid, uname, uip, umac, urole, upic
+            memListViewContent.model.append({
+                userId: userList[begin][0]
+                , userName:userList[begin][1]
+                , userIp: userList[begin][2]
+                , userPicPath: userList[begin][5] === "" ? "/img/defaultPic.jpg" : userList[begin][5]
+            })
+        }
+    }
+
+    function updateGroupModel(){
+    }
+
+    ListModel {
         id: sessionModel
     }
 
@@ -177,6 +210,7 @@ ApplicationWindow {
                             onIconClicked: {
                                 if (sessionIcon.item.checked !== true){
                                     iconRow.setIconTrue(sessionIcon)
+                                    updateSessionModel()
                                     iconRow.replaceToStackTop(memStackView, sessionListView)
                                 }
                             }
@@ -195,6 +229,7 @@ ApplicationWindow {
                             onIconClicked: {
                                 if (memIcon.item.checked !== true){
                                     iconRow.setIconTrue(memIcon)
+                                    updateUserModel()
                                     iconRow.replaceToStackTop(memStackView, memListView)
                                 }
                             }
@@ -235,14 +270,13 @@ ApplicationWindow {
                 }
             }
 
-            Component {
+            Rectangle {
                 id: sessionListView
+                visible: false
 
                 Rectangle {
                     width: parent.width
                     height: parent.height
-
-                    property alias listview: sessionListViewContent
 
                     Menu {
                         id: userManageMenu
@@ -319,19 +353,15 @@ ApplicationWindow {
                         ScrollBar.vertical: ScrollBar { }
 
                         Component.onCompleted: {
-                            var userList = SessionManager.listSessions()
-                            sessionListViewContent.model.clear()
-                            for (var begin = 0; begin < userList.length; ++begin){
-                                //sid, stype, duuid, uname, lastmsg, name, pic
-                                sessionListViewContent.model.append({
-                                    sessionId: userList[begin][0]
-                                    , sessionType:userList[begin][1]
-                                    , sessionDestUuid:userList[begin][2]
-                                    , sessionLastMsg: userList[begin][3]
-                                    , sessionDestName:userList[begin][4]
-                                    , sessionPicPath: userList[begin][5] === "" ? "/img/defaultPic.jpg" : userList[begin][5]
-                                })
-                            }
+                            updateSessionModel()
+                        }
+
+                        onCurrentItemChanged: {
+                            funcPanelContent.panelMap["ChatPanel"].curSessionName = sessionModel.get(currentIndex).sessionDestName
+                            funcPanelContent.panelMap["ChatPanel"].curSeesionDestId = sessionModel.get(currentIndex).sessionDestUuid
+                            funcPanelContent.panelMap["ChatPanel"].curSeesionDestPic = sessionModel.get(currentIndex).sessionPicPath
+                            funcPanelContent.panelMap["ChatPanel"].curSeesionType = sessionModel.get(currentIndex).sessionType
+                            funcPanelContent.panelMap["ChatPanel"].curSeesionId = sessionModel.get(currentIndex).sessionId
                         }
 
                         model: sessionModel
@@ -343,6 +373,7 @@ ApplicationWindow {
                             color: ListView.isCurrentItem ? "#FEE" : "#FFF"
 
                             MouseArea {
+                                id: sessionListViewItemMouseArea
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 propagateComposedEvents: true
@@ -351,11 +382,13 @@ ApplicationWindow {
                                 onClicked: {
                                     sessionListViewContent.currentItem.color = "#FFF"
                                     sessionListViewContent.currentIndex = index
+                                    sessionListViewContent.currentItem.color = "#FEE"
 
                                     if (mouse.button === Qt.RightButton){
                                         userManageMenu.popup()
                                     }
                                 }
+
                                 onEntered: {
                                     if (sessionListViewContent.currentIndex !== index)
                                         sessionListViewItem.color = "#FEE"
@@ -469,8 +502,9 @@ ApplicationWindow {
                 }
             }
 
-            Component {
+            Rectangle {
                 id: memListView
+                visible: false
 
                 Rectangle {
                     width: parent.width
@@ -484,17 +518,7 @@ ApplicationWindow {
                         ScrollBar.vertical: ScrollBar { }
 
                         Component.onCompleted: {
-                            var userList = UserManager.listUsers()
-                            memListViewContent.model.clear()
-                            for (var begin = 0; begin < userList.length; ++begin){
-                                //uid, uname, uip, umac, urole, upic
-                                memListViewContent.model.append({
-                                    userId: userList[begin][0]
-                                    , userName:userList[begin][1]
-                                    , userIp: userList[begin][2]
-                                    , userPicPath: userList[begin][5] === "" ? "/img/defaultPic.jpg" : userList[begin][5]
-                                })
-                            }
+                            updateUserModel()
                         }
 
                         model: userModel
@@ -514,6 +538,7 @@ ApplicationWindow {
                                 onClicked: {
                                     memListViewContent.currentItem.color = "#FFF"
                                     memListViewContent.currentIndex = index
+                                    memListViewContent.currentItem.color = "#FEE"
 
                                     if (mouse.button === Qt.RightButton){
                                         userManageMenu.popup()
@@ -529,9 +554,14 @@ ApplicationWindow {
 
                                     sessionIcon.item.iconClicked()
 
-                                    for (var index=0; index < sessionModel.count; ++index){
-                                        if (sessionModel.get(index).sessionId == sessionId){
-                                            sessionModel.move(index, 0, 1)
+                                    for (var pos=0; pos < sessionModel.count; ++pos){
+                                        if (sessionModel.get(pos).sessionId == sessionId){
+                                            if (pos === 0) return
+
+                                            sessionModel.move(pos, 0, 1)
+                                            sessionListViewContent.currentItem.color = "#FFF"
+                                            sessionListViewContent.currentIndex = 0
+                                            sessionListViewContent.currentItem.color = "#FEE"
                                             console.log("move to session!")
                                             return
                                         }
@@ -645,8 +675,9 @@ ApplicationWindow {
                 }
             }
 
-            Component {
+            Rectangle {
                 id: memGroupListView
+                visible: false
 
                 Rectangle {
                     width: parent.width
@@ -659,12 +690,7 @@ ApplicationWindow {
                         ScrollBar.vertical: ScrollBar { }
 
                         Component.onCompleted: {
-                            var dataList = UserManager.listUserGroups()
-                            for(var begin = 0; begin < dataList.length; begin+=4){
-                                model.append({name: dataList[begin+1]
-                                                ,memCount: dataList[begin+2]
-                                                ,picPath: dataList[begin+3]})
-                            }
+                            updateGroupModel()
                         }
 
                         model: groupModel
@@ -675,7 +701,7 @@ ApplicationWindow {
     }
 
     ContentPanel{
-        id: contend
+        id: funcPanelContent
         target: userView
         anchors.left: membersRoot.right
         anchors.leftMargin: -2

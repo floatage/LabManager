@@ -7,7 +7,7 @@ Rectangle {
     width: 750
     height: 580
 
-    property var panelMap: {'a':0}
+    property var panelMap: {'ChatPanel' : chatMsgArea}
     property alias target: appMenuBarInView.target
 
     AppMenuBar{

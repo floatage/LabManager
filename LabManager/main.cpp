@@ -2,7 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QtQml>
 
-#include <thread>
+#include <QThread>
+#include <QDir>
 
 #include "src/DBop.h"
 #include "src/IOContextManager.h"
@@ -22,8 +23,9 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    std::thread netWorkingThred([]() {
+    auto nt = QThread::create([](){
         DBOP::createTables();
+		QDir().mkdir(tmpDir.c_str());
         auto msgm = MessageManager::getInstance();
         msgm->run();
 
@@ -33,7 +35,9 @@ int main(int argc, char *argv[])
 
         NetStructureManager::getInstance()->buildNetStructure(1);
         iom->wait();
+        qDebug() << "thread stop";
     });
+    nt->start();
 
     engine.rootContext()->setContextProperty("UserManager", UserManager::getInstance());
     engine.rootContext()->setContextProperty("AdminManager", AdminManager::getInstance());
@@ -42,10 +46,19 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("TaskManager", TaskManager::getInstance());
     engine.rootContext()->setContextProperty("HomeworkManager", HomeworkManager::getInstance());
 
+    QObject::connect(&engine, &QQmlApplicationEngine::quit, [&](){
+        IOContextManager::getInstance()->stop();
+    });
+
+    QObject::connect(nt, &QThread::finished, [&](){
+        qDebug() << "thread finished";
+		app.quit();
+    });
+
     engine.addImportPath(":/imports");
     engine.load(QUrl(QStringLiteral("qrc:/MembersPanel.qml")));
-    //需要定制退出函数
+	app.exec();
+    abort();
 
-    return app.exec();
+    return 0;
 }
-

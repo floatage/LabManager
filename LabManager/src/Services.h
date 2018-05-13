@@ -5,11 +5,11 @@
 
 class Serive {
 public:
-	virtual void dataHandle(ConnPtr conn) = 0;
-	virtual void sendData(ConnPtr conn, JsonObjType rawData) = 0;
-	virtual void execute() = 0;
-	virtual void pause() = 0;
-	virtual void stop() = 0;
+	virtual void dataHandle(ConnPtr conn);
+	virtual void sendData(ConnPtr conn, JsonObjType rawData);
+	virtual void execute();
+	virtual void pause();
+	virtual void stop();
 };
 
 typedef std::shared_ptr<Serive> ServicePtr;
@@ -20,34 +20,33 @@ public:
 	~NetStructureService();
 
 	virtual void dataHandle(ConnPtr conn);
-	virtual void sendData(ConnPtr conn, JsonObjType rawData);
-	virtual void execute();
-	virtual void pause();
-	virtual void stop();
 
 	void setOrder(int order) { this->order = order; }
 	int getOrder()const { return order; }
 
 private:
 	int order;
-	SendBufferType writeBuff;
 	RecvBufferType readBuff, readRemain;
 };
 
+class QFile;
 class PicTransferService : public Serive {
 public:
-	PicTransferService();
+	PicTransferService(const QString& fileName, ConnPtr conn);
 	~PicTransferService();
 
 	virtual void dataHandle(ConnPtr conn);
-	virtual void sendData(ConnPtr conn, JsonObjType rawData);
 	virtual void execute();
-	virtual void pause();
-	virtual void stop();
 
 private:
 	SendBufferType writeBuff;
 	RecvBufferType readBuff;
+	bool isInit;
+	int fileSize;
+	int recvPicLen;
+	QString fileName;
+	ConnPtr conn;
+	boost::asio::windows::stream_handle *picStream;
 };
 
 

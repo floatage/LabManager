@@ -45,9 +45,9 @@ public:
 	static QVariantList listSessions();
 
 	//Message operation
-	static int createMessage(const MessageInfo& message);
+	static int createMessage(const MessageInfo& message, bool isSend);
 	static int deleteMessage(int messageId);
-	static QVariantList listSessionMessages(int sessionId);
+	static QVariantList listSessionMessages(int sessionId, const ModelStringType& sessionDest);
 
 	//Reuqest opearation
 	static int createRequest(const RequestInfo& request);

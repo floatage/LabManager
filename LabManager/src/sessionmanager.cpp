@@ -53,15 +53,16 @@ QString SessionManager::getSeesionIdByUuid(const QString& uuid, int type)
 	return result.empty() ? QString() : result["sid"].toString();
 }
 
-QVariantList SessionManager::getChatMsgs(int sid)
+QVariantList SessionManager::getChatMsgs(int sid, const QString& duuid)
 {
-	return DBOP::listSessionMessages(sid);
+	return DBOP::listSessionMessages(sid, duuid);
 }
 
 void SessionManager::sendChatMsg(int sid, int stype, const QString & duuid, const QString & msg)
 {
 	MessageInfo msgInfo(sid, int(ChatMsgType::ChatText), msg);
-	DBOP::createMessage(msgInfo);
+	DBOP::createMessage(msgInfo, true);
+    notifyModelAppendMsg(msgInfo);
 
 	JsonObjType datas;
 	datas["type"] = msgInfo.mtype;
@@ -76,9 +77,27 @@ void SessionManager::sendChatMsg(int sid, int stype, const QString & duuid, cons
         ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, sessionFamilyStr, transferStrActionStr, datas);
 }
 
-void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QString & picPath)
+void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QString & picPath, bool isAnimation)
 {
-	//TaskManager::getInstance().createTask();
+	MessageInfo msgInfo(sid, int(isAnimation ? ChatMsgType::ChatAnimation : ChatMsgType::ChatPic), picPath);
+	DBOP::createMessage(msgInfo, true);
+
+	JsonObjType datas;
+	datas["type"] = msgInfo.mtype;
+	datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
+	datas["dest"] = duuid.toStdString().c_str();
+	datas["date"] = msgInfo.mdate;
+	QFileInfo picInfo(picPath);
+	datas["picname"] = tmpDir.c_str() + picInfo.baseName();
+
+	if (SessionType::UserSession == SessionType(stype)) {
+		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, transferStrActionStr, datas);
+		//传送图片，修改路径
+	}
+	else if (SessionType::GroupSession == SessionType(stype)) {
+		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, sessionFamilyStr, transferStrActionStr, datas);
+		//传送图片，修改路径
+	}
 }
 
 void SessionManager::sendFile(int sid, int stype, const QString & duuid, const QString & filePath)
@@ -97,17 +116,21 @@ void SessionManager::publishHomework(const QString & duuid, const QVariantList &
 
 void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 {
-	/*MessageInfo msgInfo(sid, int(ChatMsgType::ChatText), msg);
-	DBOP::createMessage(msgInfo);
+	qDebug() << "RECV MSG: " << msg;
+	auto data = msg["data"].toObject();
+	MessageInfo msgInfo(data["dest"].toString(), data["type"].toInt(), data["data"].toString(), data["date"].toString());
+	DBOP::createMessage(msgInfo, false);
+    notifyModelAppendMsg(msgInfo);
+}
 
-	JsonObjType datas;
-	datas["type"] = msgInfo.mtype;
-	datas["dest"] = duuid.toStdString().c_str();
-	datas["data"] = msgInfo.mdata.toUtf8().toStdString().c_str();
-	datas["date"] = msgInfo.mdate;
-
-	if (SessionType::UserSession == SessionType(stype))
-		ConnectionManager::getInstance().sendActionMsg(TransferMode::Single, sessionFamilyStr, transferStrActionStr, datas);
-	else if (SessionType::GroupSession == SessionType(stype))
-		ConnectionManager::getInstance().sendActionMsg(TransferMode::Group, sessionFamilyStr, transferStrActionStr, datas);*/
+void SessionManager::notifyModelAppendMsg(const MessageInfo& msgInfo)
+{
+    QVariantList recvMsg;
+    recvMsg.append(msgInfo.mid);
+    recvMsg.append(msgInfo.sid);
+    recvMsg.append(msgInfo.mduuid);
+    recvMsg.append(msgInfo.mtype);
+    recvMsg.append(msgInfo.mdata);
+    recvMsg.append(msgInfo.mdate);
+    sessionMsgRecv(recvMsg);
 }

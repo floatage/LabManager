@@ -51,7 +51,7 @@ void MessageManager::run()
 	startTcp(ip);
 }
 
-void MessageManager::sendtoHost(JsonObjType& addr, JsonObjType msg, SendtoHandler&& handler)
+void MessageManager::sendtoHost(const JsonObjType& addr, JsonObjType msg, SendtoHandler&& handler)
 {
 	auto ip = addr["ip"].toString().toStdString(), mac = addr["mac"].toString().toStdString();
 	setHostArp(ip, mac);

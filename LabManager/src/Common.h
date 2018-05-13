@@ -79,6 +79,8 @@ const char SPLIT_CHAR = '\0';
 
 const StringType MSG_DEP = "\r\n";
 
+const StringType tmpDir = ".\\tmp\\";
+
 const StringType UDP_BROADCAST_ADDR = "255.255.255.255";
 
 const StringType INVALID_ID = "";
