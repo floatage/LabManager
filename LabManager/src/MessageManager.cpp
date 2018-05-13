@@ -83,7 +83,7 @@ void MessageManager::do_accept()
 		{
 			HostDescription hd;
             auto cm = ConnectionManager::getInstance();
-			auto servicePtr = std::make_shared<NetStructureService>();
+			auto servicePtr = std::make_shared<Service>();
 			ConnPtr c = std::make_shared<Connection>(std::move(sock), hd, cm, servicePtr);
             cm->registerObj(INVALID_ID, ConnType::CONN_TEMP, c);
 		}

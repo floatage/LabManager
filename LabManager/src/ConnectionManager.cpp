@@ -72,7 +72,7 @@ ConnPtr ConnectionManager::findConn(const StringType & id)
 	return ConnPtr();
 }
 
-void ConnectionManager::connnectHost(ConnImplType type, const StringType& id, JsonObjType& addr, ServicePtr servicePtr, ConnectHandler&& handler)
+ConnPtr ConnectionManager::connnectHost(ConnImplType type, const StringType& id, JsonObjType& addr, ServicePtr servicePtr, ConnectHandler&& handler)
 {
 	HostDescription hd;
 	hd.uuid = addr["uuid"].toString().toStdString();
@@ -83,6 +83,7 @@ void ConnectionManager::connnectHost(ConnImplType type, const StringType& id, Js
     tcp::socket sock(IOContextManager::getInstance()->getIOLoop());
 	auto conn = std::make_shared<Connection>(std::move(sock), hd, ConnectionManager::getInstance(), servicePtr);
 	conn->connect(type, id, std::move(handler));
+	return conn;
 }
 
 void ConnectionManager::sendtoConn(const StringType& id, JsonObjType msg)
@@ -244,6 +245,7 @@ Connection::Connection(tcp::socket s, const HostDescription& dest, ConnectionMan
 Connection::Connection(Connection && c)
 	: sock(std::move(c.sock)), dest(c.dest), id(c.id), parent(c.parent), servicePtr(c.servicePtr)
 {
+	servicePtr->setConn(shared_from_this());
 }
 
 Connection::~Connection()
@@ -253,7 +255,7 @@ Connection::~Connection()
 
 void Connection::start()
 {
-	do_read();
+	servicePtr->start();
 }
 
 void Connection::connect(ConnImplType type, const StringType& id, ConnectHandler&& handler)
@@ -276,14 +278,14 @@ void Connection::connect(ConnImplType type, const StringType& id, ConnectHandler
 	});
 }
 
-void Connection::do_read()
+void Connection::dataHandle()
 {
-	servicePtr->dataHandle(shared_from_this());
+	servicePtr->dataHandle();
 }
 
 void Connection::send(JsonObjType rawData)
 {
-	servicePtr->sendData(shared_from_this(), rawData);
+	servicePtr->sendData(rawData);
 }
 
 void Connection::execute()

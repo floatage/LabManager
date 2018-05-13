@@ -52,7 +52,7 @@ public:
 	//Reuqest opearation
 	static int createRequest(const RequestInfo& request);
 	static QVariantList listRequests(bool isFinished);
-	static int setRequestState(int requestId, int state);
+	static int setRequestState(const ModelStringType& requestId, int state);
 
 	//Task operation
 	static int createTask(const TaskInfo& task);

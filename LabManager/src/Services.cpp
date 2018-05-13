@@ -5,11 +5,60 @@
 #include "QtCore\qfile.h"
 #include "QtCore\qfileinfo.h"
 
-void Serive::dataHandle(ConnPtr conn)
+const QString netStructureServiceStr("NetStructureService");
+const QString picTransferServiceStr("PicTransferService");
+
+ServicePtr Service::getServicePtr(const QString & name, JsonObjType & params)
+{
+	if (name == netStructureServiceStr) {
+		return std::make_shared<NetStructureService>();
+	}
+	else if (name == picTransferServiceStr) {
+		return std::make_shared<PicTransferService>();
+	}
+
+	return ServicePtr();
+}
+
+Service::Service()
+	: readBuff(BUF_SIZE, '\0')
 {
 }
 
-void Serive::sendData(ConnPtr conn, JsonObjType rawData)
+Service::~Service()
+{
+}
+
+void Service::start()
+{
+	dataHandle();
+}
+
+void Service::dataHandle()
+{
+	conn->sock.async_receive(boost::asio::buffer(readBuff.data(), readBuff.size()), [this](const boost::system::error_code& ec, std::size_t readBytes) {
+		if (ec != 0) {
+			qDebug() << "tcp connect error: " << ec;
+			conn->stop();
+			return;
+		}
+
+		auto rawMsg = readBuff.length() == readBytes ? readBuff : readBuff.left(readBytes);
+		char* dataPtr = rawMsg.data();
+		short msgLen = 0;
+		memcpy(&msgLen, dataPtr, 2);
+		auto serviceInfor = JsonDocType::fromJson(QByteArray(dataPtr + 2, msgLen)).object();
+		auto newServicePtr = getServicePtr(serviceInfor["serviceName"].toString(), serviceInfor["serviceParam"].toObject());
+		conn->setService(newServicePtr);
+
+		int remainBytes = readBytes - msgLen - 2;
+		if (remainBytes > 0) {
+			newServicePtr->setRemain(readBuff.right(remainBytes));
+		}
+	});
+}
+
+void Service::sendData(JsonObjType rawData)
 {
 	JsonDocType doc(rawData);
 	auto sendData = std::make_shared<SendBufferType>(doc.toJson(JSON_FORMAT).data());
@@ -22,25 +71,25 @@ void Serive::sendData(ConnPtr conn, JsonObjType rawData)
 	memcpy(mlenBytes, &msgLen, 2);
 	sendData->insert(0, mlenBytes, 2);
 
-	conn->sock.async_send(boost::asio::buffer(sendData->data(), sendData->size()), [this, conn, sendData](const boost::system::error_code& ec, std::size_t writeBytes) {
+	conn->sock.async_send(boost::asio::buffer(sendData->data(), sendData->size()), [this, sendData](const boost::system::error_code& ec, std::size_t writeBytes) {
 		qDebug() << "TCP SEND  len: " << writeBytes << " data: " << sendData->left(writeBytes);
 	});
 }
 
-void Serive::execute()
+void Service::execute()
 {
 }
 
-void Serive::pause()
+void Service::pause()
 {
 }
 
-void Serive::stop()
+void Service::stop()
 {
 }
 
 NetStructureService::NetStructureService()
-	: readBuff(BUF_SIZE, '\0'), order(INVALID_ORDER)
+	: order(INVALID_ORDER)
 {
 }
 
@@ -48,12 +97,20 @@ NetStructureService::~NetStructureService()
 {
 }
 
-void NetStructureService::dataHandle(ConnPtr conn)
+void NetStructureService::start()
 {
-	conn->sock.async_receive(boost::asio::buffer(readBuff.data(), readBuff.size()), [this, conn](const boost::system::error_code& ec, std::size_t readBytes) {
+	JsonObjType serviceInfor;
+	serviceInfor["serviceName"] = netStructureServiceStr;
+	Service::sendData(serviceInfor);
+	dataHandle();
+}
+
+void NetStructureService::dataHandle()
+{
+	conn->sock.async_receive(boost::asio::buffer(readBuff.data(), readBuff.size()), [this](const boost::system::error_code& ec, std::size_t readBytes) {
 		if (ec != 0) {
 			qDebug() << "tcp connect error: " << ec;
-			stop();
+			conn->stop();
 			return;
 		}
 
@@ -87,13 +144,18 @@ void NetStructureService::dataHandle(ConnPtr conn)
 			readRemain.setRawData(dataPtr, allDataLen - handleDataLen);
 		}
 
-		dataHandle(conn);
+		dataHandle();
 	});
 }
 
 //Picture Transfer Service
-PicTransferService::PicTransferService(const QString& fileName, ConnPtr conn)
-	:readBuff(BUF_SIZE, '\0'), writeBuff(BUF_SIZE, '\0'), isInit(false), fileSize(0), recvPicLen(0), fileName(fileName), conn(conn)
+PicTransferService::PicTransferService(const QString& fileName, const QString& storeFilename)
+	: writeBuff(BUF_SIZE, '\0'), isInit(false), fileName(fileName), storeFilename(storeFilename), isSender(true)
+{
+}
+
+PicTransferService::PicTransferService()
+	: isInit(false), fileSize(0), recvFileLen(0), isSender(false)
 {
 }
 
@@ -101,36 +163,50 @@ PicTransferService::~PicTransferService()
 {
 }
 
-void PicTransferService::dataHandle(ConnPtr conn)
+void PicTransferService::start()
 {
-	conn->sock.async_receive(boost::asio::buffer(readBuff.data(), readBuff.size()), [this, conn](const boost::system::error_code& ec, std::size_t readBytes) {
+	JsonObjType serviceInfor;
+	serviceInfor["serviceName"] = picTransferServiceStr;
+	Service::sendData(serviceInfor);
+	isSender ? execute() : dataHandle();
+}
+
+void PicTransferService::dataHandle()
+{
+	conn->sock.async_receive(boost::asio::buffer(readBuff.data(), readBuff.size()), [this](const boost::system::error_code& ec, std::size_t readBytes) {
 		if (ec != 0) {
 			qDebug() << "tcp connect error: " << ec;
-			stop();
+			conn->stop();
 			return;
 		}
 
 		if (!isInit) {
 			//假设消息不超过最大长度
 			auto rawMsg = readBuff.length() == readBytes ? readBuff : readBuff.left(readBytes);
+			if (!readRemain.isEmpty()) {
+				rawMsg.push_front(readRemain);
+				readRemain.clear();
+			}
+
 			char* dataPtr = rawMsg.data();
 			short msgLen = 0;
 			memcpy(&msgLen, dataPtr, 2);
 			auto fileInfor = JsonDocType::fromJson(QByteArray(dataPtr + 2, msgLen)).object();
-			fileName = tmpDir.c_str() + fileInfor["picname"].toString();
-			fileSize = fileInfor["picsize"].toInt();
+			fileName = tmpDir.c_str() + fileInfor["filename"].toString();
+			fileSize = fileInfor["filesize"].toInt();
 
 			HANDLE hFile = ::CreateFile(fileName.toStdWString().c_str(),
 				GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0);
 			if (hFile == INVALID_HANDLE_VALUE) {
 				qDebug() << "send file open(create) failed! filenme:" << fileName;
+				return;
 			}
 			picStream = new boost::asio::windows::stream_handle(IOContextManager::getInstance()->getIOLoop(), hFile);
 
 			isInit = true;
 			int remainBytes = readBytes - msgLen - 2;
 			if (remainBytes <= 0) {
-				dataHandle(conn);
+				dataHandle();
 				return;
 			}
 			else {
@@ -138,21 +214,21 @@ void PicTransferService::dataHandle(ConnPtr conn)
 			}
 		}
 
-		//这里需要以异步读写
 		picStream->async_write_some(boost::asio::buffer(readBuff.data(), readBuff.size()), [this](const boost::system::error_code& ec, std::size_t writeBytes) {
 			if (ec != 0) {
-				qDebug() << "recv picture write failed! filename: " << fileName;
+				qDebug() << "recv picture write failed! filename: " << fileName << " errorCode: " << ec;
+				conn->stop();
 				return;
 			}
 
-			recvPicLen += writeBytes;
-			if (recvPicLen == fileSize) {
+			recvFileLen += writeBytes;
+			if (recvFileLen == fileSize) {
 				qDebug() << "recv picture recv finished! filename: " << fileName;
-				stop();
+				conn->stop();
 			}
 		});
 
-		dataHandle(conn);
+		dataHandle();
 	});
 }
 
@@ -168,9 +244,9 @@ void PicTransferService::execute()
 
 		QFileInfo picInfor(fileName);
 		JsonObjType datas;
-		datas["picname"] = picInfor.baseName();
+		datas["picname"] = storeFilename;
 		datas["picsize"] = picInfor.size();
-		Serive::sendData(conn, datas);
+		Service::sendData(datas);
 
 		isInit = true;
 	}
@@ -178,6 +254,7 @@ void PicTransferService::execute()
 		picStream->async_read_some(boost::asio::buffer(writeBuff.data(), writeBuff.size()), [this](const boost::system::error_code& ec, std::size_t readBytes) {
 			if (ec != 0) {
 				qDebug() << "send file read failed! filename: " << fileName << " errorCode: " << ec;
+				conn->stop();
 				return;
 			}
 
@@ -189,6 +266,7 @@ void PicTransferService::execute()
 			conn->sock.async_send(boost::asio::buffer(writeBuff.data(), readBytes), [this](const boost::system::error_code& ec, std::size_t writeBytes) {
 				if (ec != 0) {
 					qDebug() << "send file send failed! filename: " << fileName << " errorCode: " << ec;
+					conn->stop();
 					return;
 				}
 

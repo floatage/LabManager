@@ -66,16 +66,15 @@ int DBOP::createTables()
 		"mdate VARCHAR(32) NOT NULL, "
 		"foreign key(sid) references Session(sid))");
 
-	bool bReuqest = query.exec("CREATE TABLE IF NOT EXISTS Request(rid INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"sid INTEGER, "
+	bool bReuqest = query.exec("CREATE TABLE IF NOT EXISTS Request(rid VARCHAR(32) PRIMARY KEY, "
 		"rtype INTEGER NOT NULL, "
 		"rdata VARCHAR(512) NOT NULL, "
 		"rstate VARCHAR(16) NOT NULL, "
 		"rdate VARCHAR(32) NOT NULL, "
-		"rsource VARCHAR(32), "
-		"rsourcerid INTEGER, "
-		"foreign key(rsource) references User(uid), "
-		"foreign key(sid) references Session(sid))");
+		"rsource VARCHAR(32) NOT NULL, "
+		"rdest VARCHAR(32) NOT NULL, "
+		"foreign key(rdest) references User(uid), "
+		"foreign key(rsource) references User(uid))");
 
 	bool bTask = query.exec("CREATE TABLE IF NOT EXISTS Task(tid INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"rid INTEGER NOT NULL, "
@@ -637,7 +636,7 @@ QVariantList DBOP::listSessions()
 int DBOP::createMessage(const MessageInfo & message,bool isSend)
 {
 	static const QString ADD_MESSAGE("insert into Message(sid,mduuid,mtype,mdata,mdate) values(?,?,?,?,?)");
-	static const QString UPDATE_SESSION_LASTMSG("update Session set lastmsg=? where mduuid=?");
+	static const QString UPDATE_SESSION_LASTMSG("update Session set lastmsg=? where duuid=?");
 
 	QSqlQuery query;
 	query.prepare(ADD_MESSAGE);
@@ -726,30 +725,24 @@ QVariantList DBOP::listSessionMessages(int sessionId, const ModelStringType& ses
 //Request operation
 int DBOP::createRequest(const RequestInfo & request)
 {
-	static const QString ADD_REQUEST("insert into Request(sid,rtype,rdata,rstate,rdate,rsource,rsourcerid) values(?,?,?,?,?,?,?)");
-	static const QString GET_INSERT_REQ("select last_insert_rowid() from Request");
+	static const QString ADD_REQUEST("insert into Request(rid,rtype,rdata,rstate,rdate,rsource,rdest) values(?,?,?,?,?,?,?)");
 
 	QSqlQuery query;
 	query.prepare(ADD_REQUEST);
-	query.addBindValue(request.sid);
+	query.addBindValue(request.rid);
 	query.addBindValue(request.rtype);
 	query.addBindValue(request.rdata);
 	query.addBindValue(request.rstate);
 	query.addBindValue(request.rdate);
 	query.addBindValue(request.rsource);
-	query.addBindValue(request.rsourcerid);
+	query.addBindValue(request.rdest);
 
 	if (query.exec()) {
-		if (!query.exec(GET_INSERT_REQ)) {
-			qDebug() << "request search(create) error! sid: " << request.sid << " type: " << request.rtype << " data: " << request.rdata << " reason: " << query.lastError().text();
-			return -2;
-		}
-
-		qDebug() << "request insert success! sid: " << request.sid << " type: " << request.rtype << " data: " << request.rdata;
-		return query.value(0).toInt();
+		qDebug() << "request insert success! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata;
+		return 0;
 	}
 
-	qDebug() << "request insert failed! sid: " << request.sid << " type: " << request.rtype << " data: " << request.rdata << " reason: " << query.lastError().text();
+	qDebug() << "request insert failed! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -771,13 +764,12 @@ QVariantList DBOP::listRequests(bool isFinished)
 	{
 		QVariantList item;
 		item.append(query.value("rid"));
-		item.append(query.value("sid"));
 		item.append(query.value("rtype"));
 		item.append(query.value("rdata"));
 		item.append(query.value("rstate"));
 		item.append(query.value("rdate"));
 		item.append(query.value("rsource"));
-		item.append(query.value("rsourcerid"));
+		item.append(query.value("rdest"));
 		result.append(QVariant(item));
 	}
 
@@ -785,7 +777,7 @@ QVariantList DBOP::listRequests(bool isFinished)
 	return result;
 }
 
-int DBOP::setRequestState(int requestId, int state)
+int DBOP::setRequestState(const ModelStringType& requestId, int state)
 {
 	static const QString SET_REQUEST_STATE("update Request set rstate=? where rid=?");
 

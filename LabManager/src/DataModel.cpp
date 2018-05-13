@@ -1,6 +1,9 @@
 #include "DataModel.h"
+#include "Common.h"
+#include "NetStructureManager.h"
 
 #include "QtCore\qdatetime.h"
+#include "QtCore\quuid.h"
 
 const QString time_format("yyyy.MM.dd hh:mm:ss");
 
@@ -74,18 +77,20 @@ RequestInfo::RequestInfo()
 {
 }
 
-RequestInfo::RequestInfo(int sid, int rtype, const ModelStringType &rdata, int rstate)
-	:rid(-1), sid(sid), rtype(rtype), rdata(rdata), rstate(rstate), rsource(""), rsourcerid(-1), rdate(QDateTime::currentDateTime().toString(time_format))
+RequestInfo::RequestInfo(const ModelStringType& rdest, int rtype, const ModelStringType &rdata)
+	:rdest(rdest), rtype(rtype), rdata(rdata), rstate(ReqState::ReqWaiting), rdate(QDateTime::currentDateTime().toString(time_format)),
+	rid(QUuid::createUuid().toString()), rsource(NetStructureManager::getInstance()->getLocalUuid().c_str())
 {
 }
 
-RequestInfo::RequestInfo(int rtype, const ModelStringType & rdata, int rstate, const ModelStringType & rsource, int rsourcerid)
-	:rid(-1), sid(-1), rtype(rtype), rdata(rdata), rstate(rstate), rsource(rsource), rsourcerid(rsourcerid), rdate(QDateTime::currentDateTime().toString(time_format))
+RequestInfo::RequestInfo(const ModelStringType& rid, int rtype, const ModelStringType &rdata, const ModelStringType& rdate, const ModelStringType& rsource, const ModelStringType& rdest)
+	:rid(rid), rtype(rtype), rdata(rdata), rstate(ReqState::ReqWaiting), rsource(rsource), rdest(rdest), rdate(rdate)
 {
 }
 
-RequestInfo::RequestInfo(int rtype, const ModelStringType & rdata, int rstate, const ModelStringType & rdate, const ModelStringType & rsource, int rsourcerid)
-	:rid(-1), sid(-1), rtype(rtype), rdata(rdata), rstate(rstate), rdate(rdate), rsource(rsource), rsourcerid(rsourcerid)
+RequestInfo::RequestInfo(const ModelStringType & rid, int rtype, const ModelStringType & rdata, int rstate, 
+	const ModelStringType & rdate, const ModelStringType & rsource, const ModelStringType & rdest)
+	: rid(rid), rtype(rtype), rdata(rdata), rstate(rstate), rsource(rsource), rdest(rdest), rdate(rdate)
 {
 }
 

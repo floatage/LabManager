@@ -7,6 +7,7 @@
 #include "HomeworkManager.h"
 
 #include "QtCore\qfileinfo.h"
+#include "QtCore\quuid.h"
 
 const StringType sessionFamilyStr("SeesionManage");
 const StringType transferStrActionStr("TransferStr");
@@ -88,14 +89,18 @@ void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QS
 	datas["dest"] = duuid.toStdString().c_str();
 	datas["date"] = msgInfo.mdate;
 	QFileInfo picInfo(picPath);
-	datas["picname"] = tmpDir.c_str() + picInfo.baseName();
+	datas["filename"] = QUuid::createUuid().toString() + "." + picInfo.completeSuffix();
 
 	if (SessionType::UserSession == SessionType(stype)) {
-		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, transferStrActionStr, datas);
-		//´«ËÍÍ¼Æ¬£¬ÐÞ¸ÄÂ·¾¶
+		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, transferPicActionStr, datas);
+
+		QVariantHash taskData;
+		taskData["fileName"] = picPath;
+		taskData["storeName"] = datas["filename"].toString();
+		TaskManager::getInstance()->createSendPicSingleTask(duuid, taskData);
 	}
 	else if (SessionType::GroupSession == SessionType(stype)) {
-		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, sessionFamilyStr, transferStrActionStr, datas);
+		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, sessionFamilyStr, transferPicActionStr, datas);
 		//´«ËÍÍ¼Æ¬£¬ÐÞ¸ÄÂ·¾¶
 	}
 }
@@ -106,7 +111,7 @@ void SessionManager::sendFile(int sid, int stype, const QString & duuid, const Q
 	QFileInfo fileInfo(filePath);
 	sendFileInfor["filename"] = fileInfo.baseName();
 	sendFileInfor["size"] = fileInfo.size();
-    UserReuqestManager::getInstance()->sendRequest(sid, duuid, ReqType::FileTransferReq, sendFileInfor);
+    UserReuqestManager::getInstance()->sendRequest(duuid, ReqType::FileTransferReq, sendFileInfor);
 }
 
 void SessionManager::publishHomework(const QString & duuid, const QVariantList & hwInfo)
@@ -116,11 +121,20 @@ void SessionManager::publishHomework(const QString & duuid, const QVariantList &
 
 void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 {
-	qDebug() << "RECV MSG: " << msg;
+	qDebug() << "RECV CHAT MSG: " << msg;
 	auto data = msg["data"].toObject();
 	MessageInfo msgInfo(data["dest"].toString(), data["type"].toInt(), data["data"].toString(), data["date"].toString());
 	DBOP::createMessage(msgInfo, false);
     notifyModelAppendMsg(msgInfo);
+}
+
+void SessionManager::handleRecvPicMsg(JsonObjType & msg, ConnPtr conn)
+{
+	qDebug() << "RECV PIC MSG: " << msg;
+	auto data = msg["data"].toObject();
+	MessageInfo msgInfo(data["dest"].toString(), data["type"].toInt(), data["data"].toString(), data["date"].toString());
+	DBOP::createMessage(msgInfo, false);
+	notifyModelAppendMsg(msgInfo);
 }
 
 void SessionManager::notifyModelAppendMsg(const MessageInfo& msgInfo)

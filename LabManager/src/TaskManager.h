@@ -15,8 +15,10 @@ public:
 	~TaskManager();
     static TaskManager* getInstance();
 
-    Q_INVOKABLE int createTask(int mode, const QString& duuid, int type, QVariantHash& data);
-    Q_INVOKABLE int createTask(const RequestInfo& req);
+    int createTask(int mode, const QString& duuid, int type, QVariantHash& data);
+    int createTask(const RequestInfo& req);
+	int createSendPicSingleTask(const QString& duuid, QVariantHash& data);
+
     Q_INVOKABLE void executeTask(int tid);
     Q_INVOKABLE void pauseTask(int tid);
     Q_INVOKABLE void stopTask(int tid);

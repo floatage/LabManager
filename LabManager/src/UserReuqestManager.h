@@ -16,11 +16,13 @@ public:
 	~UserReuqestManager();
     static UserReuqestManager* getInstance();
 	
-    Q_INVOKABLE int sendRequest(int sid, const QString & duuid, int type, QVariantHash& data);
-    Q_INVOKABLE void agreeRequest(int rid, int sourceRid, const QString & source);
-    Q_INVOKABLE void rejectRequest(int rid, int sourceRid, const QString & source);
-    Q_INVOKABLE void errorRequest(int rid, int sourceRid, const QString & source);
-    Q_INVOKABLE void cancelRequest(int rid);
+    int sendRequest(const QString & duuid, int type, QVariantHash& data);
+	void errorRequest(const QString& rid, const QString & source);
+	int sendFileTrangferReq(const QString & duuid, int type, const QString& fileName);
+
+    Q_INVOKABLE void agreeRequest(const QString& rid, const QString & source);
+    Q_INVOKABLE void rejectRequest(const QString& rid, const QString & source);
+    Q_INVOKABLE void cancelRequest(const QString& rid);
 
     Q_INVOKABLE QVariantList listWaitingRequest();
     Q_INVOKABLE QVariantList listHandledRequest();

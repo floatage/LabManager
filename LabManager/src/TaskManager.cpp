@@ -46,6 +46,26 @@ int TaskManager::createTask(const RequestInfo & req)
 	return 0;
 }
 
+int TaskManager::createSendPicSingleTask(const QString & duuid, QVariantHash& data)
+{
+	QString taskData(JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str());
+	TaskInfo task(TaskType::PicTransferTask, taskData, TaskState::TaskExecute, TransferMode::Single);
+	int result = DBOP::createTask(task);
+	if (result >= 0) {
+		auto addr = JsonObjType::fromVariantHash(DBOP::getUser(duuid));
+		auto servicePtr = std::make_shared<PicTransferService>(data["fileName"].toString(), data["storeName"].toString());
+		ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
+			if (err != 0) {
+				qDebug() << "pic connnection connect failed!";
+				return;
+			}
+
+			qDebug() << "pic connnection connect success!";
+		});
+	}
+	return 0;
+}
+
 void TaskManager::executeTask(int tid)
 {
 	JsonObjType datas;

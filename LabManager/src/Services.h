@@ -3,49 +3,64 @@
 
 #include "Common.h"
 
-class Serive {
+class Service;
+typedef std::shared_ptr<Service> ServicePtr;
+class Service {
 public:
-	virtual void dataHandle(ConnPtr conn);
-	virtual void sendData(ConnPtr conn, JsonObjType rawData);
+	Service();
+	~Service();
+
+	static ServicePtr getServicePtr(const QString& name, JsonObjType& params);
+
+	virtual void start();
+	virtual void dataHandle();
+	virtual void sendData(JsonObjType rawData);
 	virtual void execute();
 	virtual void pause();
 	virtual void stop();
+
+	ConnPtr getConn() { return conn; }
+	void setConn(ConnPtr newConn) { this->conn = conn; }
+	void setRemain(const RecvBufferType& remain) { readRemain = remain; }
+
+protected:
+	ConnPtr conn;
+	RecvBufferType readBuff, readRemain;
 };
 
-typedef std::shared_ptr<Serive> ServicePtr;
-
-class NetStructureService : public Serive {
+class NetStructureService : public Service {
 public:
 	NetStructureService();
 	~NetStructureService();
 
-	virtual void dataHandle(ConnPtr conn);
+	virtual void start();
+	virtual void dataHandle();
 
 	void setOrder(int order) { this->order = order; }
 	int getOrder()const { return order; }
 
 private:
 	int order;
-	RecvBufferType readBuff, readRemain;
 };
 
-class QFile;
-class PicTransferService : public Serive {
+class PicTransferService : public Service {
 public:
-	PicTransferService(const QString& fileName, ConnPtr conn);
+	PicTransferService(const QString& fileName, const QString& storeFilename);
+	PicTransferService();
 	~PicTransferService();
 
-	virtual void dataHandle(ConnPtr conn);
+	virtual void start();
+	virtual void dataHandle();
 	virtual void execute();
 
 private:
+	bool isSender;
 	SendBufferType writeBuff;
-	RecvBufferType readBuff;
 	bool isInit;
 	int fileSize;
-	int recvPicLen;
+	int recvFileLen;
 	QString fileName;
-	ConnPtr conn;
+	QString storeFilename;
 	boost::asio::windows::stream_handle *picStream;
 };
 

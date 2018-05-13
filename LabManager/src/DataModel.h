@@ -83,19 +83,18 @@ struct MessageInfo
 
 struct RequestInfo
 {
-	int rid;
-	int sid;
+	ModelStringType rid;
 	int rtype;
-	ModelStringType rdata;
 	int rstate;
+	ModelStringType rdata;
 	ModelStringType rdate;
 	ModelStringType rsource;
-	int rsourcerid;
+	ModelStringType rdest;
 
 	RequestInfo();
-	RequestInfo(int sid, int rtype, const ModelStringType &rdata, int rstate);
-	RequestInfo(int rtype, const ModelStringType &rdata, int rstate, const ModelStringType& rsource, int rsourcerid);
-	RequestInfo(int rtype, const ModelStringType &rdata, int rstate, const ModelStringType& rdate, const ModelStringType& rsource, int rsourcerid);
+	RequestInfo(const ModelStringType& rdest, int rtype, const ModelStringType &rdata);
+	RequestInfo(const ModelStringType& rid, int rtype, const ModelStringType &rdata, const ModelStringType& rdate, const ModelStringType& rsource, const ModelStringType& rdest);
+	RequestInfo(const ModelStringType& rid, int rtype, const ModelStringType &rdata, int rstate, const ModelStringType& rdate, const ModelStringType& rsource, const ModelStringType& rdest);
 };
 
 struct TaskInfo

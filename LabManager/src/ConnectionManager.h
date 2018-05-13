@@ -30,7 +30,7 @@ public:
 
 private:
 
-	void do_read();
+	void dataHandle();
 
 	StringType id;
 	ServicePtr servicePtr;
@@ -51,7 +51,7 @@ public:
 
 	ConnPtr findConn(const StringType& id);
 
-	void connnectHost(ConnImplType type, const StringType& id, JsonObjType& addr, ServicePtr servicePtr, ConnectHandler&& handler);
+	ConnPtr connnectHost(ConnImplType type, const StringType& id, JsonObjType& addr, ServicePtr servicePtr, ConnectHandler&& handler);
 	void sendtoConn(const StringType &id, JsonObjType msg);
 	void sendActionMsg(TransferMode mode, const StringType& family, const StringType& action, JsonObjType& datas);
 

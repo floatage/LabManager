@@ -30,6 +30,7 @@ private:
     SessionManager(QObject *parent = 0);
 
 	void handleRecvChatMsg(JsonObjType& msg, ConnPtr conn);
+	void handleRecvPicMsg(JsonObjType& msg, ConnPtr conn);
     void notifyModelAppendMsg(const MessageInfo& msg);
 signals:
     void sessionMsgRecv(QVariantList recvMsg);

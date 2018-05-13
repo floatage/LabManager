@@ -483,7 +483,7 @@ ApplicationWindow {
                                 color: "#AAA"
                                 font.pixelSize: 12
                                 renderType: Text.NativeRendering
-                                text: sessionLastMsg ? "" : sessionLastMsg
+                                text: sessionLastMsg ? sessionLastMsg : ""
 
                                 selectByMouse: true
                                 readOnly: true
