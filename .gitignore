@@ -87,3 +87,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*db
+LabManager/Win32/
+LabManager/Debug/
+LabManager/Release/

@@ -58,10 +58,12 @@ public:
 private:
 	ConnectionManager();
 
-	void sendSingleMsg(JsonObjType& msg);
-	void sendGroupMsg(JsonObjType& msg);
-	void sendBroadcastMsg(JsonObjType& msg);
-	void sendRandomMsg(JsonObjType& msg);
+	enum TransferState{TSRouting, TSAvailable};
+
+	void sendSingleMsg(JsonObjType& msg, bool isRepackage=true);
+	void sendGroupMsg(JsonObjType& msg, bool isRepackage = true);
+	void sendBroadcastMsg(JsonObjType& msg, bool isRepackage = true);
+	void sendRandomMsg(JsonObjType& msg, bool isRepackage = true);
 
 	void handleMsgSingle(JsonObjType& msg, ConnPtr conn);
 	void handleMsgGroup(JsonObjType& msg, ConnPtr conn);

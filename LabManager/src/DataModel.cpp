@@ -1,6 +1,8 @@
 #include "DataModel.h"
 
-#include <ctime>
+#include "QtCore\qdatetime.h"
+
+const QString time_format("yyyy.MM.dd hh:mm:ss");
 
 UserInfo::UserInfo()
 {
@@ -18,10 +20,8 @@ UserGroupInfo::UserGroupInfo()
 
 UserGroupInfo::UserGroupInfo(const ModelStringType &ugid, const ModelStringType &ugname, const ModelStringType &ugowneruid,
 	const ModelStringType &ugintro, const ModelStringType &ugpic)
-	:ugid(ugid), ugname(ugname), ugowneruid(ugowneruid), ugintro(ugintro), ugpic(ugpic)
+	:ugid(ugid), ugname(ugname), ugowneruid(ugowneruid), ugintro(ugintro), ugpic(ugpic), ugdate(QDateTime::currentDateTime().toString(time_format))
 {
-	std::time_t t = std::time(nullptr);
-	ugdate = std::ctime(&t);
 }
 
 GroupMemberInfo::GroupMemberInfo()
@@ -29,10 +29,8 @@ GroupMemberInfo::GroupMemberInfo()
 }
 
 GroupMemberInfo::GroupMemberInfo(const ModelStringType &ugid, const ModelStringType &uid, int mrole)
-	:ugid(ugid), uid(uid), mrole(mrole)
+	:ugid(ugid), uid(uid), mrole(mrole), mjoindate(QDateTime::currentDateTime().toString(time_format))
 {
-	std::time_t t = std::time(nullptr);
-	mjoindate = std::ctime(&t);
 }
 
 AdminInfo::AdminInfo()
@@ -63,10 +61,13 @@ MessageInfo::MessageInfo()
 }
 
 MessageInfo::MessageInfo(int sid, int mtype, const ModelStringType &mdata)
-	:mid(-1), sid(sid), mtype(mtype), mdata(mdata)
+	:mid(-1), sid(sid), mduuid(""), mtype(mtype), mdata(mdata), mdate(QDateTime::currentDateTime().toString(time_format))
 {
-	std::time_t t = std::time(nullptr);
-	mdate = std::ctime(&t);
+}
+
+MessageInfo::MessageInfo(const ModelStringType & mduuid, int mtype, const ModelStringType & mdata, const ModelStringType & mdate)
+	: mid(-1), sid(-1), mduuid(mduuid), mtype(mtype), mdata(mdata), mdate(mdate)
+{
 }
 
 RequestInfo::RequestInfo()
@@ -74,17 +75,13 @@ RequestInfo::RequestInfo()
 }
 
 RequestInfo::RequestInfo(int sid, int rtype, const ModelStringType &rdata, int rstate)
-	:rid(-1), sid(sid), rtype(rtype), rdata(rdata), rstate(rstate), rsource(""), rsourcerid(-1)
+	:rid(-1), sid(sid), rtype(rtype), rdata(rdata), rstate(rstate), rsource(""), rsourcerid(-1), rdate(QDateTime::currentDateTime().toString(time_format))
 {
-	std::time_t t = std::time(nullptr);
-	rdate = std::ctime(&t);
 }
 
 RequestInfo::RequestInfo(int rtype, const ModelStringType & rdata, int rstate, const ModelStringType & rsource, int rsourcerid)
-	:rid(-1), sid(-1), rtype(rtype), rdata(rdata), rstate(rstate), rsource(rsource), rsourcerid(rsourcerid)
+	:rid(-1), sid(-1), rtype(rtype), rdata(rdata), rstate(rstate), rsource(rsource), rsourcerid(rsourcerid), rdate(QDateTime::currentDateTime().toString(time_format))
 {
-	std::time_t t = std::time(nullptr);
-	rdate = std::ctime(&t);
 }
 
 RequestInfo::RequestInfo(int rtype, const ModelStringType & rdata, int rstate, const ModelStringType & rdate, const ModelStringType & rsource, int rsourcerid)
@@ -97,17 +94,13 @@ TaskInfo::TaskInfo()
 }
 
 TaskInfo::TaskInfo(int rid, int ttype, const ModelStringType &tdata, int tstate, int tmode)
-	:tid(-1), rid(rid), ttype(ttype), tdata(tdata), tstate(tstate), tmode(tmode)
+	:tid(-1), rid(rid), ttype(ttype), tdata(tdata), tstate(tstate), tmode(tmode), tdate(QDateTime::currentDateTime().toString(time_format))
 {
-	std::time_t t = std::time(nullptr);
-	tdate = std::ctime(&t);
 }
 
 TaskInfo::TaskInfo(int ttype, const ModelStringType &tdata, int tstate, int tmode)
-	:tid(-1), rid(-1), ttype(ttype), tdata(tdata), tstate(tstate), tmode(tmode)
+	:tid(-1), rid(-1), ttype(ttype), tdata(tdata), tstate(tstate), tmode(tmode), tdate(QDateTime::currentDateTime().toString(time_format))
 {
-	std::time_t t = std::time(nullptr);
-	tdate = std::ctime(&t);
 }
 
 HomeworkInfo::HomeworkInfo()

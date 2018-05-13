@@ -69,13 +69,15 @@ struct SessionInfo
 struct MessageInfo
 {
 	int mid;
-	int sid;
 	int mtype;
+	int sid;
+	ModelStringType mduuid;
 	ModelStringType mdata;
 	ModelStringType mdate;
 
 	MessageInfo();
 	MessageInfo(int sid, int mtype, const ModelStringType &mdata);
+	MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, const ModelStringType& mdate);
 };
 
 

@@ -40,4 +40,11 @@ void IOContextManager::wait()
 	for (auto& t : workers) {
 		t.join();
 	}
+	qDebug() << "networking quit";
+}
+
+void IOContextManager::stop()
+{
+	hsLoop.stop();
+	ioLoop.stop();
 }

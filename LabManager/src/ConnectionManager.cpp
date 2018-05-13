@@ -1,6 +1,7 @@
 #include "ConnectionManager.h"
 #include "IOContextManager.h"
 #include "NetStructureManager.h"
+#include "MessageManager.h"
 
 const StringType connManagefamilyStr("ConnManage");
 const StringType sendSingleActionStr("SendSingle");
@@ -92,28 +93,122 @@ void ConnectionManager::sendtoConn(const StringType& id, JsonObjType msg)
 	}
 }
 
-void ConnectionManager::sendSingleMsg(JsonObjType& msg)
+void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
+{
+	qDebug() << msg;
+	auto data = isRepackage ? msg["data"].toObject() : msg["data"].toObject()["data"].toObject();
+	auto dest = data["dest"].toString().toStdString();
+	if (dest == NetStructureManager::getInstance()->getLocalUuid()) {
+		handleMsgSingle(isRepackage ? msg : msg["data"].toObject(), nullptr);
+		return;
+	}
+
+	JsonObjType sendMsg;
+	isRepackage ? sendMsg["family"] : msg["family"] = connManagefamilyStr.c_str();
+	isRepackage ? sendMsg["action"] : msg["action"] = sendSingleActionStr.c_str();
+	isRepackage ? sendMsg["state"] : msg["state"] = TransferState::TSAvailable;
+	if (isRepackage) {
+		sendMsg["data"] = msg;
+	}
+
+	auto role = NetStructureManager::getInstance()->getLocalRole();
+	auto result = validConn[ConnType::CONN_CHILD].end();
+	switch (role)
+	{
+	case ROLE_ROUTER:
+		result = validConn[ConnType::CONN_CHILD].find(dest);
+		if (result != validConn[ConnType::CONN_CHILD].end()) {
+			result->second->send(isRepackage ? sendMsg : msg);
+		}
+		else {
+			for (auto& brother : validConn[ConnType::CONN_BROTHER]) {
+				brother.second->send(isRepackage ? sendMsg : msg);
+			}
+		}
+		break;
+	case ROLE_MEMBER:
+		for (auto& parent : validConn[ConnType::CONN_PARENT]) {
+			parent.second->send(isRepackage ? sendMsg : msg);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void ConnectionManager::sendGroupMsg(JsonObjType& msg, bool isRepackage)
 {
 }
 
-void ConnectionManager::sendGroupMsg(JsonObjType& msg)
+void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
 {
+	JsonObjType sendMsg;
+	isRepackage ? sendMsg["family"] : msg["family"] = connManagefamilyStr.c_str();
+	isRepackage ? sendMsg["action"] : msg["action"] = sendBroadcastActionStr.c_str();
+	if (isRepackage) {
+		sendMsg["data"] = msg;
+	}
+
+	auto role = NetStructureManager::getInstance()->getLocalRole();
+	switch (role)
+	{
+	case ROLE_MASTER:
+		familyParse(isRepackage ? msg : msg["data"].toObject(), nullptr);
+		isRepackage ? sendMsg["state"] : msg["state"] = TransferState::TSAvailable;
+		for (auto& child : validConn[ConnType::CONN_CHILD]) {
+			child.second->send(isRepackage ? sendMsg : msg);
+		}
+		break;
+	case ROLE_ROUTER:
+	case ROLE_MEMBER:
+		isRepackage ? sendMsg["state"] : msg["state"] = TransferState::TSRouting;
+		for (auto& parent : validConn[ConnType::CONN_PARENT]) {
+			parent.second->send(isRepackage ? sendMsg : msg);
+		}
+		break;
+	default:
+		break;
+	}
+	
 }
 
-void ConnectionManager::sendBroadcastMsg(JsonObjType& msg)
-{
-}
-
-void ConnectionManager::sendRandomMsg(JsonObjType& msg)
+void ConnectionManager::sendRandomMsg(JsonObjType& msg, bool isRepackage)
 {
 }
 
 void ConnectionManager::handleMsgSingle(JsonObjType & msg, ConnPtr conn)
 {
+	if (!msg.contains("state")) {
+		familyParse(msg, conn);
+		return;
+	}
+
+	TransferState state = (TransferState)msg["state"].toInt();
+	switch (state)
+	{
+	case TSRouting:
+		break;
+	case TSAvailable:
+		sendSingleMsg(msg, false);
+		break;
+	default:
+		break;
+	}
 }
 
 void ConnectionManager::handleMsgBroadcast(JsonObjType & msg, ConnPtr conn)
 {
+	TransferState state = (TransferState)msg["state"].toInt();
+	switch (state)
+	{
+	case TSRouting:
+		sendBroadcastMsg(msg, false);
+		break;
+	case TSAvailable:
+		familyParse(msg["data"].toObject(), conn);
+		sendBroadcastMsg(msg, false);
+		break;
+	}
 }
 
 void ConnectionManager::handleMsgGroup(JsonObjType & msg, ConnPtr conn)
