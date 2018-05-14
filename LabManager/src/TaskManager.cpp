@@ -50,6 +50,7 @@ int TaskManager::createSendPicSingleTask(const QString & duuid, QVariantHash& da
 {
 	QString taskData(JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str());
 	TaskInfo task(TaskType::PicTransferTask, taskData, TaskState::TaskExecute, TransferMode::Single);
+
 	int result = DBOP::createTask(task);
 	if (result >= 0) {
 		auto addr = JsonObjType::fromVariantHash(DBOP::getUser(duuid));

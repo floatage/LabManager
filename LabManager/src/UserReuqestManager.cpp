@@ -6,6 +6,8 @@
 
 #include <set>
 
+#include "QtCore/qfileinfo.h"
+
 const StringType requestFamilyStr("ReqManage");
 const StringType sendRequestActionStr("SendReq");
 const StringType agreeRequestActionStr("AgreeReq");
@@ -58,7 +60,8 @@ int UserReuqestManager::sendRequest(const QString & duuid, int type, QVariantHas
 		reqTransferModeMap[RemoteControlReq] = Single; reqTransferModeMap[ScreeBroadcastReq] = Group;
 	}
 
-	auto reqDataStr = JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str();
+	qDebug() << data;
+    QString reqDataStr = JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str();
 	RequestInfo req(duuid, type, reqDataStr);
 	int result = DBOP::createRequest(req);
 	if (result >= 0) {
@@ -75,9 +78,14 @@ int UserReuqestManager::sendRequest(const QString & duuid, int type, QVariantHas
 	return result;
 }
 
-int UserReuqestManager::sendFileTrangferReq(const QString & duuid, int type, const QString & fileName)
+int UserReuqestManager::sendFileTrangferReq(const QString & duuid, const QString & filePath)
 {
-		
+    QFileInfo fileInfo(filePath);
+	QVariantHash reqData;
+	reqData["fileName"] = fileInfo.fileName();
+	reqData["fileSize"] = fileInfo.size();
+	reqData["fileSourePath"] = fileInfo.absoluteFilePath();
+	sendRequest(duuid, ReqType::FileTransferReq, reqData);
 	return 0;
 }
 
@@ -95,7 +103,7 @@ void UserReuqestManager::rejectRequest(const QString& rid, const QString & sourc
 	if (result == 0) {
 		JsonObjType datas;
 		datas["rid"] = rid;
-		datas["rdest"] = source;
+		datas["dest"] = source;
         ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, requestFamilyStr, rejectRequestActionStr, datas);
 	}
 }
@@ -106,7 +114,7 @@ void UserReuqestManager::errorRequest(const QString& rid, const QString & source
 	if (result == 0) {
 		JsonObjType datas;
 		datas["rid"] = rid;
-		datas["rdest"] = source;
+		datas["dest"] = source;
         ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, requestFamilyStr, errorRequestAcctionStr, datas);
 	}
 }
@@ -123,9 +131,12 @@ void UserReuqestManager::handleSendRequest(JsonObjType & msg, ConnPtr conn)
 	if (!rid.isUndefined() && memeberDataPtr->dropReqSet.find(rid.toString()) != memeberDataPtr->dropReqSet.end()) {
 		RequestInfo req(rid.toString(), msg["rtype"].toInt(), msg["rdata"].toString(),
 			msg["rdate"].toString(), msg["rsource"].toString(), msg["rdest"].toString());
-		int result = DBOP::createRequest(req);
-		if (result >= 0) {
-			//signal
+		if (DBOP::createRequest(req) == 0){
+            msg["rstate"] = req.rstate;
+            auto user = DBOP::getUser(req.rsource);
+            msg["uname"] = user["uname"].toString();
+
+            requestRecv(msg.toVariantHash());
 		}
 	}
 }
@@ -135,7 +146,7 @@ void UserReuqestManager::handleAgreeRequest(JsonObjType & msg, ConnPtr conn)
 	auto rid = msg["rid"];
 	if (!rid.isUndefined()) {
 		if (DBOP::setRequestState(rid.toString(), ReqState::ReqAgree) == 0) {
-			//signal
+            requestStateChanged(rid.toString(), ReqState::ReqAgree);
 		}
 	}
 }
@@ -145,7 +156,7 @@ void UserReuqestManager::handleRejectRequest(JsonObjType & msg, ConnPtr conn)
 	auto rid = msg["rid"];
 	if (!rid.isUndefined()) {
 		if (DBOP::setRequestState(rid.toString(), ReqState::ReqReject) == 0) {
-			//signal
+            requestStateChanged(rid.toString(), ReqState::ReqReject);
 		}
 	}
 }
@@ -155,7 +166,7 @@ void UserReuqestManager::handleErrorRequest(JsonObjType & msg, ConnPtr conn)
 	auto rid = msg["rid"];
 	if (!rid.isUndefined()) {
 		if (DBOP::setRequestState(rid.toString(), ReqState::ReqError) == 0) {
-			//signal
+            requestStateChanged(rid.toString(), ReqState::ReqError);
 		}
 	}
 }

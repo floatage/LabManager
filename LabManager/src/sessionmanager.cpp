@@ -78,9 +78,9 @@ void SessionManager::sendChatMsg(int sid, int stype, const QString & duuid, cons
         ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, sessionFamilyStr, transferStrActionStr, datas);
 }
 
-void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QString & picPath, bool isAnimation)
+void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QUrl & picPath, bool isAnimation)
 {
-	MessageInfo msgInfo(sid, int(isAnimation ? ChatMsgType::ChatAnimation : ChatMsgType::ChatPic), picPath);
+    MessageInfo msgInfo(sid, int(isAnimation ? ChatMsgType::ChatAnimation : ChatMsgType::ChatPic), picPath.toString());
 	DBOP::createMessage(msgInfo, true);
 
 	JsonObjType datas;
@@ -88,14 +88,14 @@ void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QS
 	datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
 	datas["dest"] = duuid.toStdString().c_str();
 	datas["date"] = msgInfo.mdate;
-	QFileInfo picInfo(picPath);
+    QFileInfo picInfo(picPath.toString().split("///")[1]);
 	datas["filename"] = QUuid::createUuid().toString() + "." + picInfo.completeSuffix();
 
 	if (SessionType::UserSession == SessionType(stype)) {
 		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, transferPicActionStr, datas);
 
 		QVariantHash taskData;
-		taskData["fileName"] = picPath;
+        taskData["fileName"] = picInfo.absoluteFilePath();
 		taskData["storeName"] = datas["filename"].toString();
 		TaskManager::getInstance()->createSendPicSingleTask(duuid, taskData);
 	}
@@ -105,13 +105,9 @@ void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QS
 	}
 }
 
-void SessionManager::sendFile(int sid, int stype, const QString & duuid, const QString & filePath)
+void SessionManager::sendFile(int sid, int stype, const QString & duuid, const QUrl & filePath)
 {
-	QVariantHash sendFileInfor;
-	QFileInfo fileInfo(filePath);
-	sendFileInfor["filename"] = fileInfo.baseName();
-	sendFileInfor["size"] = fileInfo.size();
-    UserReuqestManager::getInstance()->sendRequest(duuid, ReqType::FileTransferReq, sendFileInfor);
+    UserReuqestManager::getInstance()->sendFileTrangferReq(duuid, filePath.toString().split("///")[1]);
 }
 
 void SessionManager::publishHomework(const QString & duuid, const QVariantList & hwInfo)

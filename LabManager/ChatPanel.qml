@@ -90,8 +90,8 @@ Item{
         selectMultiple: false
         nameFilters: ['All Files (*.*)']
         onAccepted: {
-            console.log("You chose: " + fileSelectFileDialog.fileUrls)
-            SessionManager.sendFile(curSeesionId, curSeesionType, curSeesionDestId, picSelectFileDialog.fileUrls)
+            console.log("You chose: " + fileSelectFileDialog.fileUrl)
+            SessionManager.sendFile(curSeesionId, curSeesionType, curSeesionDestId, fileSelectFileDialog.fileUrl)
         }
     }
 

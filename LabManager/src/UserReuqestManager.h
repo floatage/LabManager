@@ -18,7 +18,7 @@ public:
 	
     int sendRequest(const QString & duuid, int type, QVariantHash& data);
 	void errorRequest(const QString& rid, const QString & source);
-	int sendFileTrangferReq(const QString & duuid, int type, const QString& fileName);
+	int sendFileTrangferReq(const QString & duuid, const QString& filePath);
 
     Q_INVOKABLE void agreeRequest(const QString& rid, const QString & source);
     Q_INVOKABLE void rejectRequest(const QString& rid, const QString & source);
@@ -38,6 +38,10 @@ private:
 	void handleErrorRequest(JsonObjType& msg, ConnPtr conn);
 
 	UserReuqestManagerDataPtr memeberDataPtr;
+
+signals:
+    void requestStateChanged(const QString& rid, int state);
+    void requestRecv(QVariantHash recvReq);
 };
 
 #endif // !USERREQUESTMANAGER_H

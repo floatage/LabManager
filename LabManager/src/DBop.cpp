@@ -748,14 +748,13 @@ int DBOP::createRequest(const RequestInfo & request)
 
 QVariantList DBOP::listRequests(bool isFinished)
 {
-	static const QString REQUEST_GET_NOT_FINISHED("select * from Request wehre rstate<=0");
-	static const QString REQUEST_GET_FINISHED("select * from Request wehre rstate>0");
+	static const QString REQUEST_GET_NOT_FINISHED("select rid,rtype,rdata,rstate,rdate,rsource,rdest,uname from Request,User where rsource=uid and rstate<=0");
+	static const QString REQUEST_GET_FINISHED("select rid,rtype,rdata,rstate,rdate,rsource,rdest,uname from Request,User where rsource=uid and rstate>0");
 	
 	QSqlQuery query;
 	QVariantList result;
 
-	query.prepare(isFinished ? REQUEST_GET_FINISHED : REQUEST_GET_NOT_FINISHED);
-	if (!query.exec()) {
+	if (!query.exec(isFinished ? REQUEST_GET_FINISHED : REQUEST_GET_NOT_FINISHED)) {
 		qDebug() << "request select all failed! isFinished: " << isFinished << " reason: " << query.lastError().text();
 		return result;
 	}
@@ -770,6 +769,7 @@ QVariantList DBOP::listRequests(bool isFinished)
 		item.append(query.value("rdate"));
 		item.append(query.value("rsource"));
 		item.append(query.value("rdest"));
+		item.append(query.value("uname"));
 		result.append(QVariant(item));
 	}
 
@@ -826,8 +826,8 @@ int DBOP::createTask(const TaskInfo & task)
 
 QVariantList DBOP::listTasks(bool isFinished)
 {
-	static const QString TASK_GET_NOT_FINISHED("select * from Request wehre tstate<=1");
-	static const QString TASK_GET_FINISHED("select * from Request wehre tstate>1");
+	static const QString TASK_GET_NOT_FINISHED("select * from Task where tstate<=1");
+	static const QString TASK_GET_FINISHED("select * from Task where tstate>1");
 
 	QSqlQuery query;
 	QVariantList result;

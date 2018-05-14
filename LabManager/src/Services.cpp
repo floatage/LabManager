@@ -192,8 +192,8 @@ void PicTransferService::dataHandle()
 			short msgLen = 0;
 			memcpy(&msgLen, dataPtr, 2);
 			auto fileInfor = JsonDocType::fromJson(QByteArray(dataPtr + 2, msgLen)).object();
-			fileName = tmpDir.c_str() + fileInfor["filename"].toString();
-			fileSize = fileInfor["filesize"].toInt();
+			fileName = tmpDir.c_str() + fileInfor["fileName"].toString();
+			fileSize = fileInfor["fileSize"].toInt();
 
 			HANDLE hFile = ::CreateFile(fileName.toStdWString().c_str(),
 				GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0);
@@ -244,8 +244,8 @@ void PicTransferService::execute()
 
 		QFileInfo picInfor(fileName);
 		JsonObjType datas;
-		datas["picname"] = storeFilename;
-		datas["picsize"] = picInfor.size();
+		datas["picName"] = storeFilename;
+		datas["picSize"] = picInfor.size();
 		Service::sendData(datas);
 
 		isInit = true;

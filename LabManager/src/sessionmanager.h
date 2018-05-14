@@ -6,6 +6,7 @@
 
 #include "QtCore\qobject.h"
 #include "QtCore\qvariant.h"
+#include "QtCore\qurl.h"
 
 struct MessageInfo;
 
@@ -23,8 +24,8 @@ public:
 
 	Q_INVOKABLE QVariantList getChatMsgs(int sid, const QString& duuid);
     Q_INVOKABLE void sendChatMsg(int sid, int stype, const QString& duuid, const QString& msg);
-    Q_INVOKABLE void sendPic(int sid, int stype, const QString& duuid, const QString& picPath, bool isAnimation);
-    Q_INVOKABLE void sendFile(int sid, int stype, const QString& duuid, const QString& filePath);
+    Q_INVOKABLE void sendPic(int sid, int stype, const QString& duuid, const QUrl& picPath, bool isAnimation);
+    Q_INVOKABLE void sendFile(int sid, int stype, const QString& duuid, const QUrl& filePath);
     Q_INVOKABLE void publishHomework(const QString& duuid, const QVariantList& hwInfo);
 private:
     SessionManager(QObject *parent = 0);
