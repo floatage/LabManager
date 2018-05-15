@@ -4,7 +4,7 @@
 #include "NetStructureManager.h"
 #include "TaskManager.h"
 
-#include <set>
+#include <QtCore/qset.h>
 
 #include "QtCore/qfileinfo.h"
 
@@ -15,11 +15,11 @@ const StringType rejectRequestActionStr("RejectReq");
 const StringType errorRequestAcctionStr("ErrorReq");
 
 struct UserReuqestManagerData {
-	std::set<QString> dropReqSet;
+    QSet<QString> dropReqSet;
 };
 
 UserReuqestManager::UserReuqestManager(QObject *parent)
-    :QObject(parent)
+    :QObject(parent), memeberDataPtr(std::make_shared<UserReuqestManagerData>())
 {
     ConnectionManager::getInstance()->registerFamilyHandler(requestFamilyStr, std::bind(&UserReuqestManager::actionParse, this, _1, _2));
 
@@ -60,7 +60,6 @@ int UserReuqestManager::sendRequest(const QString & duuid, int type, QVariantHas
 		reqTransferModeMap[RemoteControlReq] = Single; reqTransferModeMap[ScreeBroadcastReq] = Group;
 	}
 
-	qDebug() << data;
     QString reqDataStr = JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str();
 	RequestInfo req(duuid, type, reqDataStr);
 	int result = DBOP::createRequest(req);
@@ -72,6 +71,7 @@ int UserReuqestManager::sendRequest(const QString & duuid, int type, QVariantHas
 		datas["rdate"] = req.rdate;
 		datas["rsource"] = req.rsource;
 		datas["rdest"] = req.rdest;
+		datas["dest"] = req.rdest;
         ConnectionManager::getInstance()->sendActionMsg(reqTransferModeMap[ReqType(type)], requestFamilyStr, sendRequestActionStr, datas);
 	}
 
@@ -122,22 +122,22 @@ void UserReuqestManager::errorRequest(const QString& rid, const QString & source
 void UserReuqestManager::cancelRequest(const QString& rid)
 {
 	DBOP::setRequestState(rid, (int)ReqState::ReqCancel);
-	memeberDataPtr->dropReqSet.insert(rid);
+    memeberDataPtr->dropReqSet.insert(rid);
 }
 
 void UserReuqestManager::handleSendRequest(JsonObjType & msg, ConnPtr conn)
 {
 	auto rid = msg["rid"];
-	if (!rid.isUndefined() && memeberDataPtr->dropReqSet.find(rid.toString()) != memeberDataPtr->dropReqSet.end()) {
+    if (!rid.isUndefined()) {
 		RequestInfo req(rid.toString(), msg["rtype"].toInt(), msg["rdata"].toString(),
 			msg["rdate"].toString(), msg["rsource"].toString(), msg["rdest"].toString());
-		if (DBOP::createRequest(req) == 0){
+        if (DBOP::createRequest(req) != -1){
             msg["rstate"] = req.rstate;
             auto user = DBOP::getUser(req.rsource);
             msg["uname"] = user["uname"].toString();
 
-            requestRecv(msg.toVariantHash());
-		}
+            newRequestRecv(msg.toVariantHash());
+        }
 	}
 }
 

@@ -27,6 +27,8 @@ public:
     Q_INVOKABLE void sendPic(int sid, int stype, const QString& duuid, const QUrl& picPath, bool isAnimation);
     Q_INVOKABLE void sendFile(int sid, int stype, const QString& duuid, const QUrl& filePath);
     Q_INVOKABLE void publishHomework(const QString& duuid, const QVariantList& hwInfo);
+
+	Q_INVOKABLE QString getLocalUuid();
 private:
     SessionManager(QObject *parent = 0);
 

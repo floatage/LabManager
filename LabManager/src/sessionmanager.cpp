@@ -115,6 +115,11 @@ void SessionManager::publishHomework(const QString & duuid, const QVariantList &
     HomeworkManager::getInstance()->publishHomework();
 }
 
+QString SessionManager::getLocalUuid()
+{
+	return  NetStructureManager::getInstance()->getLocalUuid().c_str();
+}
+
 void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 {
 	qDebug() << "RECV CHAT MSG: " << msg;

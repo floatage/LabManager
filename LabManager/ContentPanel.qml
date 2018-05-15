@@ -227,6 +227,13 @@ Rectangle {
             }
         }
 
+        Connections{
+            target: UserReuqestManager
+            onNewRequestRecv: {
+                msgIcon.item.iconClicked()
+            }
+        }
+
         StackView {
             id: contentStackView
             width: parent.width - 2

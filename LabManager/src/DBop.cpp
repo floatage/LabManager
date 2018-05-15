@@ -742,14 +742,14 @@ int DBOP::createRequest(const RequestInfo & request)
 		return 0;
 	}
 
-	qDebug() << "request insert failed! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata << " reason: " << query.lastError().text();
-	return -1;
+    qDebug() << "request insert failed! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata << " reason: " << query.lastError().text();
+    return query.lastError().type() == 1 ? -2 : -1;
 }
 
 QVariantList DBOP::listRequests(bool isFinished)
 {
-	static const QString REQUEST_GET_NOT_FINISHED("select rid,rtype,rdata,rstate,rdate,rsource,rdest,uname from Request,User where rsource=uid and rstate<=0");
-	static const QString REQUEST_GET_FINISHED("select rid,rtype,rdata,rstate,rdate,rsource,rdest,uname from Request,User where rsource=uid and rstate>0");
+    static const QString REQUEST_GET_NOT_FINISHED("select rid,rtype,rdata,rstate,rdate,rsource,rdest,uname from Request,User where rsource=uid and rstate<=0 order by datetime(rdate) asc");
+    static const QString REQUEST_GET_FINISHED("select rid,rtype,rdata,rstate,rdate,rsource,rdest,uname from Request,User where rsource=uid and rstate>0 order by datetime(rdate) asc");
 	
 	QSqlQuery query;
 	QVariantList result;

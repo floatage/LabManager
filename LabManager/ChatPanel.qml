@@ -72,6 +72,8 @@ Item{
         selectMultiple: false
         nameFilters: ['Pictures (*.png *.jpg *.jpeg *.bmp *.svg *.gif)']
         onAccepted: {
+            if (curSeesionId === -1) return
+
             console.log("You chose: " + picSelectFileDialog.fileUrls)
             console.log(picSelectFileDialog.fileUrl.toString().match(/.*\.gif/) ? true : false)
 
@@ -79,7 +81,6 @@ Item{
                                    curSeesionDestId,
                                    picSelectFileDialog.fileUrl,
                                    picSelectFileDialog.fileUrl.toString().match(/.*\.gif/))
-            updateMsgModel()
         }
     }
 
@@ -90,6 +91,8 @@ Item{
         selectMultiple: false
         nameFilters: ['All Files (*.*)']
         onAccepted: {
+            if (curSeesionId === -1) return
+
             console.log("You chose: " + fileSelectFileDialog.fileUrl)
             SessionManager.sendFile(curSeesionId, curSeesionType, curSeesionDestId, fileSelectFileDialog.fileUrl)
         }

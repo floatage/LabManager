@@ -41,7 +41,7 @@ private:
 
 signals:
     void requestStateChanged(const QString& rid, int state);
-    void requestRecv(QVariantHash recvReq);
+    void newRequestRecv(QVariantHash& recvReq);
 };
 
 #endif // !USERREQUESTMANAGER_H
