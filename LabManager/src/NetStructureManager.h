@@ -15,9 +15,9 @@ public:
 
 	const JsonObjType& getlocalHost() { return localHost; }
 	HostRole getLocalRole()const { return role; }
-	StringType getLocalUuid()const { return localHost["uuid"].toString().toStdString().c_str(); }
+    StringType getLocalUuid()const { return localHost["uid"].toString().toStdString().c_str(); }
 	bool isAdmin()const { return bAdmin; }
-	void setAdmin(bool isAdmin) { bAdmin = isAdmin; }
+	void setAdmin(bool newIsAdmin) { bAdmin = newIsAdmin; }
 
 	void buildNetStructure(int stage);
 private:

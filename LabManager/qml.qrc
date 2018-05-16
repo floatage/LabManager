@@ -39,9 +39,7 @@
         <file>img/hwkDistributeIcon.png</file>
         <file>UserGroup.qml</file>
         <file>img/inforManageIcon.png</file>
-        <file>FileTransfer.qml</file>
-        <file>img/curTask.png</file>
-        <file>img/finishedTask.png</file>
+        <file>TaskMsg.qml</file>
         <file>ChatPanel.qml</file>
         <file>imports/Theme/qmldir</file>
         <file>imports/Theme/Theme.qml</file>
@@ -61,5 +59,7 @@
         <file>img/home.svg</file>
         <file>img/set.svg</file>
         <file>img/refresh.svg</file>
+        <file>img/executing.png</file>
+        <file>img/history.png</file>
     </qresource>
 </RCC>

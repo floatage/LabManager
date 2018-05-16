@@ -75,9 +75,9 @@ ConnPtr ConnectionManager::findConn(const StringType & id)
 ConnPtr ConnectionManager::connnectHost(ConnImplType type, const StringType& id, JsonObjType& addr, ServicePtr servicePtr, ConnectHandler&& handler)
 {
 	HostDescription hd;
-	hd.uuid = addr["uuid"].toString().toStdString();
-	hd.ip = addr["ip"].toString().toStdString();
-	hd.mac = addr["mac"].toString().toStdString();
+    hd.uuid = addr["uid"].toString().toStdString();
+    hd.ip = addr["uip"].toString().toStdString();
+    hd.mac = addr["umac"].toString().toStdString();
 
 	setHostArp(hd.ip, hd.mac);
     tcp::socket sock(IOContextManager::getInstance()->getIOLoop());
@@ -239,13 +239,12 @@ void ConnectionManager::sendActionMsg(TransferMode mode, const StringType & fami
 
 Connection::Connection(tcp::socket s, const HostDescription& dest, ConnectionManager* cm, ServicePtr servicePtr)
 	:sock(std::move(s)), dest(dest), parent(cm), id(INVALID_ID), servicePtr(servicePtr)
-{
+{	
 }
 
 Connection::Connection(Connection && c)
 	: sock(std::move(c.sock)), dest(c.dest), id(c.id), parent(c.parent), servicePtr(c.servicePtr)
 {
-	servicePtr->setConn(shared_from_this());
 }
 
 Connection::~Connection()
@@ -255,6 +254,7 @@ Connection::~Connection()
 
 void Connection::start()
 {
+	servicePtr->setConn(shared_from_this());
 	servicePtr->start();
 }
 
@@ -265,6 +265,7 @@ void Connection::connect(ConnImplType type, const StringType& id, ConnectHandler
 	//tcp::endpoint endpoint(make_address_v4(getLocalIp()), HostDescription::tcpPort);
 
 	sock.async_connect(endpoint, [this, self, handler, type, id](const boost::system::error_code& err) {
+		qDebug() << "connect state: " << err;
         parent->registerObj(StringType(id), type, self);
 		handler(err);
 
@@ -273,8 +274,6 @@ void Connection::connect(ConnImplType type, const StringType& id, ConnectHandler
 			qDebug() << "connect failed";
 			return;
 		}
-
-		qDebug() << "connect success";
 	});
 }
 

@@ -53,7 +53,7 @@ void MessageManager::run()
 
 void MessageManager::sendtoHost(const JsonObjType& addr, JsonObjType msg, SendtoHandler&& handler)
 {
-	auto ip = addr["ip"].toString().toStdString(), mac = addr["mac"].toString().toStdString();
+    auto ip = addr["uip"].toString().toStdString(), mac = addr["umac"].toString().toStdString();
 	setHostArp(ip, mac);
 
 	JsonDocType doc(msg);

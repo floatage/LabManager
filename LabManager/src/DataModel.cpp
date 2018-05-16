@@ -98,13 +98,15 @@ TaskInfo::TaskInfo()
 {
 }
 
-TaskInfo::TaskInfo(int rid, int ttype, const ModelStringType &tdata, int tstate, int tmode)
-	:tid(-1), rid(rid), ttype(ttype), tdata(tdata), tstate(tstate), tmode(tmode), tdate(QDateTime::currentDateTime().toString(time_format))
+TaskInfo::TaskInfo(const ModelStringType & tdest, int ttype, int tmode, const ModelStringType & tdata)
+	: tdest(tdest), ttype(ttype), tmode(tmode), tdata(tdata), tstate(TaskState::TaskExecute),  tdate(QDateTime::currentDateTime().toString(time_format)),
+	tid(QUuid::createUuid().toString()), tsource(NetStructureManager::getInstance()->getLocalUuid().c_str())
 {
 }
 
-TaskInfo::TaskInfo(int ttype, const ModelStringType &tdata, int tstate, int tmode)
-	:tid(-1), rid(-1), ttype(ttype), tdata(tdata), tstate(tstate), tmode(tmode), tdate(QDateTime::currentDateTime().toString(time_format))
+TaskInfo::TaskInfo(const ModelStringType & tid, int ttype, int tmode, const ModelStringType & tdata, int tstate, const ModelStringType & tdate, 
+	const ModelStringType & tsource, const ModelStringType & tdest)
+	: tid(tid), ttype(ttype), tmode(tmode), tdata(tdata), tstate(tstate), tdate(tdate), tsource(tsource), tdest(tdest)
 {
 }
 

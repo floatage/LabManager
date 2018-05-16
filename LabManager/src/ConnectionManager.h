@@ -20,11 +20,11 @@ public:
 	void pause();
 	void stop();
 
-	void setID(const StringType& id) { this->id = id; }
+	void setID(const StringType& newId) { this->id = newId; }
 	StringType getID()const { return id; }
     ConnectionManager* getParent() { return parent; }
 	ServicePtr getService() { return servicePtr; }
-	void setService(ServicePtr newServicePtr) { servicePtr = newServicePtr; }
+	void setService(ServicePtr newServicePtr) { servicePtr = newServicePtr; start(); }
 
 	tcp::socket sock;
 

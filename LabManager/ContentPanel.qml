@@ -220,7 +220,7 @@ Rectangle {
                     Connections {
                         target: taskIcon.item
                         onIconClicked: {
-                            userView.createOrReplacePanel("FileTransfer.qml")
+                            userView.createOrReplacePanel("TaskMsg.qml")
                         }
                     }
                 }

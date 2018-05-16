@@ -76,14 +76,16 @@ int DBOP::createTables()
 		"foreign key(rdest) references User(uid), "
 		"foreign key(rsource) references User(uid))");
 
-	bool bTask = query.exec("CREATE TABLE IF NOT EXISTS Task(tid INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"rid INTEGER NOT NULL, "
+	bool bTask = query.exec("CREATE TABLE IF NOT EXISTS Task(tid VARCHAR(32) PRIMARY KEY, "
 		"ttype INTEGER NOT NULL, "
 		"tmode INTEGER NOT NULL, "
 		"tdata VARCHAR(512) NOT NULL, "
-		"tstate VARCHAR(16) NOT NULL, "
+		"tstate INTEGER NOT NULL, "
 		"tdate VARCHAR(32) NOT NULL, "
-		"foreign key(rid) references Request(rid))");
+		"tsource VARCHAR(32) NOT NULL, "
+		"tdest VARCHAR(32) NOT NULL, "
+		"foreign key(tdest) references User(uid), "
+		"foreign key(tsource) references User(uid))");
 
 	bool bHomework = query.exec("CREATE TABLE IF NOT EXISTS Homework(hid VARCHAR(32) PRIMARY KEY, "
 		"sid INTEGER NOT NULL, "
@@ -147,11 +149,11 @@ int DBOP::addUsers(std::shared_ptr<std::vector<UserInfo>> userList)
     query.addBindValue(upics);
 
     if (query.execBatch()) {
-        qDebug() << "users insert success";
+        qDebug() << "users insert success! count: " << userList->size();
         return 0;
     }
 
-    qDebug() << "users insert failed!" << " reason: " << query.lastError().text();
+    qDebug() << "users insert failed! count: " << userList->size() << " reason: " << query.lastError().text();
     return -1;
 }
 
@@ -164,11 +166,11 @@ int DBOP::removeUser(const ModelStringType & userId)
 	query.addBindValue(userId);
 
 	if (query.exec()) {
-        qDebug() << "user delete success: " << userId;
+        qDebug() << "user delete success! uid: " << userId;
 		return 0;
 	}
 
-    qDebug() << "user delete failed: " << userId << " reason: " << query.lastError().text();
+    qDebug() << "user delete failed! uid: " << userId << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -182,18 +184,18 @@ QVariantHash DBOP::getUser(const ModelStringType & userId)
 	query.prepare(USER_GET);
 	query.addBindValue(userId);
 	if (!query.exec() || !query.next()) {
-		qDebug() << "user select failed!" << " reason: " << query.lastError().text();
+		qDebug() << "user select failed! uid" << userId << " reason: " << query.lastError().text();
 		return result;
 	}
 
-	result["uid"] = query.value("ugid");
-	result["uname"] = query.value("ugname");
-	result["uip"] = query.value("ugowneruid");
-	result["umac"] = query.value("ugdate");
-	result["urole"] = query.value("ugintro");
-	result["upic"] = query.value("ugpic");
+	result["uid"] = query.value("uid");
+	result["uname"] = query.value("uname");
+	result["uip"] = query.value("uip");
+	result["umac"] = query.value("umac");
+	result["urole"] = query.value("urole");
+	result["upic"] = query.value("upic");
 
-	qDebug() << "user select success";
+	qDebug() << "user select success! uid: " << userId;
 	return result;
 }
 
@@ -222,7 +224,7 @@ QVariantList DBOP::listUsers()
 		result.append(QVariant(item));
 	}
 
-	qDebug() << "user select all success";
+	qDebug() << "user select all success!";
 	return result;
 }
 
@@ -242,11 +244,11 @@ int DBOP::createUserGroup(const UserGroupInfo & group, QString& sql)
 
 	if (query.exec()) {
 		sql = GROUP_INSERT;
-		qDebug() << "group insert success";
+		qDebug() << "group insert success! ugid: " << group.ugid << " owner: " << group.ugowneruid;
 		return 0;
 	}
 
-	qDebug() << "group insert failed!" << " reason: " << query.lastError().text();
+	qDebug() << "group insert failed! ugid: " << group.ugid << " owner: " << group.ugowneruid << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -260,11 +262,11 @@ int DBOP::deleteUserGroup(const ModelStringType & groupId, QString& sql)
 
 	if (query.exec()) {
 		sql = GROUP_REMOVE;
-		qDebug() << "group delete success";
+		qDebug() << "group delete success! ugid: " << groupId;
 		return 0;
 	}
 	
-	qDebug() << "group delete failed!" << " reason: " << query.lastError().text();
+	qDebug() << "group delete failed! ugid: " << groupId << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -278,7 +280,7 @@ QVariantHash DBOP::getUserGroup(const ModelStringType & groupId)
 	query.prepare(GROUP_GET);
 	query.addBindValue(groupId);
 	if (!query.exec() || !query.next()) {
-		qDebug() << "group select failed!" << " reason: " << query.lastError().text();
+		qDebug() << "group select failed! ugid: " << groupId << " reason: " << query.lastError().text();
 		return result;
 	}
 
@@ -289,7 +291,7 @@ QVariantHash DBOP::getUserGroup(const ModelStringType & groupId)
 	result["ugintro"] = query.value("ugintro");
 	result["ugpic"] = query.value("ugpic");
 
-	qDebug() << "group select success";
+	qDebug() << "group select success! ugid" << groupId;
 	return result;
 }
 
@@ -314,11 +316,11 @@ QVariantList DBOP::listUserGroups()
 		item.append(query.value("ugowneruid"));
 		item.append(query.value("ugdate"));
 		item.append(query.value("ugintro"));
-		item.append(query.value("upic"));
+        item.append(query.value("ugpic"));
 		result.append(QVariant(item));
 	}
 
-	qDebug() << "group select all success";
+	qDebug() << "group select all success!";
 	return result;
 }
 
@@ -336,11 +338,11 @@ int DBOP::addMember(const GroupMemberInfo& member, QString& sql)
 
 	if (query.exec()) {
 		sql = ADD_GROUP_MEMBER;
-		qDebug() << "group memeber insert success";
+		qDebug() << "group memeber insert success! ugid: " << member.ugid << " uid: " << member.uid << " role: " << member.mrole;
 		return 0;
 	}
 
-	qDebug() << "group memeber insert failed!" << " reason: " << query.lastError().text();
+	qDebug() << "group memeber insert failed! ugid: " << member.ugid << " uid: " << member.uid << " role: " << member.mrole << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -355,11 +357,11 @@ int DBOP::removeMember(const ModelStringType & groupId, const ModelStringType & 
 
 	if (query.exec()) {
 		sql = REMOVE_GROUP_MEMBER;
-		qDebug() << "group member delete success";
+		qDebug() << "group member delete success! ugid: " << groupId << " uid: " << userId;
 		return 0;
 	}
 
-	qDebug() << "group member delete failed!" << " reason: " << query.lastError().text();
+	qDebug() << "group member delete failed! ugid: " << groupId << " uid: " << userId << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -373,7 +375,7 @@ QVariantList DBOP::listMembers(const ModelStringType & groupId)
 	query.prepare(GET_GROUP_MEMBER);
 	query.addBindValue(groupId);
 	if (!query.exec()) {
-		qDebug() << "group member select all failed: " << groupId << " reason: " << query.lastError().text();
+		qDebug() << "group member select all failed! ugid: " << groupId << " reason: " << query.lastError().text();
 		return result;
 	}
 
@@ -392,7 +394,7 @@ QVariantList DBOP::listMembers(const ModelStringType & groupId)
 		result.append(QVariant(item));
 	}
 
-	qDebug() << "group member select all success: " << groupId;
+	qDebug() << "group member select all success! ugid: " << groupId;
 	return result;
 }
 
@@ -408,11 +410,11 @@ int DBOP::setMemeberRole(const ModelStringType & groupId, const ModelStringType 
 
 	if (query.exec()) {
 		sql = SET_MEMBER_ROLE;
-		qDebug() << "group member set role success: " << groupId << " " << userId << " " << role;
+		qDebug() << "group member set role success! ugid: " << groupId << " uid: " << userId << " role: " << role;
 		return 0;
 	}
 
-	qDebug() << "group member set role failed: " << groupId << " " << userId << " " << role << " reason: " << query.lastError().text();
+	qDebug() << "group member set role failed! ugid: " << groupId << " uid: " << userId << " role: " << role << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -655,9 +657,9 @@ int DBOP::createMessage(const MessageInfo & message,bool isSend)
 		switch (message.mtype)
 		{
 			case ChatText: lastmsg = message.mdata.left(30); break;
-			case ChatPic: lastmsg = "[图片]"; break;
-			case ChatAnimation: lastmsg = "[动画]"; break;
-			case ChatFile: lastmsg = "[文件]"; break;
+            case ChatPic: lastmsg = QString("[图片]").toUtf8(); break;
+            case ChatAnimation: lastmsg = QString("[动画]").toUtf8(); break;
+            case ChatFile: lastmsg = QString("[文件]").toUtf8(); break;
 			default: break;
 		}
 		query.addBindValue(lastmsg);
@@ -743,7 +745,7 @@ int DBOP::createRequest(const RequestInfo & request)
 	}
 
     qDebug() << "request insert failed! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata << " reason: " << query.lastError().text();
-    return query.lastError().type() == 1 ? -2 : -1;
+    return query.lastError().type() == 1 ? -1 : -2;
 }
 
 QVariantList DBOP::listRequests(bool isFinished)
@@ -798,36 +800,32 @@ int DBOP::setRequestState(const ModelStringType& requestId, int state)
 //Task operation
 int DBOP::createTask(const TaskInfo & task)
 {
-	static const QString ADD_TASK("insert into Task(rid,ttype,tmode,tdata,tstate,tdate) values(?,?,?,?,?,?)");
-	static const QString GET_INSERT_TASK("select last_insert_rowid() from Task");
+	static const QString ADD_TASK("insert into Task(tid,ttype,tmode,tdata,tstate,tdate,tsource,tdest) values(?,?,?,?,?,?,?,?)");
 
 	QSqlQuery query;
 	query.prepare(ADD_TASK);
-	query.addBindValue(task.rid);
+	query.addBindValue(task.tid);
 	query.addBindValue(task.ttype);
 	query.addBindValue(task.tmode);
 	query.addBindValue(task.tdata);
 	query.addBindValue(task.tstate);
 	query.addBindValue(task.tdate);
+	query.addBindValue(task.tsource);
+	query.addBindValue(task.tdest);
 
 	if (query.exec()) {
-		if (!query.exec()) {
-			qDebug() << "task search(create) error! rid: " << task.rid << " type: " << task.ttype << " tdata: " << task.tdata << " reason: " << query.lastError().text();
-			return -2;
-		}
-
-		qDebug() << "task insert success! rid: " << task.rid << " type: " << task.ttype << " tdata: " << task.tdata;
-		return query.value(0).toInt();
+		qDebug() << "task insert success! tdest: " << task.tdest << " type: " << task.ttype << " tdata: " << task.tdata;
+		return 0;
 	}
 
-	qDebug() << "task insert failed! rid: " << task.rid << " type: " << task.ttype << " tdata: " << task.tdata << " reason: " << query.lastError().text();
-	return -1;
+	qDebug() << "task insert failed! tdest: " << task.tdest << " type: " << task.ttype << " tdata: " << task.tdata << " reason: " << query.lastError().text();
+	return query.lastError().type() == 1 ? -1 : -2;
 }
 
 QVariantList DBOP::listTasks(bool isFinished)
 {
-	static const QString TASK_GET_NOT_FINISHED("select * from Task where tstate<=1");
-	static const QString TASK_GET_FINISHED("select * from Task where tstate>1");
+	static const QString TASK_GET_NOT_FINISHED("select * from Task where tstate<=1 order by datetime(tdate) asc");
+	static const QString TASK_GET_FINISHED("select * from Task where tstate>1 order by datetime(tdate) asc");
 
 	QSqlQuery query;
 	QVariantList result;
@@ -842,12 +840,13 @@ QVariantList DBOP::listTasks(bool isFinished)
 	{
 		QVariantList item;
 		item.append(query.value("tid"));
-		item.append(query.value("rid"));
 		item.append(query.value("ttype"));
 		item.append(query.value("tmode"));
 		item.append(query.value("tdata"));
 		item.append(query.value("tstate"));
 		item.append(query.value("tdate"));
+		item.append(query.value("tsource"));
+		item.append(query.value("tdest"));
 		result.append(QVariant(item));
 	}
 

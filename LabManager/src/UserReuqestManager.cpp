@@ -131,7 +131,7 @@ void UserReuqestManager::handleSendRequest(JsonObjType & msg, ConnPtr conn)
     if (!rid.isUndefined()) {
 		RequestInfo req(rid.toString(), msg["rtype"].toInt(), msg["rdata"].toString(),
 			msg["rdate"].toString(), msg["rsource"].toString(), msg["rdest"].toString());
-        if (DBOP::createRequest(req) != -1){
+        if (DBOP::createRequest(req) >= -1){
             msg["rstate"] = req.rstate;
             auto user = DBOP::getUser(req.rsource);
             msg["uname"] = user["uname"].toString();

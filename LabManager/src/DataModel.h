@@ -99,17 +99,19 @@ struct RequestInfo
 
 struct TaskInfo
 {
-	int tid;
-	int rid;
+	ModelStringType tid;
 	int ttype;
 	int tmode;
 	ModelStringType tdata;
 	int tstate;
 	ModelStringType tdate;
+    ModelStringType tsource;
+    ModelStringType tdest;
 
 	TaskInfo();
-	TaskInfo(int ttype, const ModelStringType &tdata, int tstate, int tmode);
-	TaskInfo(int rid, int ttype, const ModelStringType &tdata, int tstate, int tmode);
+    TaskInfo(const ModelStringType& tdest, int ttype, int tmode, const ModelStringType &tdata);
+	TaskInfo(const ModelStringType & tid, int ttype, int tmode, const ModelStringType &tdata, int tstate, const ModelStringType& tdate, 
+		const ModelStringType& tsource, const ModelStringType& tdest);
 };
 
 struct HomeworkInfo

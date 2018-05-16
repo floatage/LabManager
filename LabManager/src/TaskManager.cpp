@@ -30,7 +30,7 @@ TaskManager * TaskManager::getInstance()
 int TaskManager::createTask(int mode, const QString& duuid, int type, QVariantHash& data)
 {
 	QString taskData(JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str());
-	TaskInfo task(type, taskData, TaskState::TaskExecute, mode);
+	TaskInfo task(duuid, type, mode, taskData);
 
 	int result = DBOP::createTask(task);
 	if (result >= 0) {
@@ -49,20 +49,20 @@ int TaskManager::createTask(const RequestInfo & req)
 int TaskManager::createSendPicSingleTask(const QString & duuid, QVariantHash& data)
 {
 	QString taskData(JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str());
-	TaskInfo task(TaskType::PicTransferTask, taskData, TaskState::TaskExecute, TransferMode::Single);
+	TaskInfo task(duuid, TaskType::PicTransferTask, TransferMode::Single, taskData);
 
 	int result = DBOP::createTask(task);
-	if (result >= 0) {
+	if (result >= -1) {
 		auto addr = JsonObjType::fromVariantHash(DBOP::getUser(duuid));
-		auto servicePtr = std::make_shared<PicTransferService>(data["fileName"].toString(), data["storeName"].toString());
-		ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
-			if (err != 0) {
-				qDebug() << "pic connnection connect failed!";
-				return;
-			}
+        auto servicePtr = std::make_shared<PicTransferService>(data["picRealName"].toString(), data["picStoreName"].toString());
+        ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
+            if (err != 0) {
+                qDebug() << "pic connnection connect failed!";
+                return;
+            }
 
-			qDebug() << "pic connnection connect success!";
-		});
+            qDebug() << "pic connnection connect success!";
+        });
 	}
 	return 0;
 }

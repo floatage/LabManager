@@ -6,8 +6,8 @@ DialogFrame {
     titleText: "我的请求消息"
     fileName: "RequestMsg.qml"
     viewMap: {
-        "/img/msgIcon.png": [requestMsgList, "requestMsgList", true],
-        "/img/finishedTask.png":[reqHistoryList, 'reqHistoryList', false],
+        "/img/executing.png": [requestMsgList, "requestMsgList", true],
+        "/img/history.png":[reqHistoryList, 'reqHistoryList', false],
         "/img/settingIcon.png": [requestMsgSetting, "requestMsgSetting", false]
     }
 
@@ -35,8 +35,8 @@ DialogFrame {
         "请求超时", "未知错误"
     ]
     property var requestPassiveStateTextMap:[
-        "等待中", "对方已同意请求",
-        "对方已拒绝请求", "对方已取消请求",
+        "等待中", "对方已同意",
+        "对方已拒绝", "对方已取消",
         "请求超时", "未知错误"
     ]
 

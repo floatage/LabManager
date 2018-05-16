@@ -43,7 +43,7 @@ std::vector<int> getLevelNumSet() {
 NetStructureManager::NetStructureManager(io_context& context)
 	:randomEngine((uint)system_clock::to_time_t(system_clock::now())), randomRange(0, 500), voteStageTimer(context), role(ROLE_NULL), bAdmin(false),
 	hostSet([](const JsonObjType&l, const JsonObjType&r){
-		if (l["uuid"] == r["uuid"])
+        if (l["uid"] == r["uid"])
 			return false;
 
 		auto lv = l["cpuFrequency"].toInt() + l["availRam"].toInt();
@@ -70,13 +70,13 @@ void NetStructureManager::initHost()
 	auto cpuFrequency = getCpuFrequency();
 	auto ip = getLocalIp();
 	auto mac = getMac(ip);
-    auto uuid = QCryptographicHash::hash(QByteArray((ip + mac).c_str(), ip.length() + mac.length()), QCryptographicHash::Md5).toHex().toStdString();
+    auto uid = QCryptographicHash::hash(QByteArray((ip + mac).c_str(), ip.length() + mac.length()), QCryptographicHash::Md5).toHex().toStdString();
 
-	localHost["uuid"] =  uuid.c_str();
+    localHost["uid"] =  uid.c_str();
 	localHost["availRam"] = (int)availRam;
 	localHost["cpuFrequency"] = (int)cpuFrequency;
-	localHost["ip"] = ip.c_str();
-	localHost["mac"] = mac.c_str();
+    localHost["uip"] = ip.c_str();
+    localHost["umac"] = mac.c_str();
 
 	hostSet.insert(localHost);
 
@@ -102,7 +102,7 @@ void NetStructureManager::buildNetStructure(int stage)
 		sendMsg["stage"] =  stage;
 		sendMsg["family"] = structureManagefamilyStr.c_str();
 		sendMsg["action"] = voteRunStr.c_str();
-		sendMsg["propose"] = maxHost["uuid"].toString();
+        sendMsg["propose"] = maxHost["uid"].toString();
 
         MessageManager::getInstance()->broadcast(sendMsg, [this, sendMsg](const boost::system::error_code&, std::size_t send_bytes) {
 			//std::cout << "SEND  len: " << send_bytes << " data: " << StringType(sendData->begin(), sendData->begin() + send_bytes) << std::endl;
@@ -138,7 +138,7 @@ void NetStructureManager::becomeMaster(ushort repeatCounter)
 		JsonObjType sendMsg(localHost);
 		sendMsg["family"] = structureManagefamilyStr.c_str();
 		sendMsg["action"] = voteFinishStr.c_str();
-		sendMsg["propose"] = sendMsg["uuid"].toString();
+        sendMsg["propose"] = sendMsg["uid"].toString();
 
         MessageManager::getInstance()->broadcast(sendMsg, [this, sendMsg](const boost::system::error_code&, std::size_t send_bytes) {
 			//std::cout << "SEND  len: " << send_bytes << " data: " << StringType(sendData->begin(), sendData->begin() + send_bytes) << std::endl;
@@ -189,7 +189,7 @@ void NetStructureManager::hostRoleAssignment()
 			children.push_back(nodes[nodeIndex]);
 		sendMsg["children"] = children;
 		
-		auto connId = nodes[counter]["uuid"].toString().toStdString();
+        auto connId = nodes[counter]["uid"].toString().toStdString();
 		
 		auto servicePtr = std::make_shared<NetStructureService>();
         cm->connnectHost(ConnType::CONN_CHILD, connId, nodes[counter], servicePtr, [&cm, connId, sendMsg](const boost::system::error_code& err) {
@@ -204,8 +204,8 @@ void NetStructureManager::hostRoleAssignment()
 
 void NetStructureManager::voteRun(JsonObjType& msg, ConnPtr)
 {
-	auto uuid = msg["uuid"].toString(), propose = msg["propose"].toString();
-	if (propose == localHost["uuid"].toString())
+    auto uuid = msg["uid"].toString(), propose = msg["propose"].toString();
+    if (propose == localHost["uid"].toString())
 		voteCondition.insert(uuid.toStdString());
 	msg.remove("propose");
 	msg.remove("stage");
@@ -215,7 +215,7 @@ void NetStructureManager::voteRun(JsonObjType& msg, ConnPtr)
 void NetStructureManager::voteFinished(JsonObjType& msg, ConnPtr)
 {
 	if (role == ROLE_NULL) {
-		setRole(msg["propose"] == localHost["uuid"] ? ROLE_MASTER : ROLE_MEMBER);
+        setRole(msg["propose"] == localHost["uid"] ? ROLE_MASTER : ROLE_MEMBER);
 	}
 	else if (role == ROLE_MEMBER) {
 		voteStageTimer.cancel();
@@ -258,7 +258,7 @@ void NetStructureManager::dumpUserToDB()
 	if (!hostSet.empty()) {
 		auto userList = std::make_shared<std::vector<UserInfo>>();
 		for (auto& host : hostSet) {
-			userList->push_back(UserInfo(host["uuid"].toString(), "匿名", host["ip"].toString(), host["mac"].toString(), HostRole::ROLE_NULL, ""));
+            userList->push_back(UserInfo(host["uid"].toString(), "匿名", host["uip"].toString(), host["umac"].toString(), HostRole::ROLE_NULL, ""));
 		}
 
 		IOContextManager::getInstance()->getIOLoop().post([userList]() {
@@ -273,7 +273,7 @@ void NetStructureManager::connLevelup(JsonObjType & msg, ConnPtr conn)
     auto cm = ConnectionManager::getInstance();
 
     cm->unregisterObj(conn->getID());
-	auto uuid = msg["uuid"].toString().toStdString();
+    auto uuid = msg["uid"].toString().toStdString();
 	auto destRole = msg["role"].toInt();
     cm->registerObj(uuid, ConnType::getConnType(role, HostRole(destRole)), conn);
 
@@ -288,7 +288,7 @@ void NetStructureManager::buildInitMsgAndConnectDest(JsonObjType& dest, ConnImpl
 	sendMsg["source"] = localHost;
 
     auto cm = ConnectionManager::getInstance();
-	auto connId = dest["uuid"].toString().toStdString();
+    auto connId = dest["uid"].toString().toStdString();
 	auto servicePtr = std::make_shared<NetStructureService>();
     cm->connnectHost(type, connId, dest, servicePtr, [&cm, connId, sendMsg](const boost::system::error_code& err) {
 		if (err != 0) {

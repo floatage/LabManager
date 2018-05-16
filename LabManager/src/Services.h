@@ -20,8 +20,8 @@ public:
 	virtual void stop();
 
 	ConnPtr getConn() { return conn; }
-	void setConn(ConnPtr newConn) { this->conn = conn; }
-	void setRemain(const RecvBufferType& remain) { readRemain = remain; }
+	void setConn(ConnPtr newConn) { this->conn = newConn; }
+	void setRemain(const RecvBufferType& newRemain) { readRemain = newRemain; }
 
 protected:
 	ConnPtr conn;
@@ -36,7 +36,7 @@ public:
 	virtual void start();
 	virtual void dataHandle();
 
-	void setOrder(int order) { this->order = order; }
+	void setOrder(int newOrder) { this->order = newOrder; }
 	int getOrder()const { return order; }
 
 private:

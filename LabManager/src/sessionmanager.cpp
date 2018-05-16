@@ -20,6 +20,7 @@ SessionManager::SessionManager(QObject *parent)
     ConnectionManager::getInstance()->registerFamilyHandler(sessionFamilyStr, std::bind(&SessionManager::actionParse, this, _1, _2));
 
 	registerActionHandler(transferStrActionStr, std::bind(&SessionManager::handleRecvChatMsg, this, _1, _2));
+    registerActionHandler(transferPicActionStr, std::bind(&SessionManager::handleRecvPicMsg, this, _1, _2));
 }
 
 SessionManager::~SessionManager()
@@ -89,14 +90,14 @@ void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QU
 	datas["dest"] = duuid.toStdString().c_str();
 	datas["date"] = msgInfo.mdate;
     QFileInfo picInfo(picPath.toString().split("///")[1]);
-	datas["filename"] = QUuid::createUuid().toString() + "." + picInfo.completeSuffix();
+	datas["picStoreName"] = QUuid::createUuid().toString() + "." + picInfo.completeSuffix();
 
 	if (SessionType::UserSession == SessionType(stype)) {
 		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, transferPicActionStr, datas);
 
 		QVariantHash taskData;
-        taskData["fileName"] = picInfo.absoluteFilePath();
-		taskData["storeName"] = datas["filename"].toString();
+        taskData["picRealName"] = picInfo.absoluteFilePath();
+		taskData["picStoreName"] = datas["picStoreName"].toString();
 		TaskManager::getInstance()->createSendPicSingleTask(duuid, taskData);
 	}
 	else if (SessionType::GroupSession == SessionType(stype)) {
@@ -132,10 +133,11 @@ void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 void SessionManager::handleRecvPicMsg(JsonObjType & msg, ConnPtr conn)
 {
 	qDebug() << "RECV PIC MSG: " << msg;
-	auto data = msg["data"].toObject();
-	MessageInfo msgInfo(data["dest"].toString(), data["type"].toInt(), data["data"].toString(), data["date"].toString());
-	DBOP::createMessage(msgInfo, false);
-	notifyModelAppendMsg(msgInfo);
+    auto data = msg["data"].toObject();
+	QUrl fileUrl = QUrl::fromLocalFile(tmpDir.c_str() + data["picStoreName"].toString());
+    MessageInfo msgInfo(data["dest"].toString(), data["type"].toInt(), fileUrl.toString(), data["date"].toString());
+    DBOP::createMessage(msgInfo, false);
+    notifyModelAppendMsg(msgInfo);
 }
 
 void SessionManager::notifyModelAppendMsg(const MessageInfo& msgInfo)
