@@ -62,6 +62,30 @@ ApplicationWindow {
     function updateGroupModel(){
     }
 
+    Connections{
+        target: DBOP
+        onSeesionUpdateLastmsg: {
+            console.log("Update session model lastmsg")
+            for(var index = 0; index < sessionModel.count; ++index){
+                if (sessionModel.get(index).sessionId == sessionMsg[0]){
+                    sessionModel.get(index).sessionLastMsg = sessionMsg[4]
+                    return
+                }
+            }
+
+            var user = DBOP.getUser(sessionMsg[3])
+            sessionListViewContent.model.append({
+                sessionId: sessionMsg[0]
+                , sessionType:sessionMsg[1]
+                , sessionDestUuid:sessionMsg[3]
+                , sessionLastMsg: sessionMsg[4]
+                , sessionDestName:user.uname
+                , sessionPicPath: user.upic == "" ? "/img/defaultPic.jpg" : userList[begin][5]
+            })
+        }
+    }
+
+
     ListModel {
         id: sessionModel
     }
@@ -80,21 +104,6 @@ ApplicationWindow {
         height: 580
         anchors.left: parent.left
         anchors.top: parent.top
-
-        function insertFlag(str, maxLen){
-            var result = ''
-            for(var count = 1, cols = Math.ceil(str.length / maxLen); count <= cols; ++count){
-                if (count===cols) result += str.substring(0, str.length)
-                else result += str.substring(0,maxLen-1) + "\n"
-                str = str.substring(maxLen-1, str.length)
-            }
-            return result
-        }
-
-        function ingnoreStr(str, maxLen){
-            return str.length > maxLen ? str.substring(0,maxLen)+".." : str
-        }
-
 
         AppTitleBar {
             id: userMsgBarInMem

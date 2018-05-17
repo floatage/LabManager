@@ -1,4 +1,4 @@
-#include "SessionManager.h"
+ï»¿#include "SessionManager.h"
 #include "DBop.h"
 #include "ConnectionManager.h"
 #include "NetStructureManager.h"
@@ -20,7 +20,6 @@ SessionManager::SessionManager(QObject *parent)
     ConnectionManager::getInstance()->registerFamilyHandler(sessionFamilyStr, std::bind(&SessionManager::actionParse, this, _1, _2));
 
 	registerActionHandler(transferStrActionStr, std::bind(&SessionManager::handleRecvChatMsg, this, _1, _2));
-    registerActionHandler(transferPicActionStr, std::bind(&SessionManager::handleRecvPicMsg, this, _1, _2));
 }
 
 SessionManager::~SessionManager()
@@ -36,42 +35,42 @@ SessionManager * SessionManager::getInstance()
 int SessionManager::createSession(int type, const QString & duuid)
 {
     QString suid = NetStructureManager::getInstance()->getLocalUuid().c_str();
-	return DBOP::createSession(SessionInfo(type, suid, duuid));
+	return DBOP::getInstance()->createSession(SessionInfo(type, suid, duuid));
 }
 
 int SessionManager::deleteSession(int sid)
 {
-	return DBOP::deleteSession(sid);
+	return DBOP::getInstance()->deleteSession(sid);
 }
 
 QVariantList SessionManager::listSessions()
 {
-	return DBOP::listSessions();
+	return DBOP::getInstance()->listSessions();
 }
 
 QString SessionManager::getSeesionIdByUuid(const QString& uuid, int type) 
 {
-	auto result = DBOP::getSession(type, -1, uuid);
+	auto result = DBOP::getInstance()->getSession(type, -1, uuid);
 	return result.empty() ? QString() : result["sid"].toString();
 }
 
-QVariantList SessionManager::getChatMsgs(int sid, const QString& duuid)
+QVariantList SessionManager::getChatMsgs(const QString& duuid)
 {
-	return DBOP::listSessionMessages(sid, duuid);
+	return DBOP::getInstance()->listSessionMessages(duuid);
 }
 
-void SessionManager::sendChatMsg(int sid, int stype, const QString & duuid, const QString & msg)
+void SessionManager::sendChatMsg(int stype, const QString & duuid, const QString & msg)
 {
-	MessageInfo msgInfo(sid, int(ChatMsgType::ChatText), msg);
-	DBOP::createMessage(msgInfo, true);
-    notifyModelAppendMsg(msgInfo);
+	MessageInfo msgInfo(duuid, int(ChatMsgType::ChatText), msg, stype);
+	DBOP::getInstance()->createMessage(msgInfo, true);
 
 	JsonObjType datas;
 	datas["type"] = msgInfo.mtype;
-    datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
-	datas["dest"] = duuid.toStdString().c_str();
-	datas["data"] = msgInfo.mdata.toUtf8().toStdString().c_str();
+	datas["source"] = msgInfo.msource;
+	datas["dest"] = msgInfo.mduuid;
+	datas["data"] = msgInfo.mdata;
 	datas["date"] = msgInfo.mdate;
+	datas["mode"] = msgInfo.mmode;
 
 	if (SessionType::UserSession == SessionType(stype))
         ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, transferStrActionStr, datas);
@@ -79,34 +78,30 @@ void SessionManager::sendChatMsg(int sid, int stype, const QString & duuid, cons
         ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, sessionFamilyStr, transferStrActionStr, datas);
 }
 
-void SessionManager::sendPic(int sid, int stype, const QString & duuid, const QUrl & picPath, bool isAnimation)
+void SessionManager::sendPic(int stype, const QString & duuid, const QUrl & picPath, bool isAnimation)
 {
-    MessageInfo msgInfo(sid, int(isAnimation ? ChatMsgType::ChatAnimation : ChatMsgType::ChatPic), picPath.toString());
-	DBOP::createMessage(msgInfo, true);
+    MessageInfo msgInfo(duuid, int(isAnimation ? ChatMsgType::ChatAnimation : ChatMsgType::ChatPic), picPath.toString(), stype);
+	DBOP::getInstance()->createMessage(msgInfo, true);
 
-	JsonObjType datas;
-	datas["type"] = msgInfo.mtype;
-	datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
-	datas["dest"] = duuid.toStdString().c_str();
-	datas["date"] = msgInfo.mdate;
+    QVariantHash taskData;
+	taskData["msgType"] = msgInfo.mtype;
+	taskData["msgSource"] = msgInfo.msource;
+	taskData["msgDest"] = msgInfo.mduuid;
+	taskData["msgDate"] = msgInfo.mdate;
+	taskData["msgMode"] = msgInfo.mmode;
     QFileInfo picInfo(picPath.toString().split("///")[1]);
-	datas["picStoreName"] = QUuid::createUuid().toString() + "." + picInfo.completeSuffix();
+	taskData["picRealName"] = picInfo.absoluteFilePath();
+	taskData["picStoreName"] = QUuid::createUuid().toString() + "." + picInfo.completeSuffix();
 
 	if (SessionType::UserSession == SessionType(stype)) {
-		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, transferPicActionStr, datas);
-
-		QVariantHash taskData;
-        taskData["picRealName"] = picInfo.absoluteFilePath();
-		taskData["picStoreName"] = datas["picStoreName"].toString();
 		TaskManager::getInstance()->createSendPicSingleTask(duuid, taskData);
 	}
 	else if (SessionType::GroupSession == SessionType(stype)) {
-		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, sessionFamilyStr, transferPicActionStr, datas);
-		//´«ËÍÍ¼Æ¬£¬ÐÞ¸ÄÂ·¾¶
+		//ä¼ é€å›¾ç‰‡ï¼Œä¿®æ”¹è·¯å¾„
 	}
 }
 
-void SessionManager::sendFile(int sid, int stype, const QString & duuid, const QUrl & filePath)
+void SessionManager::sendFile(int stype, const QString & duuid, const QUrl & filePath)
 {
     UserReuqestManager::getInstance()->sendFileTrangferReq(duuid, filePath.toString().split("///")[1]);
 }
@@ -125,29 +120,7 @@ void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 {
 	qDebug() << "RECV CHAT MSG: " << msg;
 	auto data = msg["data"].toObject();
-	MessageInfo msgInfo(data["dest"].toString(), data["type"].toInt(), data["data"].toString(), data["date"].toString());
-	DBOP::createMessage(msgInfo, false);
-    notifyModelAppendMsg(msgInfo);
-}
-
-void SessionManager::handleRecvPicMsg(JsonObjType & msg, ConnPtr conn)
-{
-	qDebug() << "RECV PIC MSG: " << msg;
-    auto data = msg["data"].toObject();
-	QUrl fileUrl = QUrl::fromLocalFile(tmpDir.c_str() + data["picStoreName"].toString());
-    MessageInfo msgInfo(data["dest"].toString(), data["type"].toInt(), fileUrl.toString(), data["date"].toString());
-    DBOP::createMessage(msgInfo, false);
-    notifyModelAppendMsg(msgInfo);
-}
-
-void SessionManager::notifyModelAppendMsg(const MessageInfo& msgInfo)
-{
-    QVariantList recvMsg;
-    recvMsg.append(msgInfo.mid);
-    recvMsg.append(msgInfo.sid);
-    recvMsg.append(msgInfo.mduuid);
-    recvMsg.append(msgInfo.mtype);
-    recvMsg.append(msgInfo.mdata);
-    recvMsg.append(msgInfo.mdate);
-    sessionMsgRecv(recvMsg);
+	MessageInfo msgInfo(data["source"].toString(), data["dest"].toString(), data["type"].toInt(), 
+		data["data"].toString(), data["date"].toString(), data["mode"].toInt());
+	DBOP::getInstance()->createMessage(msgInfo, false);
 }

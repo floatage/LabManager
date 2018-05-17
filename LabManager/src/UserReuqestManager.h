@@ -1,4 +1,4 @@
-#ifndef USERREQUESTMANAGER_H
+﻿#ifndef USERREQUESTMANAGER_H
 #define USERREQUESTMANAGER_H
 
 #include "MsgParser.h"

@@ -1,4 +1,4 @@
-#ifndef CONNECTIONMANAGER_H
+﻿#ifndef CONNECTIONMANAGER_H
 #define CONNECTIONMANAGER_H
 
 #include "Common.h"

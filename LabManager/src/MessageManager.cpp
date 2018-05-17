@@ -1,4 +1,4 @@
-#include <memory>
+﻿#include <memory>
 #include <functional>
 
 #include "MessageManager.h"

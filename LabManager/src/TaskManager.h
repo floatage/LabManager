@@ -1,4 +1,4 @@
-#ifndef TASKMANAGER_H
+﻿#ifndef TASKMANAGER_H
 #define TASKMANAGER_H
 
 #include "boost\noncopyable.hpp"

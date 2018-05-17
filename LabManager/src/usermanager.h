@@ -1,4 +1,4 @@
-#ifndef USERMANAGER_H
+﻿#ifndef USERMANAGER_H
 #define USERMANAGER_H
 
 #include "boost\noncopyable.hpp"

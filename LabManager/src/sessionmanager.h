@@ -1,4 +1,4 @@
-#ifndef SESSIONMANAGER_H
+﻿#ifndef SESSIONMANAGER_H
 #define SESSIONMANAGER_H
 
 #include "Common.h"
@@ -22,10 +22,10 @@ public:
     Q_INVOKABLE QVariantList listSessions();
     Q_INVOKABLE QString getSeesionIdByUuid(const QString& uuid, int type);
 
-	Q_INVOKABLE QVariantList getChatMsgs(int sid, const QString& duuid);
-    Q_INVOKABLE void sendChatMsg(int sid, int stype, const QString& duuid, const QString& msg);
-    Q_INVOKABLE void sendPic(int sid, int stype, const QString& duuid, const QUrl& picPath, bool isAnimation);
-    Q_INVOKABLE void sendFile(int sid, int stype, const QString& duuid, const QUrl& filePath);
+	Q_INVOKABLE QVariantList getChatMsgs(const QString& duuid);
+    Q_INVOKABLE void sendChatMsg(int stype, const QString& duuid, const QString& msg);
+    Q_INVOKABLE void sendPic(int stype, const QString& duuid, const QUrl& picPath, bool isAnimation);
+    Q_INVOKABLE void sendFile(int stype, const QString& duuid, const QUrl& filePath);
     Q_INVOKABLE void publishHomework(const QString& duuid, const QVariantList& hwInfo);
 
 	Q_INVOKABLE QString getLocalUuid();
@@ -33,10 +33,6 @@ private:
     SessionManager(QObject *parent = 0);
 
 	void handleRecvChatMsg(JsonObjType& msg, ConnPtr conn);
-	void handleRecvPicMsg(JsonObjType& msg, ConnPtr conn);
-    void notifyModelAppendMsg(const MessageInfo& msg);
-signals:
-    void sessionMsgRecv(QVariantList recvMsg);
 };
 
 #endif

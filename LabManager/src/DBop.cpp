@@ -1,8 +1,24 @@
-#include "DBop.h"
+ï»¿#include "DBop.h"
 
 #include "qtsqlglobal.h"
 #include "QtSql\qsqlquery.h"
 #include "QtSql\qsqlerror.h"
+
+DBOP::DBOP(QObject* parent) 
+	:QObject(parent)
+{
+	createTables();
+}
+
+DBOP::~DBOP()
+{
+}
+
+DBOP * DBOP::getInstance()
+{
+	static DBOP instance;
+	return &instance;
+}
 
 //DDL
 int DBOP::createDBConn()
@@ -51,20 +67,21 @@ int DBOP::createTables()
 	bool bAdmin = query.exec("CREATE TABLE IF NOT EXISTS Admin(aname VARCHAR(32) PRIMARY KEY, "
 		"apassword VARCHAR(32) NOT NULL)");
 
-	bool bSession = query.exec("CREATE TABLE IF NOT EXISTS Session(sid INTEGER PRIMARY KEY AUTOINCREMENT, "
+	bool bSession = query.exec("CREATE TABLE IF NOT EXISTS Session(sid INTEGER, "
 		"stype INTEGER NOT NULL, "
 		"suid VARCHAR(32) NOT NULL, "
-		"duuid VARCHAR(32) NOT NULL, "
-		"lastmsg VARCHAR(32), "
-		"foreign key(suid) references UserGroup(suid))");
+		"duuid VARCHAR(32) PRIMARY KEY, "
+		"lastmsg VARCHAR(32))");
 
 	bool bMessage = query.exec("CREATE TABLE IF NOT EXISTS Message(mid INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"sid INTEGER NOT NULL, "
+		"msource VARCHAR(32) NOT NULL, "
 		"mduuid VARCHAR(32) NOT NULL, "
 		"mtype INTEGER NOT NULL, "
+		"mmode INTEGER NOT NULL, "
 		"mdata VARCHAR(512) NOT NULL, "
 		"mdate VARCHAR(32) NOT NULL, "
-		"foreign key(sid) references Session(sid))");
+		"foreign key(msource) references User(uid), "
+		"foreign key(mduuid) references User(uid))");
 
 	bool bReuqest = query.exec("CREATE TABLE IF NOT EXISTS Request(rid VARCHAR(32) PRIMARY KEY, "
 		"rtype INTEGER NOT NULL, "
@@ -545,6 +562,37 @@ int DBOP::deleteSession(int sessionId)
 	return -1;
 }
 
+int DBOP::updateSessionLastmsg(const MessageInfo& message)
+{
+	//SessionInfo(message.mmode, message.mduuid, message.msource, );
+	static const QString UPDATE_SESSION_LASTMSG("repalce into Session(stype,suid,duuid,lastmsg) values(?,?,?,?)");
+	
+	QSqlQuery query;
+	query.prepare(UPDATE_SESSION_LASTMSG);
+	ModelStringType lastmsg;
+	switch (message.mtype)
+	{
+		case ChatText: lastmsg = message.mdata.left(30); break;
+		case ChatPic: lastmsg = QString::fromLocal8Bit("[å›¾ç‰‡]"); break;
+		case ChatAnimation: lastmsg = QString::fromLocal8Bit("[åŠ¨ç”»]"); break;
+		case ChatFile: lastmsg = QString::fromLocal8Bit("[æ–‡ä»¶]"); break;
+		default: break;
+	}
+
+	query.addBindValue(message.mmode);
+	query.addBindValue(message.mduuid);
+	query.addBindValue(message.msource);
+	query.addBindValue(lastmsg);
+	if (query.exec()) {
+		notifySeesionUpdateLastmsg(SessionInfo(message.mmode, message.mduuid, message.msource, lastmsg));
+		qDebug() << "message insert update to session success! source: " << message.msource << " dest: " << message.mduuid << " data: " << message.mdata;
+		return 0;
+	}
+
+	qDebug() << "message insert update to session failed! source: " << message.msource << " dest: " << message.mduuid << " data: " << message.mdata << " reason: " << query.lastError().text();
+	return -1;
+}
+
 QVariantHash DBOP::getSession(int way, int sessionId, const ModelStringType & uuid)
 {
 	static const QString SESSION_GET_BY_ID("select * from Session where sid=?");
@@ -637,43 +685,27 @@ QVariantList DBOP::listSessions()
 //Message operation
 int DBOP::createMessage(const MessageInfo & message,bool isSend)
 {
-	static const QString ADD_MESSAGE("insert into Message(sid,mduuid,mtype,mdata,mdate) values(?,?,?,?,?)");
-	static const QString UPDATE_SESSION_LASTMSG("update Session set lastmsg=? where duuid=?");
+	static const QString ADD_MESSAGE("insert into Message(msource,mduuid,mtype,mdata,mdate,mmode) values(?,?,?,?,?,?)");
 
 	QSqlQuery query;
 	query.prepare(ADD_MESSAGE);
-	query.addBindValue(message.sid);
+	query.addBindValue(message.msource);
 	query.addBindValue(message.mduuid);
 	query.addBindValue(message.mtype);
 	query.addBindValue(message.mdata);
 	query.addBindValue(message.mdate);
+	query.addBindValue(message.mmode);
 
 	if (query.exec()) {
-		qDebug() << "message insert success";
+		notifyModelAppendMsg(message);
+		qDebug() << "message insert success! source: " << message.msource << " dest: " << message.mduuid << " data: " << message.mdata;
 		if (isSend) return 0;
 
-		query.prepare(UPDATE_SESSION_LASTMSG);
-		ModelStringType lastmsg;
-		switch (message.mtype)
-		{
-			case ChatText: lastmsg = message.mdata.left(30); break;
-            case ChatPic: lastmsg = QString("[Í¼Æ¬]").toUtf8(); break;
-            case ChatAnimation: lastmsg = QString("[¶¯»­]").toUtf8(); break;
-            case ChatFile: lastmsg = QString("[ÎÄ¼þ]").toUtf8(); break;
-			default: break;
-		}
-		query.addBindValue(lastmsg);
-		query.addBindValue(message.mduuid);
-		if (query.exec()) {
-			qDebug() << "message insert update to session success";
-			return 0;
-		}
-
-		qDebug() << "message insert update to session failed" << " reason: " << query.lastError().text();
-		return -2;
+		updateSessionLastmsg(message);
+		return 0;
 	}
 
-	qDebug() << "message insert failed" << " reason: " << query.lastError().text();
+	qDebug() << "message insert failed! source: " << message.msource << " dest: " << message.mduuid << " data: " << message.mdata << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -686,25 +718,25 @@ int DBOP::deleteMessage(int messageId)
 	query.addBindValue(messageId);
 
 	if (query.exec()) {
-		qDebug() << "message delete success";
+		qDebug() << "message delete success! mid" << messageId;
 		return 0;
 	}
 
-	qDebug() << "message delete failed" << " reason: " << query.lastError().text();
+	qDebug() << "message delete failed! mid: " << messageId << " reason: " << query.lastError().text();
 	return -1;
 }
 
-QVariantList DBOP::listSessionMessages(int sessionId, const ModelStringType& sessionDest)
+QVariantList DBOP::listSessionMessages(const ModelStringType& sessionDest)
 {
-	static const QString SESSION_MESSAGE_GET_ALL("select * from Message where sid=? or mduuid=? order by datetime(mdate) asc");
+	static const QString SESSION_MESSAGE_GET_ALL("select * from Message where msource=? or mduuid=? order by datetime(mdate) asc");
 
 	QSqlQuery query;
 	QVariantList result;
 	query.prepare(SESSION_MESSAGE_GET_ALL);
-	query.addBindValue(sessionId);
+	query.addBindValue(sessionDest);
 	query.addBindValue(sessionDest);
 	if (!query.exec()) {
-		qDebug() << "session message select all failed! sid: " << sessionId << " dest: " << sessionDest << " reason: " << query.lastError().text();
+		qDebug() << "session message select all failed!" << " dest: " << sessionDest << " reason: " << query.lastError().text();
 		return result;
 	}
 
@@ -712,15 +744,16 @@ QVariantList DBOP::listSessionMessages(int sessionId, const ModelStringType& ses
 	{
 		QVariantList item;
 		item.append(query.value("mid"));
-		item.append(query.value("sid"));
+		item.append(query.value("msource"));
 		item.append(query.value("mduuid"));
 		item.append(query.value("mtype"));
 		item.append(query.value("mdata"));
 		item.append(query.value("mdate"));
+		item.append(query.value("mmode"));
 		result.append(QVariant(item));
 	}
 
-	qDebug() << "session message select all success! sid: " << sessionId << " dest: " << sessionDest;
+	qDebug() << "session message select all success!" << " dest: " << sessionDest;
 	return result;
 }
 
@@ -985,4 +1018,28 @@ int DBOP::setHomeworkState(const ModelStringType & homeworkId, const ModelString
 
 	qDebug() << "homework set state failed: " << homeworkId << " " << state << " reason: " << query.lastError().text();
 	return -1;
+}
+
+void DBOP::notifyModelAppendMsg(const MessageInfo & msgInfo)
+{
+	QVariantList recvMsg;
+	recvMsg.append(msgInfo.mid);
+	recvMsg.append(msgInfo.msource);
+	recvMsg.append(msgInfo.mduuid);
+	recvMsg.append(msgInfo.mtype);
+	recvMsg.append(msgInfo.mdata);
+	recvMsg.append(msgInfo.mdate);
+	recvMsg.append(msgInfo.mmode);
+	sessionMsgRecv(recvMsg);
+}
+
+void DBOP::notifySeesionUpdateLastmsg(const SessionInfo & sessionInfo)
+{
+	QVariantList newSession;
+	newSession.append(sessionInfo.sid);
+	newSession.append(sessionInfo.stype);
+	newSession.append(sessionInfo.suid);
+	newSession.append(sessionInfo.duuid);
+	newSession.append(sessionInfo.lastmsg);
+	sessionMsgRecv(newSession);
 }

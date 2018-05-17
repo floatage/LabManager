@@ -1,4 +1,4 @@
-#include "NetStructureManager.h"
+﻿#include "NetStructureManager.h"
 #include "IOContextManager.h"
 #include "MessageManager.h"
 #include "ConnectionManager.h"
@@ -258,11 +258,11 @@ void NetStructureManager::dumpUserToDB()
 	if (!hostSet.empty()) {
 		auto userList = std::make_shared<std::vector<UserInfo>>();
 		for (auto& host : hostSet) {
-            userList->push_back(UserInfo(host["uid"].toString(), "匿名", host["uip"].toString(), host["umac"].toString(), HostRole::ROLE_NULL, ""));
+            userList->push_back(UserInfo(host["uid"].toString(), QString::fromLocal8Bit("匿名"), host["uip"].toString(), host["umac"].toString(), HostRole::ROLE_NULL, ""));
 		}
 
 		IOContextManager::getInstance()->getIOLoop().post([userList]() {
-			DBOP::addUsers(userList);
+			DBOP::getInstance()->addUsers(userList);
 		});
 		hostSet.clear();
 	}

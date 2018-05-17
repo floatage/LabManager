@@ -1,4 +1,4 @@
-#include "ConnectionManager.h"
+ï»¿#include "ConnectionManager.h"
 #include "IOContextManager.h"
 #include "NetStructureManager.h"
 #include "MessageManager.h"
@@ -36,7 +36,7 @@ ConnectionManager* ConnectionManager::getInstance()
 
 void ConnectionManager::registerObj(StringType id, ConnImplType type, ConnPtr conn)
 {
-	//¶àÏß³Ìµ÷ÓÃ¿ÉÄÜµ¼ÖÂIDÉú³É´íÎó
+	//å¤šçº¿ç¨‹è°ƒç”¨å¯èƒ½å¯¼è‡´IDç”Ÿæˆé”™è¯¯
 	static int temConnID = 0;
 
 	if (id == INVALID_ID) {
@@ -49,7 +49,7 @@ void ConnectionManager::registerObj(StringType id, ConnImplType type, ConnPtr co
 		validConn[type][id] = conn;
 	}
 
-	//Õâ×îºÃ¼ÇÂ¼ÈÕÖ¾
+	//è¿™æœ€å¥½è®°å½•æ—¥å¿—
 }
 
 void ConnectionManager::unregisterObj(const StringType& id)

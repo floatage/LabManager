@@ -1,7 +1,9 @@
-#ifndef SERVICES_H
+﻿#ifndef SERVICES_H
 #define SERVICES_H
 
 #include "Common.h"
+
+#include "QtCore\qfile.h"
 
 class Service;
 typedef std::shared_ptr<Service> ServicePtr;
@@ -45,8 +47,8 @@ private:
 
 class PicTransferService : public Service {
 public:
-	PicTransferService(const QString& fileName, const QString& storeFilename);
-	PicTransferService();
+	PicTransferService(const QString& fileName, const QString& storeFilename, const QString& taskData);
+	PicTransferService(JsonObjType& taskParam);
 	~PicTransferService();
 
 	virtual void start();
@@ -61,7 +63,9 @@ private:
 	int recvFileLen;
 	QString fileName;
 	QString storeFilename;
-	boost::asio::windows::stream_handle *picStream;
+	QString taskData;
+	JsonObjType taskParam;
+	QFile picFile;
 };
 
 

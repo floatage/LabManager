@@ -1,4 +1,4 @@
-#include "MsgParser.h"
+﻿#include "MsgParser.h"
 
 void MsgFamilyParser::registerFamilyHandler(const StringType & family, MsgHandler&& handler)
 {

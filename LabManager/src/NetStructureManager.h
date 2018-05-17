@@ -1,4 +1,4 @@
-#ifndef NETSTRUCTUREMANAGER_H
+﻿#ifndef NETSTRUCTUREMANAGER_H
 #define NETSTRUCTUREMANAGER_H
 
 #include "Common.h"

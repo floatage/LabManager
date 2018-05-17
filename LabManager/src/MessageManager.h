@@ -1,4 +1,4 @@
-#ifndef MESSAGEMANAGER_H
+﻿#ifndef MESSAGEMANAGER_H
 #define MESSAGEMANAGER_H
 
 #include "Common.h"

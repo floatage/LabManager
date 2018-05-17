@@ -1,4 +1,4 @@
-#include "HomeworkManager.h"
+﻿#include "HomeworkManager.h"
 
 HomeworkManager::HomeworkManager(QObject *parent)
     :QObject(parent)

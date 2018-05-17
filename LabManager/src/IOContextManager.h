@@ -1,4 +1,4 @@
-#ifndef IOCONTEXTMANAGER_H
+﻿#ifndef IOCONTEXTMANAGER_H
 #define IOCONTEXTMANAGER_H
 
 #include "Common.h"

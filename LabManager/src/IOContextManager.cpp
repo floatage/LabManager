@@ -1,4 +1,4 @@
-#include "IOContextManager.h"
+﻿#include "IOContextManager.h"
 
 IOContextManager::IOContextManager()
 	:hsLoop(1), ioLoop(1)

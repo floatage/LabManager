@@ -1,4 +1,4 @@
-#include "DataModel.h"
+﻿#include "DataModel.h"
 #include "Common.h"
 #include "NetStructureManager.h"
 
@@ -63,13 +63,15 @@ MessageInfo::MessageInfo()
 {
 }
 
-MessageInfo::MessageInfo(int sid, int mtype, const ModelStringType &mdata)
-	:mid(-1), sid(sid), mduuid(""), mtype(mtype), mdata(mdata), mdate(QDateTime::currentDateTime().toString(time_format))
+MessageInfo::MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, int mmode)
+	:mid(-1), msource(NetStructureManager::getInstance()->getLocalUuid().c_str()), mduuid(mduuid), mmode(mmode),
+	mtype(mtype), mdata(mdata), mdate(QDateTime::currentDateTime().toString(time_format))
 {
 }
 
-MessageInfo::MessageInfo(const ModelStringType & mduuid, int mtype, const ModelStringType & mdata, const ModelStringType & mdate)
-	: mid(-1), sid(-1), mduuid(mduuid), mtype(mtype), mdata(mdata), mdate(mdate)
+MessageInfo::MessageInfo(const ModelStringType& msource, const ModelStringType & mduuid, int mtype, 
+	const ModelStringType & mdata, const ModelStringType & mdate, int mmode)
+	: mid(-1), msource(msource), mduuid(mduuid), mtype(mtype), mdata(mdata), mdate(mdate), mmode(mmode)
 {
 }
 

@@ -1,4 +1,4 @@
-#include "AdminManager.h"
+﻿#include "AdminManager.h"
 #include "DBop.h"
 #include "ConnectionManager.h"
 #include "NetStructureManager.h"
@@ -32,7 +32,7 @@ int AdminManager::createAdmin(const QString & name, const QString & password)
 	auto reallyPassStr = QCryptographicHash::hash(QByteArray(passStr.c_str(), passStr.length()), QCryptographicHash::Md5).toHex().toStdString();
 	
 	QString sql;
-	int result = DBOP::createAdmin(AdminInfo(name, reallyPassStr.c_str()), sql);
+	int result = DBOP::getInstance()->createAdmin(AdminInfo(name, reallyPassStr.c_str()), sql);
 	if (result == 0) 
 	{
 		JsonObjType datas;
@@ -51,7 +51,7 @@ int AdminManager::createAdmin(const QString & name, const QString & password)
 int AdminManager::deleteAdmin(const QString & name)
 {
 	QString sql;
-	int result = DBOP::deleteAdmin(name, sql);
+	int result = DBOP::getInstance()->deleteAdmin(name, sql);
 	if (result == 0) {
 		JsonObjType datas;
 		JsonAryType bindValues;
@@ -67,7 +67,7 @@ int AdminManager::deleteAdmin(const QString & name)
 
 int AdminManager::adminLogin(const QString & name, const QString & password)
 {
-	int result = DBOP::loginAdmin(name, password);
+	int result = DBOP::getInstance()->loginAdmin(name, password);
 	if (result == 0) {
         NetStructureManager::getInstance()->setAdmin(true);
 		qDebug() << "user authority level up to admin";
@@ -79,7 +79,7 @@ int AdminManager::adminLogin(const QString & name, const QString & password)
 int AdminManager::adminModifyPassword(const QString & name, const QString & oldPass, const QString & newPass)
 {
 	QString sql;
-	int result = DBOP::modifyPassword(name, oldPass, newPass, sql);
+	int result = DBOP::getInstance()->modifyPassword(name, oldPass, newPass, sql);
 	if (result == 0) {
 		JsonObjType datas;
 		JsonAryType bindValues;

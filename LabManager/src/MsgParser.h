@@ -1,4 +1,4 @@
-#ifndef MSGPARSER_H
+﻿#ifndef MSGPARSER_H
 #define MSGPARSER_H
 
 #include "Common.h"

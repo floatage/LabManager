@@ -12,23 +12,24 @@ Item{
     property var curSeesionDestId
     property string curSeesionDestPic: ""
     property int curSeesionType: 1
+    property string localUUid: SessionManager.getLocalUuid()
 
     function updateMsgModel(){
-        var msgList = SessionManager.getChatMsgs(curSeesionId, curSeesionDestId)
+        var msgList = SessionManager.getChatMsgs(curSeesionDestId)
         chatMsgControlerContentListView.model.clear()
 
         //0:msg, 1:pic, 2:anemation
-        //mid, sid, mduuid, mtype, mdata, mdate
-        //msgSenderPic,isGroup,msgSenderRole,msgSender,msgSenderUuid,msgDate,isRecv,msgType,msgRealData
+        //mid, msource, mduuid, mtype, mdata, mdate
+        //msgSenderPic,isGroup,msgSenderRole,msgSender,msgSenderUuid,msgDate,isSend,msgType,msgRealData
         for (var begin = 0; begin < msgList.length; ++begin){
             chatMsgControlerContentListView.model.append({
                 msgSenderPic: curSeesionDestPic
                 , isGroup: curSeesionType == 1 ? false : true
                 , msgSenderRole: ""
-                , msgSender: msgList[begin][1] === -1 ? curSessionName : "我"
+                , msgSender: msgList[begin][1] != localUUid ? curSessionName : "我"
                 , msgSenderUuid: msgList[begin][2]
                 , msgDate: msgList[begin][5]
-                , isRecv: msgList[begin][1] === -1 ? true : false
+                , isSend: msgList[begin][1] == localUUid ? true : false
                 , msgType: msgList[begin][3]
                 , msgRealData: msgList[begin][4]
             })
@@ -42,22 +43,20 @@ Item{
         updateMsgModel()
     }
 
-    function insertMsg(msgModel){
-        chatMsgControlerContentListView.model.append(msgModel)
-    }
-
     Connections{
-        target: SessionManager
+        target: DBOP
         onSessionMsgRecv: {
             console.log("Recv text and update model")
+            if (recvMsg[2] != curSeesionDestId) return
+
             chatMsgControlerContentListView.model.append({
                 msgSenderPic: curSeesionDestPic
                 , isGroup: curSeesionType == 1 ? false : true
                 , msgSenderRole: ""
-                , msgSender: recvMsg[1] === -1 ? curSessionName : "我"
+                , msgSender: recvMsg[1] != localUUid ? curSessionName : "我"
                 , msgSenderUuid: recvMsg[2]
                 , msgDate: recvMsg[5]
-                , isRecv: recvMsg[1] === -1 ? true : false
+                , isSend: recvMsg[1] == localUUid ? true : false
                 , msgType: recvMsg[3]
                 , msgRealData: recvMsg[4]
             })
@@ -77,7 +76,7 @@ Item{
             console.log("You chose: " + picSelectFileDialog.fileUrls)
             console.log(picSelectFileDialog.fileUrl.toString().match(/.*\.gif/) ? true : false)
 
-            SessionManager.sendPic(curSeesionId, curSeesionType,
+            SessionManager.sendPic(curSeesionType,
                                    curSeesionDestId,
                                    picSelectFileDialog.fileUrl,
                                    picSelectFileDialog.fileUrl.toString().match(/.*\.gif/))
@@ -94,7 +93,7 @@ Item{
             if (curSeesionId === -1) return
 
             console.log("You chose: " + fileSelectFileDialog.fileUrl)
-            SessionManager.sendFile(curSeesionId, curSeesionType, curSeesionDestId, fileSelectFileDialog.fileUrl)
+            SessionManager.sendFile(curSeesionType, curSeesionDestId, fileSelectFileDialog.fileUrl)
         }
     }
 
@@ -142,6 +141,11 @@ Item{
             id: chatMsgControlerContent
             height: parent.height / 16 * 10.5
             width: parent.width
+
+            onVisibleChanged: {
+                if (visible)
+                    updateMsgModel()
+            }
 
             ListView {
                 id: chatMsgControlerContentListView
@@ -213,7 +217,7 @@ Item{
                             leftPadding: 0
                             topPadding: 0
                             bottomPadding: 3
-                            text: "" + (isGroup ? "【" + msgSenderRole + "】 " : " ") + msgSender + (isRecv ? "(" + msgSenderUuid + ") " : " ") + msgDate
+                            text: "" + (isGroup ? "【" + msgSenderRole + "】 " : " ") + msgSender + (isSend ? "(" + msgSenderUuid + ") " : " ") + msgDate
                         }
                     }
 
@@ -225,16 +229,16 @@ Item{
                         anchors.left: msgItemDescription.left
                         anchors.top: msgItemDescription.bottom
                         radius: 4
-                        color: isRecv ? "#FEE" : "#2683F5"
+                        color: isSend ? "#2683F5" : "#FEE"
 
                         TextArea{
                             id: msgItemRealmsgText
                             font.family: "微软雅黑"
                             font.pixelSize: 13
                             font.weight: Font.Thin
-                            color: isRecv ? "#333" : "#FFF"
+                            color: isSend ? "#FFF": "#333"
                             selectByMouse: true
-                            selectionColor: isRecv ? "#2683F5" : "#59B0E0E6"
+                            selectionColor: isSend ? "#59B0E0E6": "#2683F5"
                             readOnly: true
                             leftPadding: 8
                             rightPadding: 8
@@ -254,7 +258,7 @@ Item{
                         anchors.left: msgItemDescription.left
                         anchors.top: msgItemDescription.bottom
                         radius: 4
-                        color: isRecv ? "#FEE" : "#2683F5"
+                        color: isSend ? "#2683F5" : "#FEE"
                         visible: msgType === 1 || msgType === 2 ? true : false
 
                         Image {
@@ -435,7 +439,7 @@ Item{
 
                         var sendText = chatMsgControlerInputArea.text.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '')
                         if (sendText.length !== 0){
-                            SessionManager.sendChatMsg(curSeesionId, curSeesionType, curSeesionDestId, sendText)
+                            SessionManager.sendChatMsg(curSeesionType, curSeesionDestId, sendText)
                         }
                         chatMsgControlerInputArea.clear()
                     }

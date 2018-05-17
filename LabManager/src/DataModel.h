@@ -1,4 +1,4 @@
-#ifndef DATAMODEL_H
+﻿#ifndef DATAMODEL_H
 #define DATAMODEL_H
 
 #include "QtCore\qstring.h"
@@ -70,14 +70,15 @@ struct MessageInfo
 {
 	int mid;
 	int mtype;
-	int sid;
+	int mmode;
+    ModelStringType msource;
 	ModelStringType mduuid;
 	ModelStringType mdata;
 	ModelStringType mdate;
 
 	MessageInfo();
-	MessageInfo(int sid, int mtype, const ModelStringType &mdata);
-	MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, const ModelStringType& mdate);
+    MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, int mmode=1);
+	MessageInfo(const ModelStringType& msource, const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, const ModelStringType& mdate, int mmode);
 };
 
 

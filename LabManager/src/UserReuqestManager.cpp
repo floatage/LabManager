@@ -1,4 +1,4 @@
-#include "UserReuqestManager.h"
+ï»¿#include "UserReuqestManager.h"
 #include "DBop.h"
 #include "ConnectionManager.h"
 #include "NetStructureManager.h"
@@ -41,12 +41,12 @@ UserReuqestManager * UserReuqestManager::getInstance()
 
 QVariantList UserReuqestManager::listWaitingRequest()
 {
-	return DBOP::listRequests(false);
+	return DBOP::getInstance()->listRequests(false);
 }
 
 QVariantList UserReuqestManager::listHandledRequest()
 {
-	return DBOP::listRequests(true);
+	return DBOP::getInstance()->listRequests(true);
 }
 
 int UserReuqestManager::sendRequest(const QString & duuid, int type, QVariantHash& data)
@@ -54,7 +54,7 @@ int UserReuqestManager::sendRequest(const QString & duuid, int type, QVariantHas
 	static std::unordered_map<ReqType, TransferMode> reqTransferModeMap;
 	static bool isInit = false;
 	
-	if (!isInit) { //´æÔÚÏß³Ì°²È«ÎÊÌâ
+	if (!isInit) { //å­˜åœ¨çº¿ç¨‹å®‰å…¨é—®é¢˜
 		reqTransferModeMap[FileTransferReq] = Single; 
 		reqTransferModeMap[InviteGroupReq] = Single; reqTransferModeMap[JoinGroupReq] = Random;
 		reqTransferModeMap[RemoteControlReq] = Single; reqTransferModeMap[ScreeBroadcastReq] = Group;
@@ -62,7 +62,7 @@ int UserReuqestManager::sendRequest(const QString & duuid, int type, QVariantHas
 
     QString reqDataStr = JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str();
 	RequestInfo req(duuid, type, reqDataStr);
-	int result = DBOP::createRequest(req);
+	int result = DBOP::getInstance()->createRequest(req);
 	if (result >= 0) {
 		JsonObjType datas;
 		datas["rid"] = req.rid;
@@ -91,7 +91,7 @@ int UserReuqestManager::sendFileTrangferReq(const QString & duuid, const QString
 
 void UserReuqestManager::agreeRequest(const QString& rid, const QString & source)
 {
-	int result = DBOP::setRequestState(rid, ReqState::ReqAgree);
+	int result = DBOP::getInstance()->setRequestState(rid, ReqState::ReqAgree);
 	if (result == 0) {
 		//TaskManager::getInstance().createTask();
 	}
@@ -99,7 +99,7 @@ void UserReuqestManager::agreeRequest(const QString& rid, const QString & source
 
 void UserReuqestManager::rejectRequest(const QString& rid, const QString & source)
 {
-	int result = DBOP::setRequestState(rid, ReqState::ReqReject);
+	int result = DBOP::getInstance()->setRequestState(rid, ReqState::ReqReject);
 	if (result == 0) {
 		JsonObjType datas;
 		datas["rid"] = rid;
@@ -110,7 +110,7 @@ void UserReuqestManager::rejectRequest(const QString& rid, const QString & sourc
 
 void UserReuqestManager::errorRequest(const QString& rid, const QString & source)
 {
-	int result = DBOP::setRequestState(rid, ReqState::ReqError);
+	int result = DBOP::getInstance()->setRequestState(rid, ReqState::ReqError);
 	if (result == 0) {
 		JsonObjType datas;
 		datas["rid"] = rid;
@@ -121,7 +121,7 @@ void UserReuqestManager::errorRequest(const QString& rid, const QString & source
 
 void UserReuqestManager::cancelRequest(const QString& rid)
 {
-	DBOP::setRequestState(rid, (int)ReqState::ReqCancel);
+	DBOP::getInstance()->setRequestState(rid, (int)ReqState::ReqCancel);
     memeberDataPtr->dropReqSet.insert(rid);
 }
 
@@ -131,9 +131,9 @@ void UserReuqestManager::handleSendRequest(JsonObjType & msg, ConnPtr conn)
     if (!rid.isUndefined()) {
 		RequestInfo req(rid.toString(), msg["rtype"].toInt(), msg["rdata"].toString(),
 			msg["rdate"].toString(), msg["rsource"].toString(), msg["rdest"].toString());
-        if (DBOP::createRequest(req) >= -1){
+        if (DBOP::getInstance()->createRequest(req) >= -1){
             msg["rstate"] = req.rstate;
-            auto user = DBOP::getUser(req.rsource);
+            auto user = DBOP::getInstance()->getUser(req.rsource);
             msg["uname"] = user["uname"].toString();
 
             newRequestRecv(msg.toVariantHash());
@@ -145,7 +145,7 @@ void UserReuqestManager::handleAgreeRequest(JsonObjType & msg, ConnPtr conn)
 {
 	auto rid = msg["rid"];
 	if (!rid.isUndefined()) {
-		if (DBOP::setRequestState(rid.toString(), ReqState::ReqAgree) == 0) {
+		if (DBOP::getInstance()->setRequestState(rid.toString(), ReqState::ReqAgree) == 0) {
             requestStateChanged(rid.toString(), ReqState::ReqAgree);
 		}
 	}
@@ -155,7 +155,7 @@ void UserReuqestManager::handleRejectRequest(JsonObjType & msg, ConnPtr conn)
 {
 	auto rid = msg["rid"];
 	if (!rid.isUndefined()) {
-		if (DBOP::setRequestState(rid.toString(), ReqState::ReqReject) == 0) {
+		if (DBOP::getInstance()->setRequestState(rid.toString(), ReqState::ReqReject) == 0) {
             requestStateChanged(rid.toString(), ReqState::ReqReject);
 		}
 	}
@@ -165,7 +165,7 @@ void UserReuqestManager::handleErrorRequest(JsonObjType & msg, ConnPtr conn)
 {
 	auto rid = msg["rid"];
 	if (!rid.isUndefined()) {
-		if (DBOP::setRequestState(rid.toString(), ReqState::ReqError) == 0) {
+		if (DBOP::getInstance()->setRequestState(rid.toString(), ReqState::ReqError) == 0) {
             requestStateChanged(rid.toString(), ReqState::ReqError);
 		}
 	}

@@ -1,4 +1,4 @@
-#include "UserManager.h"
+﻿#include "UserManager.h"
 #include "DBop.h"
 #include "ConnectionManager.h"
 #include "NetStructureManager.h"
@@ -41,12 +41,12 @@ UserManager * UserManager::getInstance()
 
 QVariantList UserManager::listUsers()
 {
-	return DBOP::listUsers();
+	return DBOP::getInstance()->listUsers();
 }
 
 QVariantHash UserManager::getUser(const QString & userId)
 {
-	return DBOP::getUser(userId);
+	return DBOP::getInstance()->getUser(userId);
 }
 
 int UserManager::addUser(const QString & userId)
@@ -66,7 +66,7 @@ int UserManager::createUserGroup(const QString & name, const QString & intro, co
 	UserGroupInfo group(groupId, name, ownerId, intro, picPath);
 
 	QString sql;
-	int result = DBOP::createUserGroup(group, sql);
+	int result = DBOP::getInstance()->createUserGroup(group, sql);
 	if (result == 0) {
 		JsonObjType datas;
 		JsonAryType bindValues;
@@ -88,7 +88,7 @@ int UserManager::createUserGroup(const QString & name, const QString & intro, co
 int UserManager::deleteUserGroup(const QString & groupId)
 {
 	QString sql;
-	int result = DBOP::deleteUserGroup(groupId, sql);
+	int result = DBOP::getInstance()->deleteUserGroup(groupId, sql);
 	if (result == 0) {
 		JsonObjType datas;
 		JsonAryType bindValues;
@@ -104,17 +104,17 @@ int UserManager::deleteUserGroup(const QString & groupId)
 
 QVariantList UserManager::listUserGroups()
 {
-	return DBOP::listUserGroups();
+	return DBOP::getInstance()->listUserGroups();
 }
 
 QVariantHash UserManager::getUserGroupDetails(const QString & groupId)
 {
-	return DBOP::getUserGroup(groupId);
+	return DBOP::getInstance()->getUserGroup(groupId);
 }
 
 QVariantList UserManager::listUserGroupMembers(const QString& groupId)
 {
-	return DBOP::listMembers(groupId);
+	return DBOP::getInstance()->listMembers(groupId);
 }
 
 void UserManager::searchUsers(const QString& queryKey)
@@ -146,7 +146,7 @@ void UserManager::inviteGroupMember(const QString & userId, const QString& group
 void UserManager::dropGroupMember(const QString& userId, const QString& groupId)
 {
 	QString sql;
-	int result = DBOP::removeMember(groupId, userId, sql);
+	int result = DBOP::getInstance()->removeMember(groupId, userId, sql);
 	if (result == 0) {
 		JsonObjType datas;
 		JsonAryType bindValues;
@@ -169,7 +169,7 @@ void UserManager::quitUserGroup(const QString & groupId)
 {
 	QString sql;
     QString userId = NetStructureManager::getInstance()->getLocalUuid().c_str();
-	int result = DBOP::removeMember(groupId, userId, sql);
+	int result = DBOP::getInstance()->removeMember(groupId, userId, sql);
 	if (result == 0) {
 		JsonObjType datas;
 		JsonAryType bindValues;

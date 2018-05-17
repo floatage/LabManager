@@ -1,4 +1,4 @@
-#ifndef ADMINMANAGER_H
+﻿#ifndef ADMINMANAGER_H
 #define ADMINMANAGER_H
 
 #include "Common.h"

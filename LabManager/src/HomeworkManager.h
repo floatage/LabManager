@@ -1,4 +1,4 @@
-#ifndef HOMEWORK_H
+﻿#ifndef HOMEWORK_H
 #define HOMEWORK_H
 
 #include "QtCore\qobject.h"

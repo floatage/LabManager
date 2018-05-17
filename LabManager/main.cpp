@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+﻿#include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml>
 
@@ -20,11 +20,10 @@ int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
-
     QQmlApplicationEngine engine;
 
+    DBOP::getInstance();
     auto nt = QThread::create([](){
-        DBOP::createTables();
 		QDir().mkdir(tmpDir.c_str());
         auto msgm = MessageManager::getInstance();
         msgm->run();
@@ -45,6 +44,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("UserReuqestManager", UserReuqestManager::getInstance());
     engine.rootContext()->setContextProperty("TaskManager", TaskManager::getInstance());
     engine.rootContext()->setContextProperty("HomeworkManager", HomeworkManager::getInstance());
+	engine.rootContext()->setContextProperty("DBOP", DBOP::getInstance());
 
     QObject::connect(&engine, &QQmlApplicationEngine::quit, [&](){
         IOContextManager::getInstance()->stop();
