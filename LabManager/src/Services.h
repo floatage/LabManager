@@ -47,7 +47,7 @@ private:
 
 class PicTransferService : public Service {
 public:
-	PicTransferService(const QString& fileName, const QString& storeFilename, const QString& taskData);
+    PicTransferService(const QString& fileName, const QString& taskData);
 	PicTransferService(JsonObjType& taskParam);
 	~PicTransferService();
 
@@ -61,8 +61,7 @@ private:
 	bool isInit;
 	int fileSize;
 	int recvFileLen;
-	QString fileName;
-	QString storeFilename;
+    QString fileName;
 	QString taskData;
 	JsonObjType taskParam;
 	QFile picFile;

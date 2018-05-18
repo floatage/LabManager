@@ -33,14 +33,13 @@ ApplicationWindow {
         var userList = SessionManager.listSessions()
         sessionListViewContent.model.clear()
         for (var begin = 0; begin < userList.length; ++begin){
-            //sid, stype, duuid, uname, lastmsg, name, pic
+            //duuid, stype, uname, lastmsg, name, pic
             sessionListViewContent.model.append({
-                sessionId: userList[begin][0]
+                sessionDestUuid:userList[begin][0]
                 , sessionType:userList[begin][1]
-                , sessionDestUuid:userList[begin][2]
-                , sessionLastMsg: userList[begin][3]
-                , sessionDestName:userList[begin][4]
-                , sessionPicPath: userList[begin][5] === "" ? "/img/defaultPic.jpg" : userList[begin][5]
+                , sessionLastMsg: userList[begin][2]
+                , sessionDestName:userList[begin][3]
+                , sessionPicPath: userList[begin][4] == "" ? "/img/defaultPic.jpg" : userList[begin][5]
             })
         }
     }
@@ -54,7 +53,7 @@ ApplicationWindow {
                 userId: userList[begin][0]
                 , userName:userList[begin][1]
                 , userIp: userList[begin][2]
-                , userPicPath: userList[begin][5] === "" ? "/img/defaultPic.jpg" : userList[begin][5]
+                , userPicPath: userList[begin][5] == "" ? "/img/defaultPic.jpg" : userList[begin][5]
             })
         }
     }
@@ -66,21 +65,21 @@ ApplicationWindow {
         target: DBOP
         onSeesionUpdateLastmsg: {
             console.log("Update session model lastmsg")
+            //duuid, stype, lastmsg
             for(var index = 0; index < sessionModel.count; ++index){
-                if (sessionModel.get(index).sessionId == sessionMsg[0]){
-                    sessionModel.get(index).sessionLastMsg = sessionMsg[4]
+                if (sessionModel.get(index).sessionDestUuid == sessionMsg[0]){
+                    sessionModel.get(index).sessionLastMsg = sessionMsg[2]
                     return
                 }
             }
 
-            var user = DBOP.getUser(sessionMsg[3])
+            var user = DBOP.getUser(sessionMsg[0])
             sessionListViewContent.model.append({
-                sessionId: sessionMsg[0]
+                sessionDestUuid:sessionMsg[0]
                 , sessionType:sessionMsg[1]
-                , sessionDestUuid:sessionMsg[3]
-                , sessionLastMsg: sessionMsg[4]
+                , sessionLastMsg: sessionMsg[2]
                 , sessionDestName:user.uname
-                , sessionPicPath: user.upic == "" ? "/img/defaultPic.jpg" : userList[begin][5]
+                , sessionPicPath: user.upic == "" ? "/img/defaultPic.jpg" : user.upic
             })
         }
     }
@@ -370,7 +369,6 @@ ApplicationWindow {
                             funcPanelContent.panelMap["ChatPanel"].curSeesionDestId = sessionModel.get(currentIndex).sessionDestUuid
                             funcPanelContent.panelMap["ChatPanel"].curSeesionDestPic = sessionModel.get(currentIndex).sessionPicPath
                             funcPanelContent.panelMap["ChatPanel"].curSeesionType = sessionModel.get(currentIndex).sessionType
-                            funcPanelContent.panelMap["ChatPanel"].curSeesionId = sessionModel.get(currentIndex).sessionId
                         }
 
                         model: sessionModel
@@ -556,15 +554,14 @@ ApplicationWindow {
 
                                 onDoubleClicked: {
                                     var curUserId = memListViewContent.model.get(index).userId
-                                    var sessionId = SessionManager.getSeesionIdByUuid(curUserId, 1)
-                                    if (sessionId === ""){
-                                        sessionId = SessionManager.createSession(1, curUserId)
+                                    if (SessionManager.seesionIsExistsByUuid(curUserId, 1) == -1){
+                                        SessionManager.createSession(1, curUserId)
                                     }
 
                                     sessionIcon.item.iconClicked()
 
                                     for (var pos=0; pos < sessionModel.count; ++pos){
-                                        if (sessionModel.get(pos).sessionId == sessionId){
+                                        if (sessionModel.get(pos).sessionDestUuid == curUserId){
                                             if (pos === 0) return
 
                                             sessionModel.move(pos, 0, 1)

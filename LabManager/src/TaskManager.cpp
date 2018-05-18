@@ -50,7 +50,7 @@ int TaskManager::createSendPicSingleTask(const QString & duuid, QVariantHash& da
 {
 	QString taskData(JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str());
 	auto addr = JsonObjType::fromVariantHash(DBOP::getInstance()->getUser(duuid));
-	auto servicePtr = std::make_shared<PicTransferService>(data["picRealName"].toString(), data["picStoreName"].toString(), taskData);
+    auto servicePtr = std::make_shared<PicTransferService>(data["picRealName"].toString(), taskData);
 	ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
 		if (err != 0) {
 			qDebug() << "pic connnection connect failed!";

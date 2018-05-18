@@ -55,7 +55,6 @@ struct AdminInfo
 
 struct SessionInfo
 {
-	int sid;
 	int stype;
 	ModelStringType suid;
 	ModelStringType duuid;
@@ -118,7 +117,8 @@ struct TaskInfo
 struct HomeworkInfo
 {
 	ModelStringType hid;
-	int sid;
+	ModelStringType hadmin;
+	ModelStringType hugid;
 	ModelStringType htype;
 	ModelStringType hstartdate;
 	ModelStringType hduration;
@@ -126,7 +126,7 @@ struct HomeworkInfo
 	ModelStringType hintro;
 
 	HomeworkInfo();
-	HomeworkInfo(const ModelStringType &hid, int sid, const ModelStringType &htype,
+	HomeworkInfo(const ModelStringType &hid, const ModelStringType& hadmin, const ModelStringType& hugid, const ModelStringType &htype,
 		const ModelStringType &hstartdate, const ModelStringType &hduration, const ModelStringType &hfilepath, const ModelStringType &hintro);
 };
 

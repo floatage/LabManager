@@ -396,8 +396,9 @@ Rectangle {
                             font.bold: fontBolder
                             font.weight: fontWeight
                             font.pixelSize: fontSize
+                            text: fileNameInfor
                             renderType: textRenderMode
-                            text: membersRoot.ingnoreStr(fileNameInfor, 20)
+                            clip: true
                         }
 
                         Text {
@@ -406,8 +407,9 @@ Rectangle {
                             anchors.verticalCenter: fileName.verticalCenter
                             font: fileName.font
                             color: fontColor
+                            text: fileUpdateDateInfor
                             renderType: fileName.renderType
-                            text: membersRoot.ingnoreStr(fileUpdateDateInfor, 20)
+                            clip: true
                         }
 
                         Text {
@@ -416,8 +418,9 @@ Rectangle {
                             anchors.verticalCenter: fileName.verticalCenter
                             font: fileName.font
                             color: fileUpdateDate.color
+                            text: fileUploadUserInfor
                             renderType: fileName.renderType
-                            text: membersRoot.ingnoreStr(fileUploadUserInfor, 20)
+                            clip: true
                         }
 
                         Text {
@@ -426,8 +429,9 @@ Rectangle {
                             anchors.verticalCenter: fileName.verticalCenter
                             font: fileName.font
                             color: fileUpdateDate.color
+                            text: fileSizeInfor
                             renderType: fileName.renderType
-                            text: membersRoot.ingnoreStr(fileSizeInfor, 20)
+                            clip: true
                         }
 
                         Rectangle {

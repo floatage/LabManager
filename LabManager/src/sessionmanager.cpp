@@ -38,9 +38,9 @@ int SessionManager::createSession(int type, const QString & duuid)
 	return DBOP::getInstance()->createSession(SessionInfo(type, suid, duuid));
 }
 
-int SessionManager::deleteSession(int sid)
+int SessionManager::deleteSession(const QString& duuid)
 {
-	return DBOP::getInstance()->deleteSession(sid);
+	return DBOP::getInstance()->deleteSession(duuid);
 }
 
 QVariantList SessionManager::listSessions()
@@ -48,10 +48,10 @@ QVariantList SessionManager::listSessions()
 	return DBOP::getInstance()->listSessions();
 }
 
-QString SessionManager::getSeesionIdByUuid(const QString& uuid, int type) 
+int SessionManager::seesionIsExistsByUuid(const QString& uuid, int type)
 {
-	auto result = DBOP::getInstance()->getSession(type, -1, uuid);
-	return result.empty() ? QString() : result["sid"].toString();
+	auto result = DBOP::getInstance()->getSession(type, uuid);
+	return result.empty() ? -1 : 0;
 }
 
 QVariantList SessionManager::getChatMsgs(const QString& duuid)
@@ -91,6 +91,7 @@ void SessionManager::sendPic(int stype, const QString & duuid, const QUrl & picP
 	taskData["msgMode"] = msgInfo.mmode;
     QFileInfo picInfo(picPath.toString().split("///")[1]);
 	taskData["picRealName"] = picInfo.absoluteFilePath();
+    taskData["picSize"] = picInfo.size();
 	taskData["picStoreName"] = QUuid::createUuid().toString() + "." + picInfo.completeSuffix();
 
 	if (SessionType::UserSession == SessionType(stype)) {
@@ -114,6 +115,11 @@ void SessionManager::publishHomework(const QString & duuid, const QVariantList &
 QString SessionManager::getLocalUuid()
 {
 	return  NetStructureManager::getInstance()->getLocalUuid().c_str();
+}
+
+QString SessionManager::getLocalPic()
+{
+	return QString("/img/defaultPic.jpg");
 }
 
 void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)

@@ -18,9 +18,9 @@ public:
     static SessionManager* getInstance();
 
     Q_INVOKABLE int createSession(int type, const QString& duuid);
-    Q_INVOKABLE int deleteSession(int sid);
+    Q_INVOKABLE int deleteSession(const QString& duuid);
     Q_INVOKABLE QVariantList listSessions();
-    Q_INVOKABLE QString getSeesionIdByUuid(const QString& uuid, int type);
+    Q_INVOKABLE int seesionIsExistsByUuid(const QString& uuid, int type);
 
 	Q_INVOKABLE QVariantList getChatMsgs(const QString& duuid);
     Q_INVOKABLE void sendChatMsg(int stype, const QString& duuid, const QString& msg);
@@ -29,6 +29,7 @@ public:
     Q_INVOKABLE void publishHomework(const QString& duuid, const QVariantList& hwInfo);
 
 	Q_INVOKABLE QString getLocalUuid();
+	Q_INVOKABLE QString getLocalPic();
 private:
     SessionManager(QObject *parent = 0);
 

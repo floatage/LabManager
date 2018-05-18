@@ -44,9 +44,9 @@ public:
 
 	//Session operation
 	int createSession(const SessionInfo& session);
-	int deleteSession(int sessionId);
+	int deleteSession(const ModelStringType& duuid);
 	int updateSessionLastmsg(const MessageInfo& message);
-	QVariantHash getSession(int way = 0, int sessionId = -1, const ModelStringType& uuid = ModelStringType());
+	QVariantHash getSession(int stype, const ModelStringType& uuid = ModelStringType());
 	QVariantList listSessions();
 
 	//Message operation

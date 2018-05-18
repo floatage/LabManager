@@ -67,10 +67,9 @@ int DBOP::createTables()
 	bool bAdmin = query.exec("CREATE TABLE IF NOT EXISTS Admin(aname VARCHAR(32) PRIMARY KEY, "
 		"apassword VARCHAR(32) NOT NULL)");
 
-	bool bSession = query.exec("CREATE TABLE IF NOT EXISTS Session(sid INTEGER, "
+	bool bSession = query.exec("CREATE TABLE IF NOT EXISTS Session(duuid VARCHAR(32) PRIMARY KEY, "
 		"stype INTEGER NOT NULL, "
 		"suid VARCHAR(32) NOT NULL, "
-		"duuid VARCHAR(32) PRIMARY KEY, "
 		"lastmsg VARCHAR(32))");
 
 	bool bMessage = query.exec("CREATE TABLE IF NOT EXISTS Message(mid INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -105,13 +104,15 @@ int DBOP::createTables()
 		"foreign key(tsource) references User(uid))");
 
 	bool bHomework = query.exec("CREATE TABLE IF NOT EXISTS Homework(hid VARCHAR(32) PRIMARY KEY, "
-		"sid INTEGER NOT NULL, "
+		"hadmin VARCHAR(32) NOT NULL, "
+		"hugid VARCHAR(32) NOT NULL, "
 		"htype VARCHAR(16) NOT NULL, "
 		"hstartdate VARCHAR(32) NOT NULL, "
 		"hduration VARCHAR(32) NOT NULL, "
 		"hfilepath VARCHAR(128) NOT NULL, "
 		"hintro VARCHAR(128) NOT NULL, "
-		"foreign key(sid) references Session(sid))");
+		"foreign key(hadmin) references Admin(aname), "
+		"foreign key(hugid) references UserGroup(hugid))");
 
 	qDebug() << "create tables sql execute";
 
@@ -521,51 +522,45 @@ int DBOP::modifyPassword(const ModelStringType & name, const ModelStringType & o
 //Session operation
 int DBOP::createSession(const SessionInfo & session)
 {
-	static const QString ADD_SESSION("insert into Session(stype,suid,duuid,lastmsg) values(?,?,?,?)");
-	static const QString GET_INSERT_SESSION("select last_insert_rowid() from Session");
+	static const QString ADD_SESSION("insert into Session(duuid,stype,suid,lastmsg) values(?,?,?,?)");
 
 	QSqlQuery query;
 	query.prepare(ADD_SESSION);
+	query.addBindValue(session.duuid);
 	query.addBindValue(session.stype);
 	query.addBindValue(session.suid);
-	query.addBindValue(session.duuid);
 	query.addBindValue(session.lastmsg);
 
 	if (query.exec()) {
-		if (!query.exec(GET_INSERT_SESSION)) {
-			qDebug() << "session search(create) error! " << (session.stype==2 ? "Group: " : "User: ") << session.duuid << " reason: " << query.lastError().text();
-			return -2;
-		}
-
 		qDebug() << "session insert success! " << (session.stype == 2 ? "Group: " : "User: ") << session.duuid;
-		return query.value(0).toInt();
+		return 0;
 	}
 
 	qDebug() << "session insert failed! " << (session.stype == 2 ? "Group: " : "User: ") << session.duuid << " reason: " << query.lastError().text();
 	return -1;
 }
 
-int DBOP::deleteSession(int sessionId)
+int DBOP::deleteSession(const ModelStringType& duuid)
 {
-	static const QString REMOVE_SESSION("delete from Session where sid=?");
+	static const QString REMOVE_SESSION("delete from Session where duuid=?");
 
 	QSqlQuery query;
 	query.prepare(REMOVE_SESSION);
-	query.addBindValue(sessionId);
+	query.addBindValue(duuid);
 
 	if (query.exec()) {
-		qDebug() << "session delete success! sid: " << sessionId;
+		qDebug() << "session delete success! duuid: " << duuid;
 		return 0;
 	}
 
-	qDebug() << "session delete failed! sid: " << sessionId << " reason: " << query.lastError().text();
+	qDebug() << "session delete failed! duuid: " << duuid << " reason: " << query.lastError().text();
 	return -1;
 }
 
 int DBOP::updateSessionLastmsg(const MessageInfo& message)
 {
 	//SessionInfo(message.mmode, message.mduuid, message.msource, );
-	static const QString UPDATE_SESSION_LASTMSG("repalce into Session(stype,suid,duuid,lastmsg) values(?,?,?,?)");
+	static const QString UPDATE_SESSION_LASTMSG("replace into Session(duuid,stype,suid,lastmsg) values(?,?,?,?)");
 	
 	QSqlQuery query;
 	query.prepare(UPDATE_SESSION_LASTMSG);
@@ -579,8 +574,8 @@ int DBOP::updateSessionLastmsg(const MessageInfo& message)
 		default: break;
 	}
 
-	query.addBindValue(message.mmode);
 	query.addBindValue(message.mduuid);
+	query.addBindValue(message.mmode);
 	query.addBindValue(message.msource);
 	query.addBindValue(lastmsg);
 	if (query.exec()) {
@@ -593,83 +588,66 @@ int DBOP::updateSessionLastmsg(const MessageInfo& message)
 	return -1;
 }
 
-QVariantHash DBOP::getSession(int way, int sessionId, const ModelStringType & uuid)
+QVariantHash DBOP::getSession(int stype, const ModelStringType & uuid)
 {
-	static const QString SESSION_GET_BY_ID("select * from Session where sid=?");
 	static const QString SESSION_GET_BY_DUUID("select * from Session where stype=? and duuid=?");
 
 	QSqlQuery query;
 	QVariantHash result;
-
-	switch (way)
-	{
-	case 0:
-		query.prepare(SESSION_GET_BY_ID);
-		query.addBindValue(sessionId);
-		break;
-	case 1:
-	case 2:
-		query.prepare(SESSION_GET_BY_DUUID);
-		query.addBindValue(way);
-		query.addBindValue(uuid);
-		break;
-	default:
-		return result;
-	}
-
+	
+	query.prepare(SESSION_GET_BY_DUUID);
+	query.addBindValue(stype);
+	query.addBindValue(uuid);
 	if (!query.exec() || !query.next()) {
-		qDebug() << "session select failed! sid: " << sessionId << " uuid: " << uuid << " way: " << way << " reason: " << query.lastError().text();
+		qDebug() << "session select failed! stype: " << stype << " uuid: " << uuid << " reason: " << query.lastError().text();
 		return result;
 	}
 
-	result["sid"] = query.value("sid");
+	result["duuid"] = query.value("duuid");
 	result["stype"] = query.value("stype");
 	result["suid"] = query.value("suid");
-	result["duuid"] = query.value("duuid");
 	result["lastmsg"] = query.value("lastmsg");
 
-	qDebug() << "session select success! sid: " << sessionId << " uuid: " << uuid << " way: " << way;
+	qDebug() << "session select success! stype: " << stype << " uuid: " << uuid;
 	return result;
 }
 
 QVariantList DBOP::listSessions()
 {
 	//sessionId, sessionType ,sessionDestUuid , sessionDestName, sessionDestIp , sessionPicPath ,sessionLastMsg
-	static const QString SESSION_GET_ALL_USER("select sid,stype,duuid,lastmsg,uname,upic from Session LEFT OUTER JOIN User where User.uid=Session.duuid");
-	static const QString SESSION_GET_ALL_GROUP("select sid,stype,duuid,lastmsg,ugname,ugpic from Session LEFT OUTER JOIN UserGroup where UserGroup.ugid=Session.duuid");
+	static const QString SESSION_GET_ALL_USER("select duuid,stype,lastmsg,uname,upic from Session LEFT OUTER JOIN User where User.uid=Session.duuid");
+	static const QString SESSION_GET_ALL_GROUP("select duuid,stype,lastmsg,ugname,ugpic from Session LEFT OUTER JOIN UserGroup where UserGroup.ugid=Session.duuid");
 
 	QSqlQuery query;
 	QVariantList result;
 
 	query.prepare(SESSION_GET_ALL_USER);
 	if (!query.exec()) {
-		qDebug() << "session(user) select all failed" << " reason: " << query.lastError().text();
+		qDebug() << "session(user) select all failed! reason: " << query.lastError().text();
 		return result;
 	}
 
 	while (query.next())
 	{
 		QVariantList item;
-		item.append(query.value("sid"));
-		item.append(query.value("stype"));
 		item.append(query.value("duuid"));
+		item.append(query.value("stype"));
 		item.append(query.value("lastmsg"));
 		item.append(query.value("uname"));
 		item.append(query.value("upic"));
 		result.append(QVariant(item));
 	}
-	qDebug() << "session(user) select all success";
+	qDebug() << "session(user) select all success!";
 
 	query.prepare(SESSION_GET_ALL_GROUP);
 	if (!query.exec()) {
-		qDebug() << "session(group) select all failed" << " reason: " << query.lastError().text();
+		qDebug() << "session(group) select all failed! reason: " << query.lastError().text();
 		return result;
 	}
 
 	while (query.next())
 	{
 		QVariantList item;
-		item.append(query.value("sid"));
 		item.append(query.value("stype"));
 		item.append(query.value("duuid"));
 		item.append(query.value("lastmsg"));
@@ -678,7 +656,7 @@ QVariantList DBOP::listSessions()
 		result.append(QVariant(item));
 	}
 
-	qDebug() << "session(group) select all success";
+	qDebug() << "session(group) select all success!";
 	return result;
 }
 
@@ -908,12 +886,13 @@ int DBOP::setTaskState(int taskId, int state)
 //Homework operation
 int DBOP::createHomework(const HomeworkInfo & homework)
 {
-	static const QString ADD_HOMEWORK("insert into Homework(hid,sid,htype,hstartdate,hduration,hfilepath,hintro) values(?,?,?,?,?,?,?)");
+	static const QString ADD_HOMEWORK("insert into Homework(hid,hadmin,hugid,htype,hstartdate,hduration,hfilepath,hintro) values(?,?,?,?,?,?,?,?)");
 
 	QSqlQuery query;
 	query.prepare(ADD_HOMEWORK);
 	query.addBindValue(homework.hid);
-	query.addBindValue(homework.sid);
+	query.addBindValue(homework.hadmin);
+	query.addBindValue(homework.hugid);
 	query.addBindValue(homework.htype);
 	query.addBindValue(homework.hstartdate);
 	query.addBindValue(homework.hduration);
@@ -961,7 +940,8 @@ QVariantHash DBOP::getHomework(const ModelStringType & homeworkId)
 	}
 
 	result["hid"] = query.value("hid");
-	result["sid"] = query.value("sid");
+	result["hadmin"] = query.value("hadmin");
+	result["hugid"] = query.value("hugid");
 	result["htype"] = query.value("htype");
 	result["hstartdate"] = query.value("hstartdate");
 	result["hduration"] = query.value("hduration");
@@ -989,7 +969,8 @@ QVariantList DBOP::listHomeworks()
 	{
 		QVariantList item;
 		item.append(query.value("hid"));
-		item.append(query.value("sid"));
+		item.append(query.value("hadmin"));
+		item.append(query.value("hugid"));
 		item.append(query.value("htype"));
 		item.append(query.value("hstartdate"));
 		item.append(query.value("hduration"));
@@ -1036,10 +1017,8 @@ void DBOP::notifyModelAppendMsg(const MessageInfo & msgInfo)
 void DBOP::notifySeesionUpdateLastmsg(const SessionInfo & sessionInfo)
 {
 	QVariantList newSession;
-	newSession.append(sessionInfo.sid);
-	newSession.append(sessionInfo.stype);
-	newSession.append(sessionInfo.suid);
 	newSession.append(sessionInfo.duuid);
+	newSession.append(sessionInfo.stype);
 	newSession.append(sessionInfo.lastmsg);
-	sessionMsgRecv(newSession);
+	seesionUpdateLastmsg(newSession);
 }

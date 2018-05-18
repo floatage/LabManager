@@ -153,8 +153,8 @@ void NetStructureService::dataHandle()
 }
 
 //Picture Transfer Service
-PicTransferService::PicTransferService(const QString& fileName, const QString& storeFilename, const QString& taskData)
-    : writeBuff(BUF_SIZE, '\0'), isInit(false), fileName(fileName), storeFilename(storeFilename), isSender(true), taskData(taskData)
+PicTransferService::PicTransferService(const QString& fileName, const QString& taskData)
+    : writeBuff(BUF_SIZE, '\0'), isInit(false), fileName(fileName), isSender(true), taskData(taskData)
 {
 }
 
@@ -190,43 +190,27 @@ void PicTransferService::dataHandle()
             return;
         }
 
+        auto rawMsg = readBuff.length() == readBytes ? readBuff : readBuff.left(readBytes);
+        if (!readRemain.isEmpty()) {
+            rawMsg.push_front(readRemain);
+            readRemain.clear();
+        }
+
         if (!isInit) {
-            //假设消息不超过最大长度
-            auto rawMsg = readBuff.length() == readBytes ? readBuff : readBuff.left(readBytes);
-            if (!readRemain.isEmpty()) {
-                rawMsg.push_front(readRemain);
-                readRemain.clear();
-            }
-
-            char* dataPtr = rawMsg.data();
-            short msgLen = 0;
-            memcpy(&msgLen, dataPtr, 2);
-            auto fileInfor = JsonDocType::fromJson(QByteArray(dataPtr + 2, msgLen)).object();
-            fileName = tmpDir.c_str() + fileInfor["picName"].toString();
-            fileSize = fileInfor["picSize"].toInt();
-
+            fileName = tmpDir.c_str() + taskParam["picStoreName"].toString();
+            fileSize = taskParam["picSize"].toInt();
 			picFile.setFileName(fileName);
 			if (!picFile.open(QFile::WriteOnly)) {
-				qDebug() << "send file open(create) failed! filenme:" << fileName;
+                qDebug() << "write file open failed! filenme:" << fileName;
 				conn->stop();
 				return;
 			}
-
             isInit = true;
-            int remainBytes = readBytes - msgLen - 2;
-            if (remainBytes <= 0) {
-                dataHandle();
-                return;
-            }
-			else {
-				readBuff = readBuff.right(remainBytes);
-				readBytes = remainBytes;
-			}
         }
 
 		qDebug() << "recv file recv executing! filename: " << fileName << " recvBytes: " << readBytes;
 
-		int writeBytes = picFile.write(readBuff);
+        int writeBytes = picFile.write(rawMsg);
 		if (writeBytes == -1) {
 			qDebug() << "recv picture write failed! filename: " << fileName << " errorCode: " << ec;
 			picFile.close();
@@ -260,11 +244,6 @@ void PicTransferService::execute()
 			conn->stop();
 			return;
         }
-
-        JsonObjType datas;
-        datas["picName"] = storeFilename;
-        datas["picSize"] = picFile.size();
-        Service::sendData(datas);
 
         isInit = true;
     }

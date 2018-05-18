@@ -50,12 +50,12 @@ SessionInfo::SessionInfo()
 }
 
 SessionInfo::SessionInfo(int stype, const ModelStringType &suid, const ModelStringType &duuid)
-	:sid(-1), stype(stype), suid(suid), duuid(duuid)
+	:stype(stype), suid(suid), duuid(duuid)
 {
 }
 
 SessionInfo::SessionInfo(int stype, const ModelStringType & suid, const ModelStringType & duuid, const ModelStringType & lastmsg)
-	: sid(-1), stype(stype), suid(suid), duuid(duuid), lastmsg(lastmsg.left(30))
+	:stype(stype), suid(suid), duuid(duuid), lastmsg(lastmsg.left(30))
 {
 }
 
@@ -116,8 +116,8 @@ HomeworkInfo::HomeworkInfo()
 {
 }
 
-HomeworkInfo::HomeworkInfo(const ModelStringType &hid, int sid, const ModelStringType &htype,
+HomeworkInfo::HomeworkInfo(const ModelStringType &hid, const ModelStringType& hadmin, const ModelStringType& hugid, const ModelStringType &htype,
 	const ModelStringType &hstartdate, const ModelStringType &hduration, const ModelStringType &hfilepath, const ModelStringType &hintro)
-	:hid(hid), sid(sid), htype(htype), hstartdate(hstartdate), hduration(hduration), hfilepath(hfilepath), hintro(hintro)
+	:hid(hid), hadmin(hadmin), hugid(hugid), htype(htype), hstartdate(hstartdate), hduration(hduration), hfilepath(hfilepath), hintro(hintro)
 {
 }

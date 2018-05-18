@@ -404,8 +404,9 @@ Rectangle {
                             color: "#444"
                             font.bold: fontBolder
                             font.pixelSize: fontSize
+                            text: homeworkNameInfor
+                            clip: true
                             renderType: textRenderMode
-                            text: membersRoot.ingnoreStr(homeworkNameInfor, 20)
                         }
 
                         Label {
@@ -414,8 +415,9 @@ Rectangle {
                             anchors.verticalCenter: homeworkName.verticalCenter
                             font: homeworkName.font
                             color: fontColor
+                            text: homeworkGroupInfor
+                            clip: true
                             renderType: homeworkName.renderType
-                            text: membersRoot.ingnoreStr(homeworkGroupInfor, 20)
                         }
 
                         Label {
@@ -424,8 +426,9 @@ Rectangle {
                             anchors.verticalCenter: homeworkName.verticalCenter
                             font: homeworkName.font
                             color: homeworkGroup.color
+                            text: homeworkStartDateInfor
+                            clip: true
                             renderType: homeworkName.renderType
-                            text: membersRoot.ingnoreStr(homeworkStartDateInfor, 20)
                         }
 
                         Label {
@@ -434,8 +437,9 @@ Rectangle {
                             anchors.verticalCenter: homeworkName.verticalCenter
                             font: homeworkName.font
                             color: homeworkGroup.color
+                            text: homeworkTimeInfor
+                            clip: true
                             renderType: homeworkName.renderType
-                            text: membersRoot.ingnoreStr(homeworkTimeInfor, 20)
                         }
 
                         Label {
@@ -444,8 +448,9 @@ Rectangle {
                             anchors.verticalCenter: homeworkName.verticalCenter
                             font: homeworkName.font
                             color: homeworkGroup.color
+                            text: homeworkStateInfor
+                            clip: true
                             renderType: homeworkName.renderType
-                            text: membersRoot.ingnoreStr(homeworkStateInfor, 20)
                         }
                     }
                 }

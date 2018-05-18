@@ -8,11 +8,11 @@ Item{
 
     property int commonLeftMargin: 15
     property alias curSessionName: chatMsgControlerDestObjectName.text
-    property int curSeesionId: -1
-    property var curSeesionDestId
+    property string curSeesionDestId: ""
     property string curSeesionDestPic: ""
     property int curSeesionType: 1
     property string localUUid: SessionManager.getLocalUuid()
+    property string localPic: SessionManager.getLocalPic()
 
     function updateMsgModel(){
         var msgList = SessionManager.getChatMsgs(curSeesionDestId)
@@ -23,7 +23,7 @@ Item{
         //msgSenderPic,isGroup,msgSenderRole,msgSender,msgSenderUuid,msgDate,isSend,msgType,msgRealData
         for (var begin = 0; begin < msgList.length; ++begin){
             chatMsgControlerContentListView.model.append({
-                msgSenderPic: curSeesionDestPic
+                msgSenderPic: msgList[begin][1] == localUUid ? localPic : curSeesionDestPic
                 , isGroup: curSeesionType == 1 ? false : true
                 , msgSenderRole: ""
                 , msgSender: msgList[begin][1] != localUUid ? curSessionName : "我"
@@ -38,8 +38,8 @@ Item{
         chatMsgControlerContentListView.positionViewAtEnd()
     }
 
-    onCurSeesionIdChanged: {
-        console.log(curSessionName + " " + curSeesionId + " " + curSeesionDestId + " " + curSeesionDestPic + " " + curSeesionType)
+    onCurSeesionDestIdChanged: {
+        console.log(curSessionName + " " + curSeesionDestId + " " + curSeesionDestPic + " " + curSeesionType)
         updateMsgModel()
     }
 
@@ -50,7 +50,7 @@ Item{
             if (recvMsg[2] != curSeesionDestId) return
 
             chatMsgControlerContentListView.model.append({
-                msgSenderPic: curSeesionDestPic
+                msgSenderPic: recvMsg[1] == localUUid ? localPic : curSeesionDestPic
                 , isGroup: curSeesionType == 1 ? false : true
                 , msgSenderRole: ""
                 , msgSender: recvMsg[1] != localUUid ? curSessionName : "我"
@@ -71,7 +71,7 @@ Item{
         selectMultiple: false
         nameFilters: ['Pictures (*.png *.jpg *.jpeg *.bmp *.svg *.gif)']
         onAccepted: {
-            if (curSeesionId === -1) return
+            if (curSeesionDestId == "") return
 
             console.log("You chose: " + picSelectFileDialog.fileUrls)
             console.log(picSelectFileDialog.fileUrl.toString().match(/.*\.gif/) ? true : false)
@@ -90,7 +90,7 @@ Item{
         selectMultiple: false
         nameFilters: ['All Files (*.*)']
         onAccepted: {
-            if (curSeesionId === -1) return
+            if (curSeesionDestId === "") return
 
             console.log("You chose: " + fileSelectFileDialog.fileUrl)
             SessionManager.sendFile(curSeesionType, curSeesionDestId, fileSelectFileDialog.fileUrl)
@@ -435,7 +435,7 @@ Item{
                     reversal: true
                     buttonText: "发送"
                     onButtonClicked: {
-                        if (curSeesionId === -1) return
+                        if (curSeesionDestId == "") return
 
                         var sendText = chatMsgControlerInputArea.text.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '')
                         if (sendText.length !== 0){

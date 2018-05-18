@@ -61,5 +61,6 @@
         <file>img/refresh.svg</file>
         <file>img/executing.png</file>
         <file>img/history.png</file>
+        <file>img/defaultCurUser.jpg</file>
     </qresource>
 </RCC>
