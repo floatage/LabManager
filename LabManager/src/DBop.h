@@ -56,6 +56,7 @@ public:
 
 	//Reuqest opearation
 	int createRequest(const RequestInfo& request);
+	QVariantHash getRequestTaskNeedingInfo(const ModelStringType& requestId);
 	QVariantList listRequests(bool isFinished);
 	int setRequestState(const ModelStringType& requestId, int state);
 
@@ -75,10 +76,13 @@ private:
 	DBOP(QObject* parent = 0);
 	void notifyModelAppendMsg(const MessageInfo& msgInfo);
 	void notifySeesionUpdateLastmsg(const SessionInfo& sessionInfo);
+	void notifyNewRequestCreate(const RequestInfo& reqInfo);
 
 signals:
 	void sessionMsgRecv(QVariantList recvMsg);
 	void seesionUpdateLastmsg(QVariantList sessionMsg);
+	void requestStateChanged(const QString& rid, int state);
+	void newRequestCreate();
 };
 
 #endif // !DBOP_H

@@ -9,6 +9,8 @@ ApplicationWindow {
     height: 580
     flags: Qt.FramelessWindowHint | Qt.Window
 
+    signal sessionRecvNewMsg(var itemIndex)
+
     property var panelDict : {'a':1}
     property var curPanel : undefined
 
@@ -35,10 +37,10 @@ ApplicationWindow {
         for (var begin = 0; begin < userList.length; ++begin){
             //duuid, stype, uname, lastmsg, name, pic
             sessionListViewContent.model.append({
-                sessionDestUuid:userList[begin][0]
-                , sessionType:userList[begin][1]
+                sessionDestUuid: userList[begin][0]
+                , sessionType: userList[begin][1]
                 , sessionLastMsg: userList[begin][2]
-                , sessionDestName:userList[begin][3]
+                , sessionDestName: userList[begin][3]
                 , sessionPicPath: userList[begin][4] == "" ? "/img/defaultPic.jpg" : userList[begin][5]
             })
         }
@@ -66,9 +68,10 @@ ApplicationWindow {
         onSeesionUpdateLastmsg: {
             console.log("Update session model lastmsg")
             //duuid, stype, lastmsg
-            for(var index = 0; index < sessionModel.count; ++index){
-                if (sessionModel.get(index).sessionDestUuid == sessionMsg[0]){
-                    sessionModel.get(index).sessionLastMsg = sessionMsg[2]
+            for(var index = 0, len = sessionListViewContent.model.count; index < len; ++index){
+                if (sessionListViewContent.model.get(index).sessionDestUuid == sessionMsg[0]){
+                    sessionListViewContent.model.get(index).sessionLastMsg = sessionMsg[2]
+                    sessionRecvNewMsg(index)
                     return
                 }
             }
@@ -81,6 +84,7 @@ ApplicationWindow {
                 , sessionDestName:user.uname
                 , sessionPicPath: user.upic == "" ? "/img/defaultPic.jpg" : user.upic
             })
+            sessionRecvNewMsg(sessionListViewContent.model.count - 1)
         }
     }
 
@@ -378,6 +382,15 @@ ApplicationWindow {
                             width: parent.width
                             height: 60
                             color: ListView.isCurrentItem ? "#FEE" : "#FFF"
+
+                            Connections{
+                                target: userView
+                                onSessionRecvNewMsg:{
+                                    console.log("onSessionRecvNewMsg: " + itemIndex + " " + index)
+                                    if (itemIndex == index)
+                                        color = "#c9deef"
+                                }
+                            }
 
                             MouseArea {
                                 id: sessionListViewItemMouseArea

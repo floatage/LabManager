@@ -9,6 +9,7 @@
 
 const QString netStructureServiceStr("NetStructureService");
 const QString picTransferServiceStr("PicTransferService");
+const QString fileDownloadServiceStr("FileDownloadService");
 
 ServicePtr Service::getServicePtr(const QString & name, JsonObjType & params)
 {
@@ -18,6 +19,9 @@ ServicePtr Service::getServicePtr(const QString & name, JsonObjType & params)
     else if (name == picTransferServiceStr) {
         return std::make_shared<PicTransferService>(params);
     }
+	else if (name == fileDownloadServiceStr) {
+		return std::make_shared<FileDownloadService>(params);
+	}
 
     return ServicePtr();
 }
@@ -50,8 +54,7 @@ void Service::dataHandle()
         short msgLen = 0;
         memcpy(&msgLen, dataPtr, 2);
         auto serviceInfor = JsonDocType::fromJson(QByteArray(dataPtr + 2, msgLen)).object();
-		auto params = serviceInfor["serviceParam"].toString();
-        auto newServicePtr = getServicePtr(serviceInfor["serviceName"].toString(), JsonDocType::fromJson(params.toUtf8()).object());
+        auto newServicePtr = getServicePtr(serviceInfor["serviceName"].toString(), serviceInfor["serviceParam"].toObject());
 		auto oldService = conn->getService(); //extend the object life time
         conn->setService(newServicePtr);
 
@@ -153,8 +156,8 @@ void NetStructureService::dataHandle()
 }
 
 //Picture Transfer Service
-PicTransferService::PicTransferService(const QString& fileName, const QString& taskData)
-    : writeBuff(BUF_SIZE, '\0'), isInit(false), fileName(fileName), isSender(true), taskData(taskData)
+PicTransferService::PicTransferService(const QString& fileName, JsonObjType& taskParam)
+    : writeBuff(BUF_SIZE, '\0'), isInit(false), fileName(fileName), isSender(true), taskParam(taskParam)
 {
 }
 
@@ -173,7 +176,7 @@ void PicTransferService::start()
 	{
 		JsonObjType serviceInfor;
 		serviceInfor["serviceName"] = picTransferServiceStr;
-		serviceInfor["serviceParam"] = taskData;
+		serviceInfor["serviceParam"] = taskParam;
 		Service::sendData(serviceInfor);
 		execute();
 	}
@@ -275,4 +278,124 @@ void PicTransferService::execute()
 		qDebug() << "send file send executing! filename: " << fileName << " sendBytes: " << writeBytes;
 		execute();
 	});
+}
+
+FileDownloadService::FileDownloadService(const QString & fileName, JsonObjType & taskData)
+	:isInit(false), filePath(fileName), fileSize(0), recvFileLen(0), isProvider(false), taskData(taskData)
+{
+}
+
+FileDownloadService::FileDownloadService(JsonObjType & taskData)
+	: isInit(false), isProvider(true), writeBuff(BUF_SIZE, '\0'), taskData(taskData)
+{
+}
+
+FileDownloadService::~FileDownloadService()
+{
+}
+
+void FileDownloadService::start()
+{
+	if (!isProvider) {
+		JsonObjType serviceInfor;
+		serviceInfor["serviceName"] = fileDownloadServiceStr;
+		serviceInfor["serviceParam"] = taskData;
+		Service::sendData(serviceInfor);
+		dataHandle();
+	}
+	else {
+		execute();
+	}
+}
+
+void FileDownloadService::dataHandle()
+{
+	conn->sock.async_receive(boost::asio::buffer(readBuff.data(), readBuff.size()), [this](const boost::system::error_code& ec, std::size_t readBytes) {
+		if (ec != 0) {
+			qDebug() << "FileDownloadService tcp connect error: " << ec;
+			if (file.isOpen()) file.close();
+			conn->stop();
+			return;
+		}
+
+		auto rawMsg = readBuff.length() == readBytes ? readBuff : readBuff.left(readBytes);
+		if (!readRemain.isEmpty()) {
+			rawMsg.push_front(readRemain);
+			readRemain.clear();
+		}
+
+		if (!isInit) {
+			fileSize = taskData["fileSize"].toInt();
+			file.setFileName(filePath);
+			if (!file.open(QFile::WriteOnly)) {
+				qDebug() << "download write file open failed! filenme:" << file;
+				conn->stop();
+				return;
+			}
+			isInit = true;
+		}
+
+		qDebug() << "download recv file recv executing! filename: " << filePath << " recvBytes: " << readBytes;
+
+		int writeBytes = file.write(rawMsg);
+		if (writeBytes == -1) {
+			qDebug() << "download recv picture write failed! filename: " << filePath << " errorCode: " << ec;
+			file.close();
+			conn->stop();
+			return;
+		}
+
+		qDebug() << "download recv file write executing! filename: " << filePath << " writeBytes: " << writeBytes;
+		recvFileLen += writeBytes;
+		if (recvFileLen >= fileSize) {
+			qDebug() << "recv picture recv finished! filename: " << filePath;
+			file.close();
+			conn->stop();
+		}
+
+		dataHandle();
+	});
+}
+
+void FileDownloadService::execute()
+{
+	if (!isInit) {
+		filePath = taskData["fileSourePath"].toString();
+		file.setFileName(filePath);
+		if (!file.open(QFile::ReadOnly)) {
+			qDebug() << "download send file open failed! filenme:" << filePath;
+			conn->stop();
+			return;
+		}
+		isInit = true;
+	}
+
+	int readBytes = file.read(writeBuff.data(), writeBuff.size());
+	if (readBytes < 0) {
+		qDebug() << "download send file read failed! filename: " << filePath << " errorCode: " << file.errorString();
+		file.close();
+		conn->stop();
+		return;
+	}
+	else if (readBytes == 0) {
+		conn->sock.async_send(boost::asio::buffer(writeBuff.data(), readBytes), [this](const boost::system::error_code& ec, std::size_t writeBytes) {
+			qDebug() << "download send file read finished! filename: " << filePath;
+			file.close();
+		});
+		return;
+	}
+
+	qDebug() << "download send file read executing! filename: " << filePath << " readBytes: " << readBytes;
+	conn->sock.async_send(boost::asio::buffer(writeBuff.data(), readBytes), [this](const boost::system::error_code& ec, std::size_t writeBytes) {
+		if (ec != 0) {
+			qDebug() << "download send file send failed! filename: " << filePath << " errorCode: " << ec;
+			file.close();
+			conn->stop();
+			return;
+		}
+
+		qDebug() << "download send file send executing! filename: " << filePath << " sendBytes: " << writeBytes;
+		execute();
+	});
+	//tid, int ttype, int tmode, ModelStringType tdata, int tstate, ModelStringType tdate, tsource, ModelStringType tdest;
 }

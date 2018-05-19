@@ -48,16 +48,31 @@ int TaskManager::createTask(const RequestInfo & req)
 
 int TaskManager::createSendPicSingleTask(const QString & duuid, QVariantHash& data)
 {
-	QString taskData(JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str());
 	auto addr = JsonObjType::fromVariantHash(DBOP::getInstance()->getUser(duuid));
-    auto servicePtr = std::make_shared<PicTransferService>(data["picRealName"].toString(), taskData);
+    auto servicePtr = std::make_shared<PicTransferService>(data["picRealName"].toString(), JsonDocType::fromVariant(QVariant(data)).object());
 	ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
 		if (err != 0) {
-			qDebug() << "pic connnection connect failed!";
+			qDebug() << "send picture msg connnection connect failed!";
 			return;
 		}
 
-		qDebug() << "pic connnection connect success!";
+		qDebug() << "send picture msg connnection connect success!";
+	});
+	return 0;
+}
+
+int TaskManager::createFileDownloadTask(const QString & duuid, QVariantHash data, const QString& storePath)
+{
+	auto addr = JsonObjType::fromVariantHash(DBOP::getInstance()->getUser(duuid));
+	auto filePath = storePath.split("///")[1] + "/" + data["fileName"].toString();
+    auto servicePtr = std::make_shared<FileDownloadService>(filePath, JsonDocType::fromVariant(data).object());
+	ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
+		if (err != 0) {
+			qDebug() << "file download connnection connect failed!";
+			return;
+		}
+
+		qDebug() << "file download connnection connect success!";
 	});
 	return 0;
 }

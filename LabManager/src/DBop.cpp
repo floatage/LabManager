@@ -751,12 +751,37 @@ int DBOP::createRequest(const RequestInfo & request)
 	query.addBindValue(request.rdest);
 
 	if (query.exec()) {
+		notifyNewRequestCreate(request);
 		qDebug() << "request insert success! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata;
 		return 0;
 	}
 
     qDebug() << "request insert failed! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata << " reason: " << query.lastError().text();
-    return query.lastError().type() == 1 ? -1 : -2;
+	if (query.lastError().type() == 1) notifyNewRequestCreate(request);
+	
+	return  -1;
+}
+
+QVariantHash DBOP::getRequestTaskNeedingInfo(const ModelStringType & requestId)
+{
+	static const QString GET_REQUEST_BY_ID("select rtype,rdata,rsource,rdest from Request where rid=?");
+	
+	QSqlQuery query;
+	QVariantHash result;
+
+	query.prepare(GET_REQUEST_BY_ID);
+	query.addBindValue(requestId);
+	if (!query.exec() || !query.next()) {
+		qDebug() << "request rdata get failed! rid: " << requestId << " reason: " << query.lastError().text();
+		return result;
+	}
+
+	result["rtype"] = query.value("rtype");
+	result["rdata"] = query.value("rdata");
+	result["rsource"] = query.value("rsource");
+	result["rdest"] = query.value("rdest");
+	qDebug() << "request rdata get successed! rid: " << requestId;
+	return result;
 }
 
 QVariantList DBOP::listRequests(bool isFinished)
@@ -800,6 +825,7 @@ int DBOP::setRequestState(const ModelStringType& requestId, int state)
 	query.addBindValue(requestId);
 
 	if (query.exec()) {
+		requestStateChanged(requestId, state);
 		qDebug() << "request set state success! rid: " << requestId << " rstate" << state;
 		return 0;
 	}
@@ -1021,4 +1047,9 @@ void DBOP::notifySeesionUpdateLastmsg(const SessionInfo & sessionInfo)
 	newSession.append(sessionInfo.stype);
 	newSession.append(sessionInfo.lastmsg);
 	seesionUpdateLastmsg(newSession);
+}
+
+void DBOP::notifyNewRequestCreate(const RequestInfo & reqInfo)
+{
+	newRequestCreate();
 }

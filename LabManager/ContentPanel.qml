@@ -10,6 +10,13 @@ Rectangle {
     property var panelMap: {'ChatPanel' : chatMsgArea}
     property alias target: appMenuBarInView.target
 
+    Connections{
+        target: DBOP
+        onNewRequestCreate: {
+            msgIcon.item.iconClicked()
+        }
+    }
+
     AppMenuBar{
         id: appMenuBarInView
         target: target
@@ -224,13 +231,6 @@ Rectangle {
                         }
                     }
                 }
-            }
-        }
-
-        Connections{
-            target: UserReuqestManager
-            onNewRequestRecv: {
-                msgIcon.item.iconClicked()
             }
         }
 

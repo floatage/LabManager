@@ -1,5 +1,6 @@
 import QtQuick 2.10
 import QtQuick.Controls 2.3
+import QtQuick.Dialogs 1.3
 
 DialogFrame {
     id: requestMsgRoot
@@ -70,6 +71,29 @@ DialogFrame {
             , isSend: req["rsource"] == localUUid ? true : false
             , isRecv: req["rdest"] == localUUid ? true : false
         })
+    }
+
+    Connections{
+        target: UserReuqestManager
+        onRecvFileSelectPath:{
+            storePathSelectFileDialog.duuid = duuid
+            storePathSelectFileDialog.rdata = rdata
+            storePathSelectFileDialog.open()
+        }
+    }
+
+    FileDialog{
+        id: storePathSelectFileDialog
+        title: qsTr("请选择文件存储路径")
+        selectFolder: true
+
+        property var duuid
+        property var rdata
+
+        onAccepted: {
+            console.log("You chose store file path: " + storePathSelectFileDialog.fileUrl)
+            TaskManager.createFileDownloadTask(duuid, rdata, storePathSelectFileDialog.fileUrl.toString())
+        }
     }
 
     ListModel{
@@ -165,8 +189,8 @@ DialogFrame {
                                 fillHeight: 0
                                 fillWidth:0
                                 onButtonClicked: {
-                                    UserReuqestManager.agreeRequest(rid, sourceId)
-                                    waitingReqModel.remove(index)
+                                    if (UserReuqestManager.agreeRequest(rid, sourceId) === 0)
+                                        waitingReqModel.remove(index)
                                 }
                             }
 
@@ -179,8 +203,8 @@ DialogFrame {
                                 fillWidth:0
 
                                 onButtonClicked: {
-                                    UserReuqestManager.rejectRequest(rid, sourceId)
-                                    waitingReqModel.remove(index)
+                                    if (UserReuqestManager.rejectRequest(rid, sourceId) === 0)
+                                        waitingReqModel.remove(index)
                                 }
                             }
 
@@ -193,8 +217,8 @@ DialogFrame {
                                 fillWidth:0
 
                                 onButtonClicked: {
-                                    UserReuqestManager.cancelRequest(rid, sourceId)
-                                    waitingReqModel.remove(index)
+                                    if (UserReuqestManager.cancelRequest(rid, sourceId) === 0)
+                                        waitingReqModel.remove(index)
                                 }
                             }
                         }

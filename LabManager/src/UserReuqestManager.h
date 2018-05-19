@@ -17,12 +17,12 @@ public:
     static UserReuqestManager* getInstance();
 	
     int sendRequest(const QString & duuid, int type, QVariantHash& data);
-	void errorRequest(const QString& rid, const QString & source);
+	int errorRequest(const QString& rid, const QString & source);
 	int sendFileTrangferReq(const QString & duuid, const QString& filePath);
 
-    Q_INVOKABLE void agreeRequest(const QString& rid, const QString & source);
-    Q_INVOKABLE void rejectRequest(const QString& rid, const QString & source);
-    Q_INVOKABLE void cancelRequest(const QString& rid);
+    Q_INVOKABLE int agreeRequest(const QString& rid, const QString & source);
+    Q_INVOKABLE int rejectRequest(const QString& rid, const QString & source);
+    Q_INVOKABLE int cancelRequest(const QString& rid);
 
     Q_INVOKABLE QVariantList listWaitingRequest();
     Q_INVOKABLE QVariantList listHandledRequest();
@@ -37,11 +37,10 @@ private:
 	void handleRejectRequest(JsonObjType& msg, ConnPtr conn);
 	void handleErrorRequest(JsonObjType& msg, ConnPtr conn);
 
-	UserReuqestManagerDataPtr memeberDataPtr;
+	UserReuqestManagerDataPtr memberDataPtr;
 
 signals:
-    void requestStateChanged(const QString& rid, int state);
-    void newRequestRecv(QVariantHash& recvReq);
+	void recvFileSelectPath(QString duuid, QVariantHash rdata);
 };
 
 #endif // !USERREQUESTMANAGER_H

@@ -73,7 +73,7 @@ Item{
         onAccepted: {
             if (curSeesionDestId == "") return
 
-            console.log("You chose: " + picSelectFileDialog.fileUrls)
+            console.log("You chose send pic path: " + picSelectFileDialog.fileUrl)
             console.log(picSelectFileDialog.fileUrl.toString().match(/.*\.gif/) ? true : false)
 
             SessionManager.sendPic(curSeesionType,
@@ -92,7 +92,7 @@ Item{
         onAccepted: {
             if (curSeesionDestId === "") return
 
-            console.log("You chose: " + fileSelectFileDialog.fileUrl)
+            console.log("You chose send file path: " + fileSelectFileDialog.fileUrl)
             SessionManager.sendFile(curSeesionType, curSeesionDestId, fileSelectFileDialog.fileUrl)
         }
     }
