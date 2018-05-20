@@ -106,6 +106,12 @@ TaskInfo::TaskInfo(const ModelStringType & tdest, int ttype, int tmode, const Mo
 {
 }
 
+TaskInfo::TaskInfo(const ModelStringType & tsource, const ModelStringType & tdest, int ttype, int tmode, const ModelStringType & tdata)
+	: tdest(tdest), ttype(ttype), tmode(tmode), tdata(tdata), tstate(TaskState::TaskExecute), tdate(QDateTime::currentDateTime().toString(time_format)),
+	tid(QUuid::createUuid().toString()), tsource(tsource)
+{
+}
+
 TaskInfo::TaskInfo(const ModelStringType & tid, int ttype, int tmode, const ModelStringType & tdata, int tstate, const ModelStringType & tdate, 
 	const ModelStringType & tsource, const ModelStringType & tdest)
 	: tid(tid), ttype(ttype), tmode(tmode), tdata(tdata), tstate(tstate), tdate(tdate), tsource(tsource), tdest(tdest)

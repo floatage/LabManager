@@ -66,15 +66,19 @@ int TaskManager::createFileDownloadTask(const QString & duuid, QVariantHash data
 	auto addr = JsonObjType::fromVariantHash(DBOP::getInstance()->getUser(duuid));
 	auto filePath = storePath.split("///")[1] + "/" + data["fileName"].toString();
     auto servicePtr = std::make_shared<FileDownloadService>(filePath, JsonDocType::fromVariant(data).object());
-	ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
-		if (err != 0) {
-			qDebug() << "file download connnection connect failed!";
-			return;
-		}
+	TaskInfo task(duuid, TaskType::FileTransferTask, TransferMode::Single, JsonDocType::fromVariant(data).toJson(JsonDocType::Compact));
+	int result = DBOP::getInstance()->createTask(task);
+	if (result == 0) {
+		ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
+			if (err != 0) {
+				qDebug() << "file download connnection connect failed!";
+				return;
+			}
 
-		qDebug() << "file download connnection connect success!";
-	});
-	return 0;
+			qDebug() << "file download connnection connect success!";
+		});
+	}
+	return result;
 }
 
 void TaskManager::executeTask(int tid)

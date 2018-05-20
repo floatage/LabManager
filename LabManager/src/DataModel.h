@@ -110,6 +110,7 @@ struct TaskInfo
 
 	TaskInfo();
     TaskInfo(const ModelStringType& tdest, int ttype, int tmode, const ModelStringType &tdata);
+	TaskInfo(const ModelStringType& tsource, const ModelStringType& tdest, int ttype, int tmode, const ModelStringType &tdata);
 	TaskInfo(const ModelStringType & tid, int ttype, int tmode, const ModelStringType &tdata, int tstate, const ModelStringType& tdate, 
 		const ModelStringType& tsource, const ModelStringType& tdest);
 };

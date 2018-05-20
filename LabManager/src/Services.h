@@ -19,11 +19,16 @@ public:
 	virtual void sendData(JsonObjType rawData);
 	virtual void execute();
 	virtual void pause();
+	virtual void restart();
 	virtual void stop();
+	virtual int getProgress();
 
 	ConnPtr getConn() { return conn; }
 	void setConn(ConnPtr newConn) { this->conn = newConn; }
 	void setRemain(const RecvBufferType& newRemain) { readRemain = newRemain; }
+
+	static void msgHandleLoop(size_t readBytes, RecvBufferType& readBuff, RecvBufferType& readRemain, 
+		ConnPtr conn, std::function<void(JsonObjType&)>&& handler);
 
 protected:
 	ConnPtr conn;
@@ -75,16 +80,22 @@ public:
 	virtual void start();
 	virtual void dataHandle();
 	virtual void execute();
+	virtual void pause();
+	virtual void restart();
+	virtual int getProgress();
 
 private:
+	bool isExe;
 	bool isInit;
 	bool isProvider;
 	int fileSize;
-	int recvFileLen;
+	int handleFileLen;
 	QString filePath;
 	QFile file;
 	SendBufferType writeBuff;
 	JsonObjType taskData;
+
+	void taskControlMsgHandle();
 };
 
 #endif

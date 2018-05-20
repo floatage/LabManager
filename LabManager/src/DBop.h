@@ -83,6 +83,7 @@ signals:
 	void seesionUpdateLastmsg(QVariantList sessionMsg);
 	void requestStateChanged(const QString& rid, int state);
 	void newRequestCreate();
+	void newTaskCreate();
 };
 
 #endif // !DBOP_H

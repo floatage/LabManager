@@ -851,6 +851,7 @@ int DBOP::createTask(const TaskInfo & task)
 	query.addBindValue(task.tdest);
 
 	if (query.exec()) {
+		newTaskCreate();
 		qDebug() << "task insert success! tdest: " << task.tdest << " type: " << task.ttype << " tdata: " << task.tdata;
 		return 0;
 	}
