@@ -30,6 +30,8 @@ public:
 
 	Q_INVOKABLE QString getLocalUuid();
 	Q_INVOKABLE QString getLocalPic();
+
+	int createMessage(const MessageInfo& msg, bool isSend);
 private:
     SessionManager(QObject *parent = 0);
 

@@ -12,6 +12,7 @@ Item {
     property var viewMap: null
     property alias titleText: titleTextContent.text
     property string fileName: ""
+    property var panelParent
 
     signal destroyPanel(string fileName)
 

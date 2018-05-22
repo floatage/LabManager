@@ -19,7 +19,7 @@ public:
 	virtual void sendData(JsonObjType rawData);
 	virtual void execute();
 	virtual void pause();
-	virtual void restart();
+	virtual void restore();
 	virtual void stop();
 	virtual int getProgress();
 
@@ -81,7 +81,7 @@ public:
 	virtual void dataHandle();
 	virtual void execute();
 	virtual void pause();
-	virtual void restart();
+	virtual void restore();
 	virtual int getProgress();
 
 private:
@@ -91,6 +91,7 @@ private:
 	int fileSize;
 	int handleFileLen;
 	QString filePath;
+	QString taskId;
 	QFile file;
 	SendBufferType writeBuff;
 	JsonObjType taskData;

@@ -4,6 +4,7 @@
 #include "Common.h"
 #include "DataModel.h"
 
+#include "QtCore\qmutex.h"
 #include "QtCore\qvariant.h"
 
 class DBOP : public QObject, public boost::noncopyable
@@ -63,7 +64,7 @@ public:
 	//Task operation
 	int createTask(const TaskInfo& task);
 	QVariantList listTasks(bool isFinished);
-	int setTaskState(int taskId, int state);
+	int setTaskState(const QString& taskId, int state);
 
 	//Homework operation
 	int createHomework(const HomeworkInfo& homework);
@@ -77,13 +78,16 @@ private:
 	void notifyModelAppendMsg(const MessageInfo& msgInfo);
 	void notifySeesionUpdateLastmsg(const SessionInfo& sessionInfo);
 	void notifyNewRequestCreate(const RequestInfo& reqInfo);
+	void notifyNewTaskCreate(const TaskInfo& taskInfo);
 
 signals:
 	void sessionMsgRecv(QVariantList recvMsg);
 	void seesionUpdateLastmsg(QVariantList sessionMsg);
 	void requestStateChanged(const QString& rid, int state);
-	void newRequestCreate();
-	void newTaskCreate();
+	void newRequestCreate(QVariantList reqMsg);
+	void newTaskCreate(QVariantList taskMsg);
+	void taskHandleFinished(const QString& tid, int tstate);
+	void taskRunningStateChanged(const QString& tid, int tstate);
 };
 
 #endif // !DBOP_H

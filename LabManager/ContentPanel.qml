@@ -10,10 +10,19 @@ Rectangle {
     property var panelMap: {'ChatPanel' : chatMsgArea}
     property alias target: appMenuBarInView.target
 
+    signal newRequestCreate(var reqMsg)
+    signal newTaskCreate(var taskMsg)
+
     Connections{
         target: DBOP
         onNewRequestCreate: {
             msgIcon.item.iconClicked()
+            newRequestCreate(reqMsg)
+        }
+
+        onNewTaskCreate:{
+            taskIcon.item.iconClicked()
+            newTaskCreate(taskMsg)
         }
     }
 

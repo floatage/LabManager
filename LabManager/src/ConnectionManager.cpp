@@ -292,6 +292,11 @@ void Connection::execute()
 	servicePtr->execute();
 }
 
+void Connection::restore()
+{
+	servicePtr->restore();
+}
+
 void Connection::pause()
 {
 	servicePtr->pause();
@@ -302,4 +307,9 @@ void Connection::stop()
 	servicePtr->stop();
 	sock.close();
     parent->unregisterObj(id);
+}
+
+int Connection::getProgress()
+{
+	return servicePtr->getProgress();
 }

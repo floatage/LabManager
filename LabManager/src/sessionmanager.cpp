@@ -122,6 +122,11 @@ QString SessionManager::getLocalPic()
 	return QString("/img/defaultPic.jpg");
 }
 
+int SessionManager::createMessage(const MessageInfo & msg, bool isSend)
+{
+	return DBOP::getInstance()->createMessage(msg, isSend);
+}
+
 void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 {
 	qDebug() << "RECV CHAT MSG: " << msg;

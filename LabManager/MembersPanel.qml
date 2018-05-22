@@ -23,7 +23,7 @@ ApplicationWindow {
     function createOrReplacePanel(panelFileName){
         if (!panelDict.hasOwnProperty(panelFileName)){
             var panel = Qt.createComponent(panelFileName)
-            panelDict[panelFileName] = panel.createObject(userView, {visible: true, y:42, x:765})
+            panelDict[panelFileName] = panel.createObject(userView, {visible: true, y:42, x:765, panelParent:funcPanelContent})
         }
 
         if (curPanel && curPanel !== undefined)curPanel.visible = false

@@ -5,7 +5,7 @@
 #define _WIN32_WINNT 0x0601
 #endif
 
-#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
+//#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
 
 #include <string>
 #include <functional>
@@ -91,7 +91,7 @@ enum HostRole{ ROLE_NULL, ROLE_MASTER, ROLE_ROUTER, ROLE_MEMBER, ROLE_ADMIN };
 
 enum TransferMode { Single, Group, Broadcast, Random };
 
-enum TaskType { FileTransferTask, PicTransferTask, AudioTransferTask, VideoTransferTask };
+enum TaskType { FileTransferTask, AudioTransferTask, VideoTransferTask };
 
 enum TaskState { TaskExecute, TaskPause, TaskCancel, TaskFinished, TaskError };
 

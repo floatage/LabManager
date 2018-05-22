@@ -7,7 +7,9 @@
 
 #include "QtCore\qobject.h"
 
-struct RequestInfo;
+struct TaskInfo;
+struct TaskManagerData;
+typedef std::shared_ptr<TaskManagerData> TaskManagerDataPtr;
 class TaskManager: public QObject, public boost::noncopyable, public MsgActionParser
 {
     Q_OBJECT
@@ -15,16 +17,18 @@ public:
 	~TaskManager();
     static TaskManager* getInstance();
 
+	int createTask(const TaskInfo& task, ConnPtr taskConn);
     int createTask(int mode, const QString& duuid, int type, QVariantHash& data);
-    int createTask(const RequestInfo& req);
 	int createSendPicSingleTask(const QString& duuid, QVariantHash& data);
     Q_INVOKABLE int createFileDownloadTask(const QString& duuid, QVariantHash data, const QString& storePath);
 
-    Q_INVOKABLE void executeTask(int tid);
-    Q_INVOKABLE void pauseTask(int tid);
-    Q_INVOKABLE void stopTask(int tid);
-    Q_INVOKABLE void getTaskProgress(int tid);
+    Q_INVOKABLE void restoreTask(const QString& tid);
+    Q_INVOKABLE void pauseTask(const QString& tid);
+    Q_INVOKABLE void stopTask(const QString& tid);
+	void finishTask(const QString& tid);
+	void errorTask(const QString& tid);
 
+	Q_INVOKABLE int getTaskProgress(const QString& tid);
     Q_INVOKABLE QVariantList listRunningTask();
     Q_INVOKABLE QVariantList listFinishedTask();
 
@@ -33,11 +37,11 @@ public:
 private:
     TaskManager(QObject *parent = 0);
 
-	ConnPtr getTaskConn(int tid);
+	inline void registerTask(const QString& tid, ConnPtr taskConn);
+	inline void unregisterTask(const QString& tid);
+	ConnPtr getTaskConn(const QString& tid);
 
-	void handleExecuteTask(JsonObjType& msg, ConnPtr conn);
-	void handlePauseTask(JsonObjType& msg, ConnPtr conn);
-	void handleStopTask(JsonObjType& msg, ConnPtr conn);
+	TaskManagerDataPtr memberDataPtr;
 };
 
 #endif // !TASKMANAGER_H

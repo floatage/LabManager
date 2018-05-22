@@ -17,8 +17,10 @@ public:
 	void connect(ConnImplType type, const StringType& id, ConnectHandler&& handler);
 	void send(JsonObjType msg);
 	void execute();
+	void restore();
 	void pause();
 	void stop();
+	int getProgress();
 
 	void setID(const StringType& newId) { this->id = newId; }
 	StringType getID()const { return id; }

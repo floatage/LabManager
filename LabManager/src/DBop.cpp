@@ -757,7 +757,6 @@ int DBOP::createRequest(const RequestInfo & request)
 	}
 
     qDebug() << "request insert failed! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata << " reason: " << query.lastError().text();
-	if (query.lastError().type() == 1) notifyNewRequestCreate(request);
 	
 	return  -1;
 }
@@ -837,6 +836,7 @@ int DBOP::setRequestState(const ModelStringType& requestId, int state)
 //Task operation
 int DBOP::createTask(const TaskInfo & task)
 {
+	static QMutex taskCreateMutex;
 	static const QString ADD_TASK("insert into Task(tid,ttype,tmode,tdata,tstate,tdate,tsource,tdest) values(?,?,?,?,?,?,?,?)");
 
 	QSqlQuery query;
@@ -850,14 +850,15 @@ int DBOP::createTask(const TaskInfo & task)
 	query.addBindValue(task.tsource);
 	query.addBindValue(task.tdest);
 
+	QMutexLocker lock(&taskCreateMutex);
 	if (query.exec()) {
-		newTaskCreate();
+		notifyNewTaskCreate(task);
 		qDebug() << "task insert success! tdest: " << task.tdest << " type: " << task.ttype << " tdata: " << task.tdata;
 		return 0;
 	}
 
 	qDebug() << "task insert failed! tdest: " << task.tdest << " type: " << task.ttype << " tdata: " << task.tdata << " reason: " << query.lastError().text();
-	return query.lastError().type() == 1 ? -1 : -2;
+	return -1;
 }
 
 QVariantList DBOP::listTasks(bool isFinished)
@@ -892,8 +893,9 @@ QVariantList DBOP::listTasks(bool isFinished)
 	return result;
 }
 
-int DBOP::setTaskState(int taskId, int state)
+int DBOP::setTaskState(const QString& taskId, int state)
 {
+	static QMutex taskStateMutex;
 	static const QString SET_TASK_STATE("update Task set tstate=? where tid=?");
 
 	QSqlQuery query;
@@ -901,7 +903,9 @@ int DBOP::setTaskState(int taskId, int state)
 	query.addBindValue(state);
 	query.addBindValue(taskId);
 
+	QMutexLocker lock(&taskStateMutex);
 	if (query.exec()) {
+		state > 1 ? taskHandleFinished(taskId, state) : taskRunningStateChanged(taskId, state);
 		qDebug() << "task set state success! tid: " << taskId << " tstate" << state;
 		return 0;
 	}
@@ -1052,5 +1056,28 @@ void DBOP::notifySeesionUpdateLastmsg(const SessionInfo & sessionInfo)
 
 void DBOP::notifyNewRequestCreate(const RequestInfo & reqInfo)
 {
-	newRequestCreate();
+	QVariantList newReq;
+	newReq.append(reqInfo.rid);
+	newReq.append(reqInfo.rtype);
+	newReq.append(reqInfo.rdata);
+	newReq.append(reqInfo.rstate);
+	newReq.append(reqInfo.rdate);
+	newReq.append(reqInfo.rsource);
+	newReq.append(reqInfo.rdest);
+	newReq.append(getUser(reqInfo.rsource)["uname"]);
+	newRequestCreate(newReq);
+}
+
+void DBOP::notifyNewTaskCreate(const TaskInfo & taskInfo)
+{
+	QVariantList newTask;
+	newTask.append(taskInfo.tid);
+	newTask.append(taskInfo.ttype);
+	newTask.append(taskInfo.tmode);
+	newTask.append(taskInfo.tdata);
+	newTask.append(taskInfo.tstate);
+	newTask.append(taskInfo.tdate);
+	newTask.append(taskInfo.tsource);
+	newTask.append(taskInfo.tdest);
+	newTaskCreate(newTask);
 }

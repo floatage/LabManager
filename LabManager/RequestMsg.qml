@@ -41,35 +41,41 @@ DialogFrame {
         "请求超时", "未知错误"
     ]
 
+    property var fileSizeUnitMap:[
+        'b', 'Kb', 'Mb', 'Gb', 'Tb'
+    ]
+
+    function getFileSizeStr(fileSize){
+        var sizeUnit = 0
+
+        if (fileSize > 1024.0){
+            while (fileSize > 1024.0){
+                fileSize = fileSize / 1024.0
+                sizeUnit = sizeUnit + 1
+            }
+        }
+
+        return fileSize.toFixed(2) + fileSizeUnitMap[sizeUnit]
+    }
+
     function updateRequestModel(){
-        //rid,rtype,rdata,rstate,rdate,rsource,rdest,uname
         var reqList = UserReuqestManager.listWaitingRequest()
         waitingReqModel.clear()
         for (var begin = 0; begin < reqList.length; ++begin){
-            //rid, rtype, sourceId, sourceName, rdata
-            waitingReqModel.append({
-                rid: reqList[begin][0]
-                , rtype: reqList[begin][1]
-                , sourceId: reqList[begin][6]
-                , sourceName: reqList[begin][7]
-                , rdata: reqList[begin][2]
-                , rstate: reqList[begin][3]
-                , isSend: reqList[begin][5] == localUUid ? true : false
-                , isRecv: reqList[begin][6] == localUUid ? true : false
-            })
+            appendReqToModel(reqList[begin])
         }
     }
 
-    function insertReqToModel(req){
+    function appendReqToModel(req){
+        //rid,rtype,rdata,rstate,rdate,rsource,rdest,uname
         waitingReqModel.append({
-            rid: req["rid"]
-            , rtype: req["rtype"]
-            , sourceId: req["rsource"]
-            , sourceName: req["uname"]
-            , rdata: req["rdata"]
-            , rstate: req["rstate"]
-            , isSend: req["rsource"] == localUUid ? true : false
-            , isRecv: req["rdest"] == localUUid ? true : false
+            rid: req[0]
+            , rtype: req[1]
+            , sourceId: req[6]
+            , sourceName: req[7]
+            , rdata: req[2]
+            , isSend: req[5] == localUUid ? true : false
+            , isRecv: req[6] == localUUid ? true : false
         })
     }
 
@@ -79,6 +85,14 @@ DialogFrame {
             storePathSelectFileDialog.duuid = duuid
             storePathSelectFileDialog.rdata = rdata
             storePathSelectFileDialog.open()
+        }
+    }
+
+    Connections{
+        target: panelParent
+        onNewRequestCreate: {
+            if (waitingReqModel.count == 0 || reqMsg[0] != waitingReqModel.get(waitingReqModel.count-1).rid)
+                appendReqToModel(reqMsg)
         }
     }
 
@@ -141,7 +155,7 @@ DialogFrame {
                                 var reqInfor = sourceName + "(" + sourceId + ")" + requestMsgRoot.requestTypeTextMap[rtype]
                                 if (rtype == 0){
                                     var data = JSON.parse(rdata)
-                                    reqInfor += data["fileName"] + "(" + Math.round(data["fileSize"]/1024) + "kb)"
+                                    reqInfor += data["fileName"] + "(" + requestMsgRoot.getFileSizeStr(parseInt(data["fileSize"])) + ")"
                                 }
 
                                 return reqInfor
@@ -280,11 +294,15 @@ DialogFrame {
                         }
 
                         TextArea {
+                            property var fileSizeUnitMap:[
+                                'b', 'Kb', 'Mb', 'Gb', 'Tb'
+                            ]
+
                             function getReqStr(){
                                 var reqInfor = sourceName + "(" + sourceId + ")" + requestMsgRoot.requestTypeTextMap[rtype]
                                 if (rtype == 0){
                                     var data = JSON.parse(rdata)
-                                    reqInfor += data["fileName"] + "(" + Math.round(data["fileSize"]/1024) + "kb)"
+                                    reqInfor += data["fileName"] + "(" + requestMsgRoot.getFileSizeStr(parseInt(data["fileSize"])) + ")"
                                 }
 
                                 return reqInfor
