@@ -131,4 +131,13 @@ struct HomeworkInfo
 		const ModelStringType &hstartdate, const ModelStringType &hduration, const ModelStringType &hfilepath, const ModelStringType &hintro);
 };
 
+struct SharedFileInfo
+{
+	ModelStringType fpath;
+	ModelStringType fowner;
+	ModelStringType fgroup;
+	SharedFileInfo(const ModelStringType& fpath);
+	SharedFileInfo(const ModelStringType& fpath, const QString& fowner, const QString& fgroup);
+};
+
 #endif // !DATAMODEL_H

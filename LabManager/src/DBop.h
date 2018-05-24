@@ -73,12 +73,18 @@ public:
 	QVariantList listHomeworks();
 	int setHomeworkState(const ModelStringType& homeworkId, const ModelStringType& state);
 
+	//Shared file operation
+	int addSharedFile(const SharedFileInfo& file);
+	int removeSharedFile(const ModelStringType& path);
+	QVariantList listSharedFile();
+
 private:
 	DBOP(QObject* parent = 0);
 	void notifyModelAppendMsg(const MessageInfo& msgInfo);
 	void notifySeesionUpdateLastmsg(const SessionInfo& sessionInfo);
 	void notifyNewRequestCreate(const RequestInfo& reqInfo);
 	void notifyNewTaskCreate(const TaskInfo& taskInfo);
+	void notifySharedFileAdd(const SharedFileInfo& fileInfo);
 
 signals:
 	void sessionMsgRecv(QVariantList recvMsg);
@@ -88,6 +94,8 @@ signals:
 	void newTaskCreate(QVariantList taskMsg);
 	void taskHandleFinished(const QString& tid, int tstate);
 	void taskRunningStateChanged(const QString& tid, int tstate);
+	void newSharedFileAdd(QVariantList fileMsg);
+	void sharedFileRemove(const QString& fpath);
 };
 
 #endif // !DBOP_H

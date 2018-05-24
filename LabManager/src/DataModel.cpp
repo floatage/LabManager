@@ -5,8 +5,6 @@
 #include "QtCore\qdatetime.h"
 #include "QtCore\quuid.h"
 
-const QString time_format("yyyy.MM.dd hh:mm:ss");
-
 UserInfo::UserInfo()
 {
 }
@@ -23,7 +21,7 @@ UserGroupInfo::UserGroupInfo()
 
 UserGroupInfo::UserGroupInfo(const ModelStringType &ugid, const ModelStringType &ugname, const ModelStringType &ugowneruid,
 	const ModelStringType &ugintro, const ModelStringType &ugpic)
-	:ugid(ugid), ugname(ugname), ugowneruid(ugowneruid), ugintro(ugintro), ugpic(ugpic), ugdate(QDateTime::currentDateTime().toString(time_format))
+	:ugid(ugid), ugname(ugname), ugowneruid(ugowneruid), ugintro(ugintro), ugpic(ugpic), ugdate(QDateTime::currentDateTime().toString(timeFormat))
 {
 }
 
@@ -32,7 +30,7 @@ GroupMemberInfo::GroupMemberInfo()
 }
 
 GroupMemberInfo::GroupMemberInfo(const ModelStringType &ugid, const ModelStringType &uid, int mrole)
-	:ugid(ugid), uid(uid), mrole(mrole), mjoindate(QDateTime::currentDateTime().toString(time_format))
+	:ugid(ugid), uid(uid), mrole(mrole), mjoindate(QDateTime::currentDateTime().toString(timeFormat))
 {
 }
 
@@ -65,7 +63,7 @@ MessageInfo::MessageInfo()
 
 MessageInfo::MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, int mmode)
 	:mid(-1), msource(NetStructureManager::getInstance()->getLocalUuid().c_str()), mduuid(mduuid), mmode(mmode),
-	mtype(mtype), mdata(mdata), mdate(QDateTime::currentDateTime().toString(time_format))
+	mtype(mtype), mdata(mdata), mdate(QDateTime::currentDateTime().toString(timeFormat))
 {
 }
 
@@ -80,7 +78,7 @@ RequestInfo::RequestInfo()
 }
 
 RequestInfo::RequestInfo(const ModelStringType& rdest, int rtype, const ModelStringType &rdata)
-	:rdest(rdest), rtype(rtype), rdata(rdata), rstate(ReqState::ReqWaiting), rdate(QDateTime::currentDateTime().toString(time_format)),
+	:rdest(rdest), rtype(rtype), rdata(rdata), rstate(ReqState::ReqWaiting), rdate(QDateTime::currentDateTime().toString(timeFormat)),
 	rid(QUuid::createUuid().toString()), rsource(NetStructureManager::getInstance()->getLocalUuid().c_str())
 {
 }
@@ -101,13 +99,13 @@ TaskInfo::TaskInfo()
 }
 
 TaskInfo::TaskInfo(const ModelStringType & tdest, int ttype, int tmode, const ModelStringType & tdata)
-	: tdest(tdest), ttype(ttype), tmode(tmode), tdata(tdata), tstate(TaskState::TaskExecute),  tdate(QDateTime::currentDateTime().toString(time_format)),
+	: tdest(tdest), ttype(ttype), tmode(tmode), tdata(tdata), tstate(TaskState::TaskExecute),  tdate(QDateTime::currentDateTime().toString(timeFormat)),
 	tid(QUuid::createUuid().toString()), tsource(NetStructureManager::getInstance()->getLocalUuid().c_str())
 {
 }
 
 TaskInfo::TaskInfo(const ModelStringType & tsource, const ModelStringType & tdest, int ttype, int tmode, const ModelStringType & tdata)
-	: tdest(tdest), ttype(ttype), tmode(tmode), tdata(tdata), tstate(TaskState::TaskExecute), tdate(QDateTime::currentDateTime().toString(time_format)),
+	: tdest(tdest), ttype(ttype), tmode(tmode), tdata(tdata), tstate(TaskState::TaskExecute), tdate(QDateTime::currentDateTime().toString(timeFormat)),
 	tid(QUuid::createUuid().toString()), tsource(tsource)
 {
 }
@@ -125,5 +123,15 @@ HomeworkInfo::HomeworkInfo()
 HomeworkInfo::HomeworkInfo(const ModelStringType &hid, const ModelStringType& hadmin, const ModelStringType& hugid, const ModelStringType &htype,
 	const ModelStringType &hstartdate, const ModelStringType &hduration, const ModelStringType &hfilepath, const ModelStringType &hintro)
 	:hid(hid), hadmin(hadmin), hugid(hugid), htype(htype), hstartdate(hstartdate), hduration(hduration), hfilepath(hfilepath), hintro(hintro)
+{
+}
+
+SharedFileInfo::SharedFileInfo(const ModelStringType & fpath)
+	: fpath(fpath), fowner(NetStructureManager::getInstance()->getLocalUuid().c_str()), fgroup("")
+{
+}
+
+SharedFileInfo::SharedFileInfo(const ModelStringType & fpath, const QString & fowner, const QString& fgroup)
+	: fpath(fpath), fowner(fowner), fgroup(fgroup)
 {
 }

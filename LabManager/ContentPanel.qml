@@ -10,8 +10,20 @@ Rectangle {
     property var panelMap: {'ChatPanel' : chatMsgArea}
     property alias target: appMenuBarInView.target
 
+    property string curSessionName: "匿名"
+    property string curSeesionDestId: ""
+    property string curSeesionDestPic: "/img/defaultPic.jpg"
+    property int curSeesionType: 1
+    property string localUUid: SessionManager.getLocalUuid()
+    property string localPic: SessionManager.getLocalPic()
+
+    signal curSessionChanged()
     signal newRequestCreate(var reqMsg)
     signal newTaskCreate(var taskMsg)
+
+    onCurSeesionDestIdChanged: {
+        curSessionChanged()
+    }
 
     Connections{
         target: DBOP
@@ -159,7 +171,7 @@ Rectangle {
 
                             if (panelMap && !panelMap.hasOwnProperty("fileSharedPanel")){
                                 var panel = Qt.createComponent("FileSharedPanel.qml")
-                                panelMap["fileSharedPanel"] = panel.createObject(null, {visible: false, width: contentStackView.width, height: contentStackView.height})
+                                panelMap["fileSharedPanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.target, width: contentStackView.width, height: contentStackView.height})
                             }
 
                             iconRow.replaceToStackTop(contentStackView, panelMap["fileSharedPanel"])
@@ -207,7 +219,7 @@ Rectangle {
 
                             if (panelMap && !panelMap.hasOwnProperty("HomeworkManagePanel")){
                                 var panel = Qt.createComponent("HomeworkManagePanel.qml")
-                                panelMap["HomeworkManagePanel"] = panel.createObject(null, {visible: false, target:userViewRoot.target, width: contentStackView.width, height: contentStackView.height})
+                                panelMap["HomeworkManagePanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.target, width: contentStackView.width, height: contentStackView.height})
                             }
 
                             iconRow.replaceToStackTop(contentStackView, panelMap["HomeworkManagePanel"])
@@ -296,6 +308,8 @@ Rectangle {
                 width: parent.width
                 height: parent.height
                 visible: false
+                panelParent: userViewRoot
+                panelTarget: userViewRoot.target
             }
         }
     }

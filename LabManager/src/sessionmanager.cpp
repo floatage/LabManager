@@ -5,6 +5,7 @@
 #include "UserReuqestManager.h"
 #include "TaskManager.h"
 #include "HomeworkManager.h"
+#include "SharedFileManager.h"
 
 #include "QtCore\qfileinfo.h"
 #include "QtCore\quuid.h"
@@ -13,6 +14,7 @@ const StringType sessionFamilyStr("SeesionManage");
 const StringType transferStrActionStr("TransferStr");
 const StringType transferPicActionStr("TransferPic");
 const StringType transferFileActionStr("TransferFile");
+const StringType listSharedFileActionStr("ListSharedFile");
 
 SessionManager::SessionManager(QObject *parent)
     :QObject(parent)
@@ -20,6 +22,7 @@ SessionManager::SessionManager(QObject *parent)
     ConnectionManager::getInstance()->registerFamilyHandler(sessionFamilyStr, std::bind(&SessionManager::actionParse, this, _1, _2));
 
 	registerActionHandler(transferStrActionStr, std::bind(&SessionManager::handleRecvChatMsg, this, _1, _2));
+	registerActionHandler(listSharedFileActionStr, std::bind(&SessionManager::handleRecvSharedFileInfo, this, _1, _2));
 }
 
 SessionManager::~SessionManager()
@@ -112,6 +115,37 @@ void SessionManager::publishHomework(const QString & duuid, const QVariantList &
     HomeworkManager::getInstance()->publishHomework();
 }
 
+QVariantList SessionManager::listSharedFile(const QString & duuid, bool isRemote, bool isGroup)
+{
+	if (!isRemote) return DBOP::getInstance()->listSharedFile();
+	
+	JsonObjType datas;
+	datas["source"] = getLocalUuid();
+	datas["dest"] = duuid;
+	ConnectionManager::getInstance()->sendActionMsg(isGroup ? TransferMode::Group : TransferMode::Single, sessionFamilyStr, listSharedFileActionStr, datas);
+	return QVariantList();
+}
+
+int SessionManager::addSharedFile(const QString & filePath)
+{
+	return SharedFileManager::getInstance()->addSharedFile(filePath);
+}
+
+int SessionManager::removeSharedFile(const QString & filePath)
+{
+	return SharedFileManager::getInstance()->removeSharedFile(filePath);
+}
+
+void SessionManager::uploadSharedFile(const QString & groupId, const QUrl & filePath)
+{
+	SharedFileManager::getInstance()->uploadSharedFile(groupId, filePath.toString().split("///")[1]);
+}
+
+void SessionManager::downloadSharedFile(bool isGroup, const QString & duuid, const QString & filePath, const QUrl& storePath)
+{
+	SharedFileManager::getInstance()->downloadSharedFile(isGroup, duuid, filePath, storePath.toString().split("///")[1]);
+}
+
 QString SessionManager::getLocalUuid()
 {
 	return  NetStructureManager::getInstance()->getLocalUuid().c_str();
@@ -134,4 +168,9 @@ void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 	MessageInfo msgInfo(data["source"].toString(), data["dest"].toString(), data["type"].toInt(), 
 		data["data"].toString(), data["date"].toString(), data["mode"].toInt());
 	DBOP::getInstance()->createMessage(msgInfo, false);
+}
+
+void SessionManager::handleRecvSharedFileInfo(JsonObjType & msg, ConnPtr conn)
+{
+	remoteSharedFileInforRecv(QString(), QVariantList());
 }

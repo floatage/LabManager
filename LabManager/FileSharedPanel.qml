@@ -2,11 +2,15 @@ import QtQuick 2.10
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Styles 1.4
 import QtGraphicalEffects 1.0
+import QtQuick.Dialogs 1.3
 
 Rectangle {
     id: fileShareImpPanel
     width: 750
     height: 580
+
+    property var panelTarget
+    property var panelParent
 
     property color itemNormalColor: "#FFF"
     property color itemHoverColor : "#FEE"
@@ -19,8 +23,94 @@ Rectangle {
     property int fontWeight: Font.Thin
     property int textRenderMode: Text.NativeRendering
 
+    property var fileTypePicMap: {
+        "pdf": "/img/pdf.png"
+    }
+
+    function updateSharedFileModel(){
+        if (panelParent.curSeesionDestId == "") return
+
+        sharedFileListView.model.clear()
+        var fileList = SessionManager.listSharedFile(panelParent.curSeesionDestId,
+                                                     panelParent.curSeesionDestId == panelParent.localUUid,
+                                                     panelParent.curSeesionType == 1 ? false : true)
+        for (var index = 0; index < fileList.length; ++index){
+            appendSharedFileItem(fileList[index])
+        }
+    }
+
+    function appendSharedFileItem(sharedFile){
+        //fpath, fowner, fgroup, uname, ftype, filename, filedate, filesize
+        sharedFileListView.model.append({picTypePic: "/img/fileTransferIcon.png"
+                        ,filePath: sharedFile[0]
+                        ,fileOwner: sharedFile[1]
+                        ,fileGroup: sharedFile[2]
+                        ,fileUploadUser: sharedFile[3]
+                        ,fileName: sharedFile[5]
+                        ,fileUpdateDate: sharedFile[6]
+                        ,fileSize: sharedFile[7]})
+    }
+
+    Connections{
+        target: panelParent
+        onCurSessionChanged:{
+            curDirText.text = panelParent.curSessionName + "的共享文件夹"
+            updateSharedFileModel()
+        }
+    }
+
+    Connections{
+        target: SessionManager
+        onRemoteSharedFileInforRecv:{
+            if (panelParent.curSeesionDestId != from) return
+
+            sharedFileListView.model.clear()
+            for (var index = 0; index < fileInfoList.length; ++index){
+                appendSharedFileItem(fileInfoList[index])
+            }
+        }
+    }
+
+    Connections{
+        target: DBOP
+        onNewSharedFileAdd:{
+            appendSharedFileItem(fileMsg)
+        }
+    }
+
+    FileDialog{
+        id: sharedFileSelectFileDialog
+        title: qsTr("请选择添加文件")
+        selectFolder: false
+        selectMultiple: false
+        nameFilters: ['All Files (*.*)']
+        onAccepted: {
+            if (panelParent.curSeesionDestId == "") return
+
+            console.log("You chose send file path: " + sharedFileSelectFileDialog.fileUrl)
+            SessionManager.addSharedFile(sharedFileSelectFileDialog.fileUrl)
+        }
+    }
+
+    FileDialog{
+        id: sharedFileStorePathSelectFileDialog
+        title: qsTr("请选择文件存储路径")
+        selectFolder: true
+
+        property var bGroup
+        property var duuid
+        property var downloadFilePath
+
+        onAccepted: {
+            console.log("You chose store file path: " + sharedFileStorePathSelectFileDialog.fileUrl)
+            SessionManager.downloadSharedFile(bGroup, duuid, downloadFilePath, sharedFileStorePathSelectFileDialog.fileUrl)
+        }
+    }
+
     Menu {
         id: shareFilePopupMenu
+
+        property string curSelectPath: ""
 
         background: Rectangle {
             id: menuback
@@ -60,14 +150,14 @@ Rectangle {
         Action{
             text: "删除文件"
             onTriggered: {
-                console.log("删除文件")
+                SessionManager.removeSharedFile(curSelectPath)
             }
         }
 
         Action{
-            text: "修改文件"
+            text: "增加文件"
             onTriggered: {
-                console.log("修改文件")
+                sharedFileSelectFileDialog.open()
             }
         }
     }
@@ -97,7 +187,6 @@ Rectangle {
                         id: curDirText
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
-                        text: "我是娃哈哈：/FolderOne"
                         font.family: fontFamily
                         font.bold: fontBolder
                         font.weight: fontWeight
@@ -323,13 +412,7 @@ Rectangle {
                 }
 
                 Component.onCompleted: {
-                    for(var count = 0; count < 10; ++count){
-                        model.append({picTypePicInfor: "/img/fileTransferIcon.png"
-                                        ,fileNameInfor: "测试目录"
-                                        ,fileUploadUserInfor: "刘飞飞"
-                                        ,fileUpdateDateInfor: "21:05 2016/12/3"
-                                        ,fileSizeInfor: "28.5 KB"})
-                    }
+                    updateSharedFileModel()
                 }
 
                 model: ListModel {
@@ -339,6 +422,15 @@ Rectangle {
                     id: shareFileItem
                     width: parent.width
                     height: 50
+
+                    Connections{
+                        target: DBOP
+                        onSharedFileRemove:{
+                            if (fpath == filePath){
+                                sharedFileListView.model.remove(index)
+                            }
+                        }
+                    }
 
                     MouseArea {
                         anchors.fill: parent
@@ -351,8 +443,10 @@ Rectangle {
                             sharedFileListView.currentIndex = index
                             sharedFileListView.currentItem.color = "#FEE"
 
-                            if (mouse.button === Qt.RightButton)
+                            if (mouse.button === Qt.RightButton){
+                                shareFilePopupMenu.curSelectPath = filePath
                                 shareFilePopupMenu.popup()
+                            }
                         }
                         onEntered: {
                             if (sharedFileListView.currentIndex !== index)
@@ -364,8 +458,15 @@ Rectangle {
                         }
                     }
 
+//                                            picTypePic: "/img/fileTransferIcon.png"
+//                                            ,filePath: sharedFile[0]
+//                                            ,fileUploadUser: sharedFile[3]
+//                                            ,fileName: sharedFile[5]
+//                                            ,fileUpdateDate: sharedFile[6]
+//                                            ,fileSize: sharedFile[7]})
+
                     Rectangle {
-                        id: fileTypePic
+                        id: fileTypePicArea
                         width: 30
                         height: width
                         color: parent.color
@@ -374,7 +475,7 @@ Rectangle {
                         Image {
                             id: fileTypeImg
                             anchors.centerIn: parent
-                            source: picTypePicInfor
+                            source: picTypePic
                             sourceSize: Qt.size(17, 19)
                             scale: 1.2
                         }
@@ -383,11 +484,11 @@ Rectangle {
                     Row{
                         width: parent.width - 60
                         height: parent.height
-                        anchors.left: fileTypePic.right
+                        anchors.left: fileTypePicArea.right
                         anchors.leftMargin: 30
 
                         Text {
-                            id: fileName
+                            id: fileNameTextArea
                             width: parent.width * 0.25
                             anchors.verticalCenter: parent.verticalCenter
                             font.family: fontFamily
@@ -396,56 +497,71 @@ Rectangle {
                             font.bold: fontBolder
                             font.weight: fontWeight
                             font.pixelSize: fontSize
-                            text: fileNameInfor
+                            text: fileName
                             renderType: textRenderMode
                             clip: true
                         }
 
                         Text {
-                            id: fileUpdateDate
+                            id: fileUpdateDateTextArea
                             width: parent.width * 0.25
-                            anchors.verticalCenter: fileName.verticalCenter
-                            font: fileName.font
+                            anchors.verticalCenter: fileNameTextArea.verticalCenter
+                            font: fileNameTextArea.font
                             color: fontColor
-                            text: fileUpdateDateInfor
-                            renderType: fileName.renderType
+                            text: fileUpdateDate
+                            renderType: fileNameTextArea.renderType
                             clip: true
                         }
 
                         Text {
-                            id: fileUploadUser
+                            id: fileUploadUserArea
                             width: parent.width * 0.15
-                            anchors.verticalCenter: fileName.verticalCenter
-                            font: fileName.font
-                            color: fileUpdateDate.color
-                            text: fileUploadUserInfor
-                            renderType: fileName.renderType
+                            anchors.verticalCenter: fileNameTextArea.verticalCenter
+                            font: fileNameTextArea.font
+                            color: fileUpdateDateTextArea.color
+                            text: fileUploadUser
+                            renderType: fileNameTextArea.renderType
                             clip: true
                         }
 
                         Text {
-                            id: fileSize
+                            id: fileSizeTextArea
                             width: parent.width * 0.2
-                            anchors.verticalCenter: fileName.verticalCenter
-                            font: fileName.font
-                            color: fileUpdateDate.color
-                            text: fileSizeInfor
-                            renderType: fileName.renderType
+                            anchors.verticalCenter: fileNameTextArea.verticalCenter
+                            font: fileNameTextArea.font
+                            color: fileUpdateDateTextArea.color
+                            text: fileSize
+                            renderType: fileNameTextArea.renderType
                             clip: true
                         }
 
                         Rectangle {
-                            id: fileDownload
+                            id: fileDownloadArea
                             width: parent.width * 0.1
                             height: parent.height
                             color: shareFileItem.color
-                            anchors.verticalCenter: fileName.verticalCenter
+                            anchors.verticalCenter: fileNameTextArea.verticalCenter
 
                             Image {
                                 id: fileDownloadImg
                                 anchors.centerIn: parent
                                 source: "/img/download.svg"
                                 sourceSize: Qt.size(17, 19)
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    acceptedButtons: Qt.LeftButton
+                                    hoverEnabled: true
+
+                                    onClicked: {
+                                        sharedFileStorePathSelectFileDialog.bGroup = fileGroup == "" ? false : true
+                                        sharedFileStorePathSelectFileDialog.duuid = fileGroup == "" ? fileOwner : fileGroup
+                                        sharedFileStorePathSelectFileDialog.downloadFilePath = filePath
+                                        sharedFileStorePathSelectFileDialog.open()
+                                    }
+                                    onEntered: {iconImg.scale = 0.9}
+                                    onExited: {iconImg.scale = 1.0}
+                                }
                             }
                         }
                     }

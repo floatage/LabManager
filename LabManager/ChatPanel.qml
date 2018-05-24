@@ -6,16 +6,13 @@ import QtGraphicalEffects 1.0
 Item{
     id: chatMsgControler
 
+    property var panelTarget
+    property var panelParent
+
     property int commonLeftMargin: 15
-    property alias curSessionName: chatMsgControlerDestObjectName.text
-    property string curSeesionDestId: ""
-    property string curSeesionDestPic: ""
-    property int curSeesionType: 1
-    property string localUUid: SessionManager.getLocalUuid()
-    property string localPic: SessionManager.getLocalPic()
 
     function updateMsgModel(){
-        var msgList = SessionManager.getChatMsgs(curSeesionDestId)
+        var msgList = SessionManager.getChatMsgs(panelParent.curSeesionDestId)
         chatMsgControlerContentListView.model.clear()
 
         //0:msg, 1:pic, 2:anemation
@@ -23,13 +20,13 @@ Item{
         //msgSenderPic,isGroup,msgSenderRole,msgSender,msgSenderUuid,msgDate,isSend,msgType,msgRealData
         for (var begin = 0; begin < msgList.length; ++begin){
             chatMsgControlerContentListView.model.append({
-                msgSenderPic: msgList[begin][1] == localUUid ? localPic : curSeesionDestPic
-                , isGroup: curSeesionType == 1 ? false : true
+                msgSenderPic: msgList[begin][1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
+                , isGroup: panelParent.curSeesionType == 1 ? false : true
                 , msgSenderRole: ""
-                , msgSender: msgList[begin][1] != localUUid ? curSessionName : "我"
+                , msgSender: msgList[begin][1] != panelParent.localUUid ? panelParent.curSessionName : "我"
                 , msgSenderUuid: msgList[begin][2]
                 , msgDate: msgList[begin][5]
-                , isSend: msgList[begin][1] == localUUid ? true : false
+                , isSend: msgList[begin][1] == panelParent.localUUid ? true : false
                 , msgType: msgList[begin][3]
                 , msgRealData: msgList[begin][4]
             })
@@ -38,25 +35,28 @@ Item{
         chatMsgControlerContentListView.positionViewAtEnd()
     }
 
-    onCurSeesionDestIdChanged: {
-        console.log(curSessionName + " " + curSeesionDestId + " " + curSeesionDestPic + " " + curSeesionType)
-        updateMsgModel()
+    Connections{
+        target: panelParent
+        onCurSessionChanged:{
+            chatMsgControlerDestObjectName.text = panelParent.curSessionName
+            updateMsgModel()
+        }
     }
 
     Connections{
         target: DBOP
         onSessionMsgRecv: {
             console.log("Recv text and update model")
-            if (recvMsg[2] != curSeesionDestId) return
+            if (recvMsg[2] != panelParent.curSeesionDestId) return
 
             chatMsgControlerContentListView.model.append({
-                msgSenderPic: recvMsg[1] == localUUid ? localPic : curSeesionDestPic
-                , isGroup: curSeesionType == 1 ? false : true
+                msgSenderPic: recvMsg[1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
+                , isGroup: panelParent.curSeesionType == 1 ? false : true
                 , msgSenderRole: ""
-                , msgSender: recvMsg[1] != localUUid ? curSessionName : "我"
+                , msgSender: recvMsg[1] != panelParent.localUUid ? panelParent.curSessionName : "我"
                 , msgSenderUuid: recvMsg[2]
                 , msgDate: recvMsg[5]
-                , isSend: recvMsg[1] == localUUid ? true : false
+                , isSend: recvMsg[1] == panelParent.localUUid ? true : false
                 , msgType: recvMsg[3]
                 , msgRealData: recvMsg[4]
             })
@@ -71,13 +71,13 @@ Item{
         selectMultiple: false
         nameFilters: ['Pictures (*.png *.jpg *.jpeg *.bmp *.svg *.gif)']
         onAccepted: {
-            if (curSeesionDestId == "") return
+            if (panelParent.curSeesionDestId == "") return
 
             console.log("You chose send pic path: " + picSelectFileDialog.fileUrl)
             console.log(picSelectFileDialog.fileUrl.toString().match(/.*\.gif/) ? true : false)
 
-            SessionManager.sendPic(curSeesionType,
-                                   curSeesionDestId,
+            SessionManager.sendPic(panelParent.curSeesionType,
+                                   panelParent.curSeesionDestId,
                                    picSelectFileDialog.fileUrl,
                                    picSelectFileDialog.fileUrl.toString().match(/.*\.gif/))
         }
@@ -90,10 +90,10 @@ Item{
         selectMultiple: false
         nameFilters: ['All Files (*.*)']
         onAccepted: {
-            if (curSeesionDestId === "") return
+            if (panelParent.curSeesionDestId === "") return
 
             console.log("You chose send file path: " + fileSelectFileDialog.fileUrl)
-            SessionManager.sendFile(curSeesionType, curSeesionDestId, fileSelectFileDialog.fileUrl)
+            SessionManager.sendFile(panelParent.curSeesionType, panelParent.curSeesionDestId, fileSelectFileDialog.fileUrl)
         }
     }
 
@@ -435,11 +435,11 @@ Item{
                     reversal: true
                     buttonText: "发送"
                     onButtonClicked: {
-                        if (curSeesionDestId == "") return
+                        if (panelParent.curSeesionDestId == "") return
 
                         var sendText = chatMsgControlerInputArea.text.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '')
                         if (sendText.length !== 0){
-                            SessionManager.sendChatMsg(curSeesionType, curSeesionDestId, sendText)
+                            SessionManager.sendChatMsg(panelParent.curSeesionType, panelParent.curSeesionDestId, sendText)
                         }
                         chatMsgControlerInputArea.clear()
                     }

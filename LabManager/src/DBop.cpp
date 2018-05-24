@@ -3,6 +3,8 @@
 #include "qtsqlglobal.h"
 #include "QtSql\qsqlquery.h"
 #include "QtSql\qsqlerror.h"
+#include "QtCore\qfileinfo.h"
+#include "QtCore\qdatetime.h"
 
 DBOP::DBOP(QObject* parent) 
 	:QObject(parent)
@@ -114,9 +116,14 @@ int DBOP::createTables()
 		"foreign key(hadmin) references Admin(aname), "
 		"foreign key(hugid) references UserGroup(hugid))");
 
+	bool bSharedFile = query.exec("CREATE TABLE IF NOT EXISTS SharedFile(fpath VARCHAR(256) PRIMARY KEY, "
+		"fowner VARCHAR(32) NOT NULL, "
+		"fgroup VARCHAR(32), "
+		"foreign key(fowner) references User(uid))");
+
 	qDebug() << "create tables sql execute";
 
-	return bUser && bGroup && bAdmin && bMemeber && bSession && bMessage && bReuqest && bTask && bHomework ? 0 : -1;
+	return bUser && bGroup && bAdmin && bMemeber && bSession && bMessage && bReuqest && bTask && bHomework && bSharedFile ? 0 : -1;
 }
 
 //User operation
@@ -1032,6 +1039,77 @@ int DBOP::setHomeworkState(const ModelStringType & homeworkId, const ModelString
 	return -1;
 }
 
+int DBOP::addSharedFile(const SharedFileInfo & file)
+{
+	static const QString ADD_SHARED_FILE("insert into SharedFile(fpath,fowner,fgroup) values(?,?,?)");
+
+	QSqlQuery query;
+	query.prepare(ADD_SHARED_FILE);
+	query.addBindValue(file.fpath);
+	query.addBindValue(file.fowner);
+	query.addBindValue(file.fgroup);
+
+	if (query.exec()) {
+		notifySharedFileAdd(file);
+		qDebug() << "new shared file insert success! fpath: " << file.fpath << " fowner: " << file.fowner << " fgroup: " << file.fgroup;
+		return 0;
+	}
+
+	qDebug() << "new shared file insert failed! fpath: " << file.fpath << " fowner: " << file.fowner << " fgroup: " << file.fgroup << " reason: " << query.lastError().text();
+	return -1;
+}
+
+int DBOP::removeSharedFile(const ModelStringType & path)
+{
+	static const QString REMOVE_SHARED_FILE("delete from SharedFile where fpath=?");
+
+	QSqlQuery query;
+	query.prepare(REMOVE_SHARED_FILE);
+	query.addBindValue(path);
+
+	if (query.exec()) {
+		sharedFileRemove(path);
+		qDebug() << "shared file remove success! fpath: " << path;
+		return 0;
+	}
+
+	qDebug() << "shared file remove failed! fpath: " << path << " reason: " << query.lastError().text();
+	return -1;
+}
+
+QVariantList DBOP::listSharedFile()
+{
+	static const QString SHARED_FILE_GET_ALL("select fpath,fowner,fgroup,uname from SharedFile, User where fowner=uid");
+
+	QSqlQuery query;
+	QVariantList result;
+
+	query.prepare(SHARED_FILE_GET_ALL);
+	if (!query.exec()) {
+		qDebug() << "shared file select all failed! reason: " << query.lastError().text();
+		return result;
+	}
+
+	while (query.next())
+	{
+		QVariantList item;
+		QString fpath = query.value("fpath").toString();
+		item.append(fpath);
+		item.append(query.value("fowner"));
+		item.append(query.value("fgroup"));
+		item.append(query.value("uname"));
+		QFileInfo fileInfo(fpath);
+		item.append(fileInfo.completeSuffix());
+		item.append(fileInfo.fileName());
+		item.append(fileInfo.lastModified().toString(timeFormat));
+		item.append(getFileSizeStr((double)fileInfo.size()));
+		result.append(QVariant(item));
+	}
+
+	qDebug() << "shared file select all success!";
+	return result;
+}
+
 void DBOP::notifyModelAppendMsg(const MessageInfo & msgInfo)
 {
 	QVariantList recvMsg;
@@ -1080,4 +1158,19 @@ void DBOP::notifyNewTaskCreate(const TaskInfo & taskInfo)
 	newTask.append(taskInfo.tsource);
 	newTask.append(taskInfo.tdest);
 	newTaskCreate(newTask);
+}
+
+void DBOP::notifySharedFileAdd(const SharedFileInfo & file)
+{
+	QVariantList newSharedFile;
+	newSharedFile.append(file.fpath);
+	newSharedFile.append(file.fowner);
+	newSharedFile.append(file.fgroup);
+	newSharedFile.append(getUser(file.fowner)["uname"]);
+	QFileInfo fileInfo(file.fpath);
+	newSharedFile.append(fileInfo.completeSuffix());
+	newSharedFile.append(fileInfo.fileName());
+	newSharedFile.append(fileInfo.lastModified().toString(timeFormat));
+	newSharedFile.append(getFileSizeStr((double)fileInfo.size()));
+	newSharedFileAdd(newSharedFile);
 }

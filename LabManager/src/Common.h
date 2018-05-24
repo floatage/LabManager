@@ -85,6 +85,8 @@ const StringType UDP_BROADCAST_ADDR = "255.255.255.255";
 
 const StringType INVALID_ID = "";
 
+const QString timeFormat("yyyy.MM.dd hh:mm:ss");
+
 const int INVALID_ORDER = -1;
 
 enum HostRole{ ROLE_NULL, ROLE_MASTER, ROLE_ROUTER, ROLE_MEMBER, ROLE_ADMIN };
@@ -140,6 +142,8 @@ StringType getLocalIp();
 StringType getMac(const StringType& ip);
 
 StringType getMac();
+
+QString getFileSizeStr(double fileSize);
 
 void setHostArp(const StringType& ip, const StringType& mac);
 

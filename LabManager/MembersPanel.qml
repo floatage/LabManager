@@ -369,10 +369,10 @@ ApplicationWindow {
                         }
 
                         onCurrentItemChanged: {
-                            funcPanelContent.panelMap["ChatPanel"].curSessionName = sessionModel.get(currentIndex).sessionDestName
-                            funcPanelContent.panelMap["ChatPanel"].curSeesionDestId = sessionModel.get(currentIndex).sessionDestUuid
-                            funcPanelContent.panelMap["ChatPanel"].curSeesionDestPic = sessionModel.get(currentIndex).sessionPicPath
-                            funcPanelContent.panelMap["ChatPanel"].curSeesionType = sessionModel.get(currentIndex).sessionType
+                            funcPanelContent.curSessionName = sessionModel.get(currentIndex).sessionDestName
+                            funcPanelContent.curSeesionDestId = sessionModel.get(currentIndex).sessionDestUuid
+                            funcPanelContent.curSeesionDestPic = sessionModel.get(currentIndex).sessionPicPath
+                            funcPanelContent.curSeesionType = sessionModel.get(currentIndex).sessionType
                         }
 
                         model: sessionModel

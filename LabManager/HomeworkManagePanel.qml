@@ -7,7 +7,8 @@ Rectangle {
     width: 750
     height: 580
 
-    property var target: null
+    property var panelTarget
+    property var panelParent
     property string fontFamily: "微软雅黑"
     property color itemNormalColor: "#FFF"
     property color itemHoverColor : "#FEE"
@@ -232,7 +233,7 @@ Rectangle {
                                 target:addHomeworkIcon.item
                                 onPicLoad: img.source = "/img/add.svg"
                                 onIconClicked: {
-                                    homeworkManageImpPanel.target.createOrReplacePanel("HomeworkDistribute.qml")
+                                    homeworkManageImpPanel.panelTarget.createOrReplacePanel("HomeworkDistribute.qml")
                                 }
                             }
                         }

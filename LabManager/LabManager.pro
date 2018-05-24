@@ -25,7 +25,8 @@ SOURCES += main.cpp \
     src/SessionManager.cpp \
     src/TaskManager.cpp \
     src/UserManager.cpp \
-    src/UserReuqestManager.cpp
+    src/UserReuqestManager.cpp \
+    src/SharedFileManager.cpp
 
 RESOURCES += qml.qrc
 
@@ -52,6 +53,7 @@ HEADERS += \
     src/SessionManager.h \
     src/TaskManager.h \
     src/UserManager.h \
-    src/UserReuqestManager.h
+    src/UserReuqestManager.h \
+    src/SharedFileManager.h
 
 
