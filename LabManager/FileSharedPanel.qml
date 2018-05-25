@@ -32,7 +32,7 @@ Rectangle {
 
         sharedFileListView.model.clear()
         var fileList = SessionManager.listSharedFile(panelParent.curSeesionDestId,
-                                                     panelParent.curSeesionDestId == panelParent.localUUid,
+                                                     panelParent.curSeesionDestId != panelParent.localUUid,
                                                      panelParent.curSeesionType == 1 ? false : true)
         for (var index = 0; index < fileList.length; ++index){
             appendSharedFileItem(fileList[index])
@@ -54,8 +54,10 @@ Rectangle {
     Connections{
         target: panelParent
         onCurSessionChanged:{
-            curDirText.text = panelParent.curSessionName + "的共享文件夹"
-            updateSharedFileModel()
+            if (panelParent.panelStackView.currentItem == panelParent.panelMap['FileSharedPanel']){
+                curDirText.text = panelParent.curSessionName + "的共享文件夹"
+                updateSharedFileModel()
+            }
         }
     }
 
@@ -99,11 +101,12 @@ Rectangle {
 
         property var bGroup
         property var duuid
-        property var downloadFilePath
+        property var fileDetail
 
         onAccepted: {
             console.log("You chose store file path: " + sharedFileStorePathSelectFileDialog.fileUrl)
-            SessionManager.downloadSharedFile(bGroup, duuid, downloadFilePath, sharedFileStorePathSelectFileDialog.fileUrl)
+            console.log(fileDetail)
+            SessionManager.downloadSharedFile(bGroup, duuid, fileDetail, sharedFileStorePathSelectFileDialog.fileUrl)
         }
     }
 
@@ -150,7 +153,7 @@ Rectangle {
         Action{
             text: "删除文件"
             onTriggered: {
-                SessionManager.removeSharedFile(curSelectPath)
+                SessionManager.removeSharedFile(shareFilePopupMenu.curSelectPath)
             }
         }
 
@@ -255,6 +258,7 @@ Rectangle {
 
                         Loader {
                             id: shareFileSettingIcon
+                            visible: panelParent.curSeesionDestId === panelParent.localUUid
                             sourceComponent: iconItem
                             onLoaded: {
                                 item.iconWidth = 18
@@ -272,6 +276,7 @@ Rectangle {
 
                         Loader {
                             id: addShareFileIcon
+                            visible: panelParent.curSeesionDestId === panelParent.localUUid
                             sourceComponent: iconItem
                             onLoaded: {
                                 item.iconWidth = 22
@@ -283,6 +288,7 @@ Rectangle {
                                 target:addShareFileIcon.item
                                 onPicLoad: img.source = "/img/add.svg"
                                 onIconClicked: {
+                                    sharedFileSelectFileDialog.open()
                                 }
                             }
                         }
@@ -300,6 +306,7 @@ Rectangle {
                                 target:shareFileRefreshIcon.item
                                 onPicLoad: img.source = "/img/refresh.svg"
                                 onIconClicked: {
+                                    updateSharedFileModel()
                                 }
                             }
                         }
@@ -411,8 +418,11 @@ Rectangle {
                     }
                 }
 
-                Component.onCompleted: {
-                    updateSharedFileModel()
+                onVisibleChanged: {
+                    if (visible){
+                        curDirText.text = panelParent.curSessionName + "的共享文件夹"
+                        updateSharedFileModel()
+                    }
                 }
 
                 model: ListModel {
@@ -443,7 +453,7 @@ Rectangle {
                             sharedFileListView.currentIndex = index
                             sharedFileListView.currentItem.color = "#FEE"
 
-                            if (mouse.button === Qt.RightButton){
+                            if (mouse.button === Qt.RightButton && panelParent.curSeesionDestId === panelParent.localUUid){
                                 shareFilePopupMenu.curSelectPath = filePath
                                 shareFilePopupMenu.popup()
                             }
@@ -457,13 +467,6 @@ Rectangle {
                                 shareFileItem.color = "#FFF"
                         }
                     }
-
-//                                            picTypePic: "/img/fileTransferIcon.png"
-//                                            ,filePath: sharedFile[0]
-//                                            ,fileUploadUser: sharedFile[3]
-//                                            ,fileName: sharedFile[5]
-//                                            ,fileUpdateDate: sharedFile[6]
-//                                            ,fileSize: sharedFile[7]})
 
                     Rectangle {
                         id: fileTypePicArea
@@ -530,7 +533,7 @@ Rectangle {
                             anchors.verticalCenter: fileNameTextArea.verticalCenter
                             font: fileNameTextArea.font
                             color: fileUpdateDateTextArea.color
-                            text: fileSize
+                            text: fileShareImpPanel.panelParent.getFileSizeStr(fileSize)
                             renderType: fileNameTextArea.renderType
                             clip: true
                         }
@@ -556,11 +559,12 @@ Rectangle {
                                     onClicked: {
                                         sharedFileStorePathSelectFileDialog.bGroup = fileGroup == "" ? false : true
                                         sharedFileStorePathSelectFileDialog.duuid = fileGroup == "" ? fileOwner : fileGroup
-                                        sharedFileStorePathSelectFileDialog.downloadFilePath = filePath
+
+                                        sharedFileStorePathSelectFileDialog.fileDetail = [fileName, fileSize, filePath]
                                         sharedFileStorePathSelectFileDialog.open()
                                     }
-                                    onEntered: {iconImg.scale = 0.9}
-                                    onExited: {iconImg.scale = 1.0}
+                                    onEntered: {fileDownloadImg.scale = 0.9}
+                                    onExited: {fileDownloadImg.scale = 1.0}
                                 }
                             }
                         }

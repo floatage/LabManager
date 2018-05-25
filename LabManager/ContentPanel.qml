@@ -8,7 +8,8 @@ Rectangle {
     height: 580
 
     property var panelMap: {'ChatPanel' : chatMsgArea}
-    property alias target: appMenuBarInView.target
+    property alias panelParent: appMenuBarInView.target
+    property alias panelStackView: contentStackView
 
     property string curSessionName: "匿名"
     property string curSeesionDestId: ""
@@ -17,9 +18,26 @@ Rectangle {
     property string localUUid: SessionManager.getLocalUuid()
     property string localPic: SessionManager.getLocalPic()
 
+    property var fileSizeUnitMap:[
+        'b', 'Kb', 'Mb', 'Gb', 'Tb'
+    ]
+
     signal curSessionChanged()
     signal newRequestCreate(var reqMsg)
     signal newTaskCreate(var taskMsg)
+
+    function getFileSizeStr(fileSize){
+        var sizeUnit = 0
+
+        if (fileSize > 1024.0){
+            while (fileSize > 1024.0){
+                fileSize = fileSize / 1024.0
+                sizeUnit = sizeUnit + 1
+            }
+        }
+
+        return fileSize.toFixed(2) + fileSizeUnitMap[sizeUnit]
+    }
 
     onCurSeesionDestIdChanged: {
         curSessionChanged()
@@ -40,7 +58,7 @@ Rectangle {
 
     AppMenuBar{
         id: appMenuBarInView
-        target: target
+        target: panelParent
     }
 
     Rectangle {
@@ -169,12 +187,12 @@ Rectangle {
                         onIconClicked: {
                             iconRow.setIconTrue(fileTransferIcon)
 
-                            if (panelMap && !panelMap.hasOwnProperty("fileSharedPanel")){
+                            if (panelMap && !panelMap.hasOwnProperty("FileSharedPanel")){
                                 var panel = Qt.createComponent("FileSharedPanel.qml")
-                                panelMap["fileSharedPanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.target, width: contentStackView.width, height: contentStackView.height})
+                                panelMap["FileSharedPanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.target, width: contentStackView.width, height: contentStackView.height})
                             }
 
-                            iconRow.replaceToStackTop(contentStackView, panelMap["fileSharedPanel"])
+                            iconRow.replaceToStackTop(contentStackView, panelMap["FileSharedPanel"])
                         }
                     }
                 }
@@ -235,7 +253,7 @@ Rectangle {
                     Connections {
                         target: msgIcon.item
                         onIconClicked: {
-                            userView.createOrReplacePanel("RequestMsg.qml")
+                            userViewRoot.panelParent.createOrReplacePanel("RequestMsg.qml")
                         }
                     }
                 }
@@ -248,7 +266,7 @@ Rectangle {
                     Connections {
                         target: taskIcon.item
                         onIconClicked: {
-                            userView.createOrReplacePanel("TaskMsg.qml")
+                            userViewRoot.panelParent.createOrReplacePanel("TaskMsg.qml")
                         }
                     }
                 }
@@ -309,7 +327,7 @@ Rectangle {
                 height: parent.height
                 visible: false
                 panelParent: userViewRoot
-                panelTarget: userViewRoot.target
+                panelTarget: userViewRoot.panelParent
             }
         }
     }

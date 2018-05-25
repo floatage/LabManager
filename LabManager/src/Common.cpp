@@ -125,21 +125,6 @@ StringType getMac()
 	return getMac(getLocalIp());
 }
 
-QString getFileSizeStr(double fileSize)
-{
-	static QString fileSizeUnitMap[]{ "b", "Kb", "Mb", "Gb", "Tb" };
-
-	int sizeUnit = 0;
-	if (fileSize > 1024.0) {
-		while (fileSize > 1024.0) {
-			fileSize = fileSize / 1024.0;
-			sizeUnit += 1;
-		}
-	}
-
-	return  QString::number(fileSize, 'f', 2) + fileSizeUnitMap[sizeUnit];
-}
-
 void setHostArp(const StringType& ip, const StringType& mac) {
 	
 }

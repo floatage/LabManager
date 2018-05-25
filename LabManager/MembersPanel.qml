@@ -386,7 +386,6 @@ ApplicationWindow {
                             Connections{
                                 target: userView
                                 onSessionRecvNewMsg:{
-                                    console.log("onSessionRecvNewMsg: " + itemIndex + " " + index)
                                     if (itemIndex == index)
                                         color = "#c9deef"
                                 }
@@ -721,7 +720,7 @@ ApplicationWindow {
 
     ContentPanel{
         id: funcPanelContent
-        target: userView
+        panelParent: userView
         anchors.left: membersRoot.right
         anchors.leftMargin: -2
         anchors.top: parent.top

@@ -1102,7 +1102,7 @@ QVariantList DBOP::listSharedFile()
 		item.append(fileInfo.completeSuffix());
 		item.append(fileInfo.fileName());
 		item.append(fileInfo.lastModified().toString(timeFormat));
-		item.append(getFileSizeStr((double)fileInfo.size()));
+		item.append(fileInfo.size());
 		result.append(QVariant(item));
 	}
 
@@ -1171,6 +1171,6 @@ void DBOP::notifySharedFileAdd(const SharedFileInfo & file)
 	newSharedFile.append(fileInfo.completeSuffix());
 	newSharedFile.append(fileInfo.fileName());
 	newSharedFile.append(fileInfo.lastModified().toString(timeFormat));
-	newSharedFile.append(getFileSizeStr((double)fileInfo.size()));
+	newSharedFile.append(fileInfo.size());
 	newSharedFileAdd(newSharedFile);
 }

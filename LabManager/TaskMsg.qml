@@ -11,6 +11,8 @@ DialogFrame{
               "/img/history.png":[taskHistory, 'taskHistory', false],
               "/img/settingIcon.png":[taskSetting,'taskSetting', false]}
 
+    property var panelParent
+
     property color textDColor: "#5E5E5E"
     property color textUDColor: "#333"
     property real colSpacing: 35
@@ -25,10 +27,6 @@ DialogFrame{
     //TaskExecute, TaskPause, TaskCancel, TaskFinished, TaskError
     property var taskStateTextMap: [
         "执行中", "暂停中", "任务已取消", "任务已完成", "未知错误"
-    ]
-
-    property var fileSizeUnitMap:[
-        'b', 'Kb', 'Mb', 'Gb', 'Tb'
     ]
 
     function updateRunningTaskModel(){
@@ -59,16 +57,7 @@ DialogFrame{
 
     function getTaskTotalStr(tdata, ttype){
         if (ttype == 0){
-            var fileSize = parseInt(tdata["fileSize"])
-            var sizeUnit = 0
-
-            if (fileSize > 1024.0){
-                while (fileSize > 1024.0){
-                    fileSize = fileSize / 1024.0
-                    sizeUnit = sizeUnit + 1
-                }
-            }
-            return fileSize.toFixed(2) + fileSizeUnitMap[sizeUnit]
+            return taskMsgRoot.panelParent.getFileSizeStr(parseInt(tdata["fileSize"]))
         }
         return "N/A"
     }

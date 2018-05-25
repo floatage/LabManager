@@ -5,7 +5,7 @@
 #define _WIN32_WINNT 0x0601
 #endif
 
-//#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
+#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
 
 #include <string>
 #include <functional>
@@ -142,8 +142,6 @@ StringType getLocalIp();
 StringType getMac(const StringType& ip);
 
 StringType getMac();
-
-QString getFileSizeStr(double fileSize);
 
 void setHostArp(const StringType& ip, const StringType& mac);
 

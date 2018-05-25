@@ -29,10 +29,10 @@ public:
     Q_INVOKABLE void publishHomework(const QString& duuid, const QVariantList& hwInfo);
 
 	Q_INVOKABLE QVariantList listSharedFile(const QString& duuid, bool isRemote, bool isGroup);
-	Q_INVOKABLE int addSharedFile(const QString& filePath);
+	Q_INVOKABLE int addSharedFile(const QUrl& filePath);
 	Q_INVOKABLE int removeSharedFile(const QString& filePath);
 	Q_INVOKABLE void uploadSharedFile(const QString& groupId, const QUrl& filePath);
-	Q_INVOKABLE void downloadSharedFile(bool isGroup, const QString& duuid, const QString& filePath, const QUrl& storePath);
+    Q_INVOKABLE void downloadSharedFile(bool isGroup, const QString& duuid, QVariantList fileData, const QUrl& storePath);
 
 	Q_INVOKABLE QString getLocalUuid();
 	Q_INVOKABLE QString getLocalPic();
@@ -42,7 +42,8 @@ private:
     SessionManager(QObject *parent = 0);
 
 	void handleRecvChatMsg(JsonObjType& msg, ConnPtr conn);
-	void handleRecvSharedFileInfo(JsonObjType& msg, ConnPtr conn);
+	void handleListSharedFileInfo(JsonObjType& msg, ConnPtr conn);
+	void handleSendSharedFileInfo(JsonObjType& msg, ConnPtr conn);
 
 signals:
 	void remoteSharedFileInforRecv(const QString& from, QVariantList fileInfoList);

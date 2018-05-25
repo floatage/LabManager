@@ -12,6 +12,8 @@ DialogFrame {
         "/img/settingIcon.png": [requestMsgSetting, "requestMsgSetting", false]
     }
 
+    property var panelParent
+
     property color textDColor: "#5E5E5E"
     property color textUDColor: "#333"
     property real colSpacing: 35
@@ -40,23 +42,6 @@ DialogFrame {
         "对方已拒绝", "对方已取消",
         "请求超时", "未知错误"
     ]
-
-    property var fileSizeUnitMap:[
-        'b', 'Kb', 'Mb', 'Gb', 'Tb'
-    ]
-
-    function getFileSizeStr(fileSize){
-        var sizeUnit = 0
-
-        if (fileSize > 1024.0){
-            while (fileSize > 1024.0){
-                fileSize = fileSize / 1024.0
-                sizeUnit = sizeUnit + 1
-            }
-        }
-
-        return fileSize.toFixed(2) + fileSizeUnitMap[sizeUnit]
-    }
 
     function updateRequestModel(){
         var reqList = UserReuqestManager.listWaitingRequest()
@@ -155,7 +140,7 @@ DialogFrame {
                                 var reqInfor = sourceName + "(" + sourceId + ")" + requestMsgRoot.requestTypeTextMap[rtype]
                                 if (rtype == 0){
                                     var data = JSON.parse(rdata)
-                                    reqInfor += data["fileName"] + "(" + requestMsgRoot.getFileSizeStr(parseInt(data["fileSize"])) + ")"
+                                    reqInfor += data["fileName"] + "(" + requestMsgRoot.panelParent.getFileSizeStr(parseInt(data["fileSize"])) + ")"
                                 }
 
                                 return reqInfor
@@ -302,7 +287,7 @@ DialogFrame {
                                 var reqInfor = sourceName + "(" + sourceId + ")" + requestMsgRoot.requestTypeTextMap[rtype]
                                 if (rtype == 0){
                                     var data = JSON.parse(rdata)
-                                    reqInfor += data["fileName"] + "(" + requestMsgRoot.getFileSizeStr(parseInt(data["fileSize"])) + ")"
+                                    reqInfor += data["fileName"] + "(" + requestMsgRoot.panelParent.getFileSizeStr(parseInt(data["fileSize"])) + ")"
                                 }
 
                                 return reqInfor

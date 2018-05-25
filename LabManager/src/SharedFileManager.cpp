@@ -1,5 +1,9 @@
 #include "SharedFileManager.h"
 #include "DBOP.h"
+#include "TaskManager.h"
+#include "NetStructureManager.h"
+
+#include "QtCore\qfileinfo.h"
 
 SharedFileManager::SharedFileManager()
 {
@@ -29,7 +33,12 @@ void SharedFileManager::uploadSharedFile(const QString & groupId, const QString 
 {
 }
 
-void SharedFileManager::downloadSharedFile(bool isGroup, const QString& duuid, const QString& filePath, const QString& storePath)
+void SharedFileManager::downloadSharedFile(bool isGroup, const QString & duuid, QVariantHash& fileData, const QString & storePath)
 {
+	if (!isGroup) {
+		fileData["rsource"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
+		fileData["rdest"] = duuid;
+		TaskManager::getInstance()->createFileDownloadTask(duuid, fileData, storePath);
+	}
 }
 

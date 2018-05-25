@@ -38,8 +38,10 @@ Item{
     Connections{
         target: panelParent
         onCurSessionChanged:{
-            chatMsgControlerDestObjectName.text = panelParent.curSessionName
-            updateMsgModel()
+            if (panelParent.panelStackView.currentItem == panelParent.panelMap['ChatPanel']){
+                chatMsgControlerDestObjectName.text = panelParent.curSessionName
+                updateMsgModel()
+            }
         }
     }
 
