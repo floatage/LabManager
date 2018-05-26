@@ -33,6 +33,7 @@ public:
 
 	//GroupMember operation
 	int addMember(const GroupMemberInfo& member, QString& sql=QString());
+	int addMembers(std::shared_ptr<std::vector<UserInfo>> userList, const UserGroupInfo& group);
 	int removeMember(const ModelStringType& groupId, const ModelStringType& userId, QString& sql=QString());
 	QVariantList listMembers(const ModelStringType& groupId);
 	int setMemeberRole(const ModelStringType& groupId, const ModelStringType& userId, int role, QString& sql=QString());

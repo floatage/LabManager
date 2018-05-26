@@ -192,7 +192,7 @@ void NetStructureManager::hostRoleAssignment()
         auto connId = nodes[counter]["uid"].toString().toStdString();
 		
 		auto servicePtr = std::make_shared<NetStructureService>();
-        cm->connnectHost(ConnType::CONN_CHILD, connId, nodes[counter], servicePtr, [&cm, connId, sendMsg](const boost::system::error_code& err) {
+        cm->connnectHost(ConnType::CONN_CHILD, connId, nodes[counter], servicePtr, [cm, connId, sendMsg](const boost::system::error_code& err) {
 			if (err != 0)
 				return;
 
@@ -214,11 +214,16 @@ void NetStructureManager::voteRun(JsonObjType& msg, ConnPtr)
 
 void NetStructureManager::voteFinished(JsonObjType& msg, ConnPtr)
 {
+	static bool dbIsInit = false;
+
 	if (role == ROLE_NULL) {
         setRole(msg["propose"] == localHost["uid"] ? ROLE_MASTER : ROLE_MEMBER);
 	}
 	else if (role == ROLE_MEMBER) {
 		voteStageTimer.cancel();
+		if (!dbIsInit) {
+			dumpUserToDB();
+		}
 	}
 
 	qDebug() << "BECAME ROLE: " << role;
@@ -258,13 +263,24 @@ void NetStructureManager::dumpUserToDB()
 	if (!hostSet.empty()) {
 		auto userList = std::make_shared<std::vector<UserInfo>>();
 		for (auto& host : hostSet) {
-            userList->push_back(UserInfo(host["uid"].toString(), QString::fromLocal8Bit("匿名"), host["uip"].toString(), host["umac"].toString(), HostRole::ROLE_NULL, ""));
+			auto uid = host["uid"].toString();
+            userList->push_back(UserInfo(uid, QString::fromLocal8Bit("节点")+ uid.left(6), 
+				host["uip"].toString(), host["umac"].toString(), HostRole::ROLE_NULL, ""));
 		}
 
-		IOContextManager::getInstance()->getIOLoop().post([userList]() {
-			DBOP::getInstance()->addUsers(userList);
+		UserGroupInfo defaultGroup(QString("0"), QString::fromLocal8Bit("当前域"), QString(""), 
+			QString::fromLocal8Bit("当前局域网内所有用户"), QString("/img/defaultPic.jpg"));
+
+		AdminInfo defaultAdmin(QString::fromLocal8Bit("admin"), QString::fromLocal8Bit("18782087866"));
+
+		IOContextManager::getInstance()->getIOLoop().post([userList, defaultGroup, defaultAdmin]() {
+			auto dbop = DBOP::getInstance();
+			dbop->addUsers(userList);
+			dbop->createUserGroup(defaultGroup);
+			dbop->addMembers(userList, defaultGroup);
+			dbop->createAdmin(defaultAdmin);
 		});
-		hostSet.clear();
+		hostSet.clear();		
 	}
 }
 
@@ -290,7 +306,7 @@ void NetStructureManager::buildInitMsgAndConnectDest(JsonObjType& dest, ConnImpl
     auto cm = ConnectionManager::getInstance();
     auto connId = dest["uid"].toString().toStdString();
 	auto servicePtr = std::make_shared<NetStructureService>();
-    cm->connnectHost(type, connId, dest, servicePtr, [&cm, connId, sendMsg](const boost::system::error_code& err) {
+    cm->connnectHost(type, connId, dest, servicePtr, [cm, connId, sendMsg](const boost::system::error_code& err) {
 		if (err != 0) {
 			qDebug() << "buildInitMsgAndConnectDest connect failed";
 			return;

@@ -9,6 +9,8 @@ const StringType sendGroupActionStr("SendGroup");
 const StringType sendBroadcastActionStr("SendBroadcast");
 const StringType sendRandomActionStr("SendRandom");
 
+const int maxRouteCount = 5;
+
 ConnectionManager::ConnectionManager()
 {
 	validConn[ConnType::CONN_PARENT] = ConnMap();
@@ -105,9 +107,9 @@ void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 	}
 
 	JsonObjType sendMsg;
-	isRepackage ? sendMsg["family"] : msg["family"] = connManagefamilyStr.c_str();
-	isRepackage ? sendMsg["action"] : msg["action"] = sendSingleActionStr.c_str();
-	isRepackage ? sendMsg["state"] : msg["state"] = TransferState::TSAvailable;
+	(isRepackage ? sendMsg["family"] : msg["family"]) = connManagefamilyStr.c_str();
+	(isRepackage ? sendMsg["action"] : msg["action"]) = sendSingleActionStr.c_str();
+	(isRepackage ? sendMsg["state"] : msg["state"]) = TransferState::TSAvailable;
 	if (isRepackage) {
 		sendMsg["data"] = msg;
 	}
@@ -122,6 +124,17 @@ void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 			result->second->send(isRepackage ? sendMsg : msg);
 		}
 		else {
+			if (!(isRepackage ? sendMsg.contains("routeCount") : msg.contains("routeCount"))) {
+				(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = 1;
+				for (auto& parent : validConn[ConnType::CONN_PARENT]) {
+					parent.second->send(isRepackage ? sendMsg : msg);
+				}
+			}
+			
+			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
+			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
+			if (routeCount >= routeCount) return;
+
 			for (auto& brother : validConn[ConnType::CONN_BROTHER]) {
 				brother.second->send(isRepackage ? sendMsg : msg);
 			}
@@ -144,8 +157,8 @@ void ConnectionManager::sendGroupMsg(JsonObjType& msg, bool isRepackage)
 void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
 {
 	JsonObjType sendMsg;
-	isRepackage ? sendMsg["family"] : msg["family"] = connManagefamilyStr.c_str();
-	isRepackage ? sendMsg["action"] : msg["action"] = sendBroadcastActionStr.c_str();
+	(isRepackage ? sendMsg["family"] : msg["family"]) = connManagefamilyStr.c_str();
+	(isRepackage ? sendMsg["action"] : msg["action"]) = sendBroadcastActionStr.c_str();
 	if (isRepackage) {
 		sendMsg["data"] = msg;
 	}
@@ -155,14 +168,14 @@ void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
 	{
 	case ROLE_MASTER:
 		familyParse(isRepackage ? msg : msg["data"].toObject(), nullptr);
-		isRepackage ? sendMsg["state"] : msg["state"] = TransferState::TSAvailable;
+		(isRepackage ? sendMsg["state"] : msg["state"]) = TransferState::TSAvailable;
 		for (auto& child : validConn[ConnType::CONN_CHILD]) {
 			child.second->send(isRepackage ? sendMsg : msg);
 		}
 		break;
 	case ROLE_ROUTER:
 	case ROLE_MEMBER:
-		isRepackage ? sendMsg["state"] : msg["state"] = TransferState::TSRouting;
+		(isRepackage ? sendMsg["state"] : msg["state"]) = TransferState::TSRouting;
 		for (auto& parent : validConn[ConnType::CONN_PARENT]) {
 			parent.second->send(isRepackage ? sendMsg : msg);
 		}

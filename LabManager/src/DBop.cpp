@@ -5,6 +5,7 @@
 #include "QtSql\qsqlerror.h"
 #include "QtCore\qfileinfo.h"
 #include "QtCore\qdatetime.h"
+#include "QtCore\qcryptographichash.h"
 
 DBOP::DBOP(QObject* parent) 
 	:QObject(parent)
@@ -53,13 +54,12 @@ int DBOP::createTables()
 
 	bool bGroup = query.exec("CREATE TABLE IF NOT EXISTS UserGroup(ugid VARCHAR(32) PRIMARY KEY, "
 		"ugname VARCHAR(32) NOT NULL, "
-		"ugowneruid VARCHAR(32) NOT NULL, "
+		"ugowneruid VARCHAR(32), "
 		"ugdate VARCHAR(32) NOT NULL, "
 		"ugintro VARCHAR(32) NOT NULL, "
-		"ugpic VARCHAR(32), "
-		"foreign key(ugowneruid) references User(uid))");
+		"ugpic VARCHAR(32))");
 
-	bool bMemeber = query.exec("CREATE TABLE IF NOT EXISTS GroupMember(ugid VARCHAR(32) , "
+	bool bMember = query.exec("CREATE TABLE IF NOT EXISTS GroupMember(ugid VARCHAR(32) , "
 		"uid VARCHAR(32) NOT NULL, "
 		"mrole INTEGER NOT NULL, "
 		"mjoindate VARCHAR(32) NOT NULL, "
@@ -123,7 +123,7 @@ int DBOP::createTables()
 
 	qDebug() << "create tables sql execute";
 
-	return bUser && bGroup && bAdmin && bMemeber && bSession && bMessage && bReuqest && bTask && bHomework && bSharedFile ? 0 : -1;
+	return bUser && bGroup && bAdmin && bMember && bSession && bMessage && bReuqest && bTask && bHomework && bSharedFile ? 0 : -1;
 }
 
 //User operation
@@ -256,7 +256,7 @@ QVariantList DBOP::listUsers()
 //UserGroup operation
 int DBOP::createUserGroup(const UserGroupInfo & group, QString& sql)
 {
-	static const QString GROUP_INSERT("insert into UserGroup(ugid,ugname,ugowneruid,ugdate,ugintro,ugpic) values(?,?,?,?,?,?)");
+	static const QString GROUP_INSERT("replace into UserGroup(ugid,ugname,ugowneruid,ugdate,ugintro,ugpic) values(?,?,?,?,?,?)");
 
 	QSqlQuery query;
 	query.prepare(GROUP_INSERT);
@@ -371,6 +371,34 @@ int DBOP::addMember(const GroupMemberInfo& member, QString& sql)
 	return -1;
 }
 
+int DBOP::addMembers(std::shared_ptr<std::vector<UserInfo>> userList, const UserGroupInfo& group)
+{
+	static const QString MEMBERS_INSERT("insert into GroupMember(ugid,uid,mrole,mjoindate) values(?,?,?,?)");
+
+	QVariantList ugids, uids, mroles, mjoindates;
+	for (auto& user : *userList) {
+		ugids.append(group.ugid);
+		uids.append(user.uid);
+		mroles.append((int)GroupRole::GroupMem);
+		mjoindates.append(group.ugdate);
+	}
+
+	QSqlQuery query;
+	query.prepare(MEMBERS_INSERT);
+	query.addBindValue(ugids);
+	query.addBindValue(uids);
+	query.addBindValue(mroles);
+	query.addBindValue(mjoindates);
+
+	if (query.execBatch()) {
+		qDebug() << "members insert success! count: " << userList->size();
+		return 0;
+	}
+
+	qDebug() << "members insert failed! count: " << userList->size() << " reason: " << query.lastError().text();
+	return -1;
+}
+
 int DBOP::removeMember(const ModelStringType & groupId, const ModelStringType & userId, QString& sql)
 {
 	static const QString REMOVE_GROUP_MEMBER("delete from GroupMember where ugid=? and uid=?");
@@ -448,10 +476,13 @@ int DBOP::createAdmin(const AdminInfo & admin, QString& sql)
 {
 	static const QString ADD_ADMIN("insert into Admin(aname,apassword) values(?,?)");
 
+	auto passStr = admin.apassword.toStdString();
+	ModelStringType reallyPassStr = QCryptographicHash::hash(QByteArray(passStr.c_str(), passStr.length()), QCryptographicHash::Md5).toHex().toStdString().c_str();
+
 	QSqlQuery query;
 	query.prepare(ADD_ADMIN);
 	query.addBindValue(admin.aname);
-	query.addBindValue(admin.apassword);
+	query.addBindValue(reallyPassStr);
 
 	if (query.exec()) {
 		sql = ADD_ADMIN;
@@ -485,6 +516,9 @@ int DBOP::loginAdmin(const ModelStringType & name, const ModelStringType & passw
 {
 	static const QString GET_ADMIN("select apassword from Admin where anme=?");
 
+	auto passStr = password.toStdString();
+	ModelStringType reallyPassStr = QCryptographicHash::hash(QByteArray(passStr.c_str(), passStr.length()), QCryptographicHash::Md5).toHex().toStdString().c_str();
+
 	QSqlQuery query;
 	query.prepare(GET_ADMIN);
 	query.addBindValue(name);
@@ -495,7 +529,7 @@ int DBOP::loginAdmin(const ModelStringType & name, const ModelStringType & passw
 	}
 
 	QString dbPassword = query.value("apassword").toString();
-	if (dbPassword != password) {
+	if (dbPassword != reallyPassStr) {
 		qDebug() << "admin password incorrect! name: " << name << " reason: " << query.lastError().text();
 		return -2;
 	}
@@ -511,9 +545,12 @@ int DBOP::modifyPassword(const ModelStringType & name, const ModelStringType & o
 	int result = loginAdmin(name, oldPass);
 	if (result != 0) return result;
 
+	auto passStr = newPass.toStdString();
+	ModelStringType reallyPassStr = QCryptographicHash::hash(QByteArray(passStr.c_str(), passStr.length()), QCryptographicHash::Md5).toHex().toStdString().c_str();
+
 	QSqlQuery query;
 	query.prepare(UPDATE_ADMIN_PASS);
-	query.addBindValue(newPass);
+	query.addBindValue(reallyPassStr);
 	query.addBindValue(name);
 
 	if (query.exec()) {

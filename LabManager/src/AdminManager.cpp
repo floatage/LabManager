@@ -3,8 +3,6 @@
 #include "ConnectionManager.h"
 #include "NetStructureManager.h"
 
-#include "QtCore\qcryptographichash.h"
-
 const StringType adminManageFamilyStr("AdminManage");
 const StringType dbSyncActionStr("DbSync");
 
@@ -27,12 +25,9 @@ AdminManager * AdminManager::getInstance()
 }
 
 int AdminManager::createAdmin(const QString & name, const QString & password)
-{
-	auto passStr = password.toStdString();
-	auto reallyPassStr = QCryptographicHash::hash(QByteArray(passStr.c_str(), passStr.length()), QCryptographicHash::Md5).toHex().toStdString();
-	
+{	
 	QString sql;
-	int result = DBOP::getInstance()->createAdmin(AdminInfo(name, reallyPassStr.c_str()), sql);
+	int result = DBOP::getInstance()->createAdmin(AdminInfo(name, password), sql);
 	if (result == 0) 
 	{
 		JsonObjType datas;

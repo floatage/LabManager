@@ -61,6 +61,7 @@ ApplicationWindow {
     }
 
     function updateGroupModel(){
+
     }
 
     Connections{
@@ -712,6 +713,152 @@ ApplicationWindow {
                         }
 
                         model: groupModel
+
+                        delegate: Rectangle {
+                            id: groupListViewItem
+                            width: parent.width
+                            height: 60
+                            color: ListView.isCurrentItem ? "#FEE" : "#FFF"
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                propagateComposedEvents: true
+                                acceptedButtons: Qt.RightButton | Qt.LeftButton
+
+                                onClicked: {
+                                    memGroupListViewContent.currentItem.color = "#FFF"
+                                    memGroupListViewContent.currentIndex = index
+                                    memGroupListViewContent.currentItem.color = "#FEE"
+
+
+                                }
+
+                                onDoubleClicked: {
+//                                    var curUserId = memGroupListViewContent.model.get(index).userId
+//                                    if (SessionManager.seesionIsExistsByUuid(curUserId, 1) == -1){
+//                                        SessionManager.createSession(1, curUserId)
+//                                    }
+
+//                                    sessionIcon.item.iconClicked()
+
+//                                    for (var pos=0; pos < sessionModel.count; ++pos){
+//                                        if (sessionModel.get(pos).sessionDestUuid == curUserId){
+//                                            if (pos === 0) return
+
+//                                            sessionModel.move(pos, 0, 1)
+//                                            sessionListViewContent.currentItem.color = "#FFF"
+//                                            sessionListViewContent.currentIndex = 0
+//                                            sessionListViewContent.currentItem.color = "#FEE"
+//                                            console.log("move to session!")
+//                                            return
+//                                        }
+//                                    }
+//                                    console.log("don't move to session!")
+                                }
+
+                                onEntered: {
+                                    if (memGroupListViewContent.currentIndex !== index)
+                                        groupListViewItem.color = "#FEE"
+                                }
+                                onExited: {
+                                    if (memGroupListViewContent.currentIndex !== index)
+                                        groupListViewItem.color = "#FFF"
+                                }
+                            }
+
+                            Rectangle {
+                                id: groupPic
+                                width: parent.height * 0.7
+                                height: width
+                                radius: width * 0.5
+                                anchors.left: parent.left
+                                anchors.leftMargin: (parent.height - height) * 0.5
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                Image {
+                                    id: groupImg
+                                    smooth: true
+                                    visible: false
+                                    antialiasing: true
+                                    anchors.fill: parent
+                                    source: groupPicPath
+                                    sourceSize: Qt.size(parent.size, parent.size)
+                                }
+
+                                Rectangle{
+                                    id: groupmask
+                                    anchors.fill: parent
+                                    radius: width * 0.5
+                                    visible: false
+                                    smooth: true
+                                    antialiasing: true
+                                }
+
+                                OpacityMask {
+                                    anchors.fill: parent
+                                    source: groupImg
+                                    maskSource: groupmask
+                                    visible: true
+                                    antialiasing: true
+                                }
+                            }
+
+                            TextArea {
+                                id: groupInforText
+                                width: parent.width - groupPic.width*2
+                                anchors.top: groupPic.top
+                                anchors.topMargin: 2
+                                anchors.left: groupPic.right
+                                anchors.leftMargin: groupPic.anchors.leftMargin
+                                padding: 0
+
+                                verticalAlignment: Text.AlignVCenter
+                                font.family: "微软雅黑"
+                                font.letterSpacing: 0
+                                font.weight: Font.Thin
+                                color: "#444"
+                                font.pixelSize: 14
+                                renderType: Text.NativeRendering
+                                text: groupName + "(" + groupId + ")"
+
+                                selectByMouse: true
+                                readOnly: true
+                                hoverEnabled: true
+                                clip: true
+
+                                ToolTip {
+                                    delay: 1000
+                                    parent: groupInforText
+                                    visible: groupInforText.hovered
+                                    text: groupInforText.text
+                                }
+                            }
+
+                            TextArea {
+                                id: groupIntroText
+                                width: groupInforText.width
+                                anchors.bottom: userPic.bottom
+                                anchors.bottomMargin: 2
+                                anchors.left: userPic.right
+                                anchors.leftMargin: userPic.anchors.leftMargin
+                                padding: 0
+
+                                verticalAlignment: Text.AlignVCenter
+                                font.family: "微软雅黑"
+                                font.weight: Font.Thin
+                                font.letterSpacing: 0
+                                color: "#AAA"
+                                font.pixelSize: 12
+                                renderType: Text.NativeRendering
+                                text: groupIntro
+
+                                selectByMouse: true
+                                readOnly: true
+                                hoverEnabled: true
+                                clip: true
+                            }
+                        }
                     }
                 }
             }

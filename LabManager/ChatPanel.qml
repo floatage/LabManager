@@ -19,11 +19,12 @@ Item{
         //mid, msource, mduuid, mtype, mdata, mdate
         //msgSenderPic,isGroup,msgSenderRole,msgSender,msgSenderUuid,msgDate,isSend,msgType,msgRealData
         for (var begin = 0; begin < msgList.length; ++begin){
+            console.log(msgList[begin][1] == panelParent.localUUid)
             chatMsgControlerContentListView.model.append({
                 msgSenderPic: msgList[begin][1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
                 , isGroup: panelParent.curSeesionType == 1 ? false : true
                 , msgSenderRole: ""
-                , msgSender: msgList[begin][1] != panelParent.localUUid ? panelParent.curSessionName : "我"
+                , msgSender: msgList[begin][1] == panelParent.localUUid ? "我" : panelParent.curSessionName
                 , msgSenderUuid: msgList[begin][2]
                 , msgDate: msgList[begin][5]
                 , isSend: msgList[begin][1] == panelParent.localUUid ? true : false
@@ -55,7 +56,7 @@ Item{
                 msgSenderPic: recvMsg[1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
                 , isGroup: panelParent.curSeesionType == 1 ? false : true
                 , msgSenderRole: ""
-                , msgSender: recvMsg[1] != panelParent.localUUid ? panelParent.curSessionName : "我"
+                , msgSender: recvMsg[1] == panelParent.localUUid ?  "我" : panelParent.curSessionName
                 , msgSenderUuid: recvMsg[2]
                 , msgDate: recvMsg[5]
                 , isSend: recvMsg[1] == panelParent.localUUid ? true : false
@@ -219,7 +220,7 @@ Item{
                             leftPadding: 0
                             topPadding: 0
                             bottomPadding: 3
-                            text: "" + (isGroup ? "【" + msgSenderRole + "】 " : " ") + msgSender + (isSend ? "(" + msgSenderUuid + ") " : " ") + msgDate
+                            text: "" + (isGroup ? "【" + msgSenderRole + "】 " : " ") + msgSender + (isSend ? " ": "(" + msgSenderUuid + ") ") + msgDate
                         }
                     }
 

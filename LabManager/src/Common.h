@@ -107,6 +107,8 @@ enum ChatMsgType { ChatText, ChatPic, ChatAnimation, ChatFile };
 
 enum SessionType { UserSession=1, GroupSession=2 };
 
+enum GroupRole { GroupMem, GroupOwner, GroupAdmin };
+
 typedef int ConnImplType;
 
 struct ConnType
