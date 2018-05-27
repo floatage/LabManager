@@ -12,7 +12,6 @@
         <file>img/settingIcon.png</file>
         <file>img/testIcon.png</file>
         <file>img/uploadIcon.png</file>
-        <file>CustemToolTip.qml</file>
         <file>MembersPanel.qml</file>
         <file>AppTitleBar.qml</file>
         <file>MainForm.ui.qml</file>

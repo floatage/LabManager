@@ -601,7 +601,7 @@ int DBOP::deleteSession(const ModelStringType& duuid)
 	return -1;
 }
 
-int DBOP::updateSessionLastmsg(const MessageInfo& message)
+int DBOP::updateSessionLastmsg(const MessageInfo& message, bool isSend)
 {
 	//SessionInfo(message.mmode, message.mduuid, message.msource, );
 	static const QString UPDATE_SESSION_LASTMSG("replace into Session(duuid,stype,suid,lastmsg) values(?,?,?,?)");
@@ -618,12 +618,13 @@ int DBOP::updateSessionLastmsg(const MessageInfo& message)
 		default: break;
 	}
 
-	query.addBindValue(message.mduuid);
-	query.addBindValue(message.mmode);
-	query.addBindValue(message.msource);
-	query.addBindValue(lastmsg);
+	SessionInfo session(message.mmode, isSend ? message.msource : message.mduuid, isSend ? message.mduuid : message.msource, lastmsg);
+	query.addBindValue(session.duuid);
+	query.addBindValue(session.stype);
+	query.addBindValue(session.suid);
+	query.addBindValue(session.lastmsg);
 	if (query.exec()) {
-		notifySeesionUpdateLastmsg(SessionInfo(message.mmode, message.mduuid, message.msource, lastmsg));
+		notifySeesionUpdateLastmsg(session);
 		qDebug() << "message insert update to session success! source: " << message.msource << " dest: " << message.mduuid << " data: " << message.mdata;
 		return 0;
 	}
@@ -723,7 +724,7 @@ int DBOP::createMessage(const MessageInfo & message,bool isSend)
 		qDebug() << "message insert success! source: " << message.msource << " dest: " << message.mduuid << " data: " << message.mdata;
 		if (isSend) return 0;
 
-		updateSessionLastmsg(message);
+		updateSessionLastmsg(message, isSend);
 		return 0;
 	}
 

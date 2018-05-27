@@ -200,6 +200,7 @@ void NetStructureManager::hostRoleAssignment()
             cm->sendtoConn(connId, sendMsg);
 		});
 	}
+	dumpUserToDB();
 }
 
 void NetStructureManager::voteRun(JsonObjType& msg, ConnPtr)
@@ -214,16 +215,11 @@ void NetStructureManager::voteRun(JsonObjType& msg, ConnPtr)
 
 void NetStructureManager::voteFinished(JsonObjType& msg, ConnPtr)
 {
-	static bool dbIsInit = false;
-
 	if (role == ROLE_NULL) {
         setRole(msg["propose"] == localHost["uid"] ? ROLE_MASTER : ROLE_MEMBER);
 	}
 	else if (role == ROLE_MEMBER) {
 		voteStageTimer.cancel();
-		if (!dbIsInit) {
-			dumpUserToDB();
-		}
 	}
 
 	qDebug() << "BECAME ROLE: " << role;
