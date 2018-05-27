@@ -189,7 +189,7 @@ Rectangle {
 
                             if (panelMap && !panelMap.hasOwnProperty("FileSharedPanel")){
                                 var panel = Qt.createComponent("FileSharedPanel.qml")
-                                panelMap["FileSharedPanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.target, width: contentStackView.width, height: contentStackView.height})
+                                panelMap["FileSharedPanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.panelParent, width: contentStackView.width, height: contentStackView.height})
                             }
 
                             iconRow.replaceToStackTop(contentStackView, panelMap["FileSharedPanel"])
@@ -237,7 +237,7 @@ Rectangle {
 
                             if (panelMap && !panelMap.hasOwnProperty("HomeworkManagePanel")){
                                 var panel = Qt.createComponent("HomeworkManagePanel.qml")
-                                panelMap["HomeworkManagePanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.target, width: contentStackView.width, height: contentStackView.height})
+                                panelMap["HomeworkManagePanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.panelParent, width: contentStackView.width, height: contentStackView.height})
                             }
 
                             iconRow.replaceToStackTop(contentStackView, panelMap["HomeworkManagePanel"])

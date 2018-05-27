@@ -564,7 +564,7 @@ ApplicationWindow {
                                 }
 
                                 Rectangle{
-                                    id: mask
+                                    id: sessionImgMask
                                     anchors.fill: parent
                                     radius: width * 0.5
                                     visible: false
@@ -575,7 +575,7 @@ ApplicationWindow {
                                 OpacityMask {
                                     anchors.fill: sessionPic
                                     source: sessionImg
-                                    maskSource: mask
+                                    maskSource: sessionImgMask
                                     visible: true
                                     antialiasing: true
                                 }
@@ -743,7 +743,7 @@ ApplicationWindow {
                                 }
 
                                 Rectangle{
-                                    id: mask
+                                    id: userImgMask
                                     anchors.fill: parent
                                     radius: width * 0.5
                                     visible: false
@@ -754,7 +754,7 @@ ApplicationWindow {
                                 OpacityMask {
                                     anchors.fill: parent
                                     source: userImg
-                                    maskSource: mask
+                                    maskSource: userImgMask
                                     visible: true
                                     antialiasing: true
                                 }
@@ -776,7 +776,7 @@ ApplicationWindow {
                                 color: "#444"
                                 font.pixelSize: 14
                                 renderType: Text.NativeRendering
-                                text: userName + "(" + userId + ")"
+                                text: (userId == funcPanelContent.localUUid ? "我" : userName) + " (" + userId + ")"
 
                                 selectByMouse: true
                                 readOnly: true

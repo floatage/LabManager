@@ -19,7 +19,6 @@ Item{
         //mid, msource, mduuid, mtype, mdata, mdate
         //msgSenderPic,isGroup,msgSenderRole,msgSender,msgSenderUuid,msgDate,isSend,msgType,msgRealData
         for (var begin = 0; begin < msgList.length; ++begin){
-            console.log(msgList[begin][1] == panelParent.localUUid)
             chatMsgControlerContentListView.model.append({
                 msgSenderPic: msgList[begin][1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
                 , isGroup: panelParent.curSeesionType == 1 ? false : true
@@ -49,8 +48,8 @@ Item{
     Connections{
         target: DBOP
         onSessionMsgRecv: {
-            console.log("Recv text and update model")
-            if (recvMsg[2] != panelParent.curSeesionDestId) return
+            console.log("Recv text and update model! session: ", panelParent.curSeesionDestId, recvMsg)
+            if ((isSend ? recvMsg[2] : recvMsg[1]) != panelParent.curSeesionDestId) return
 
             chatMsgControlerContentListView.model.append({
                 msgSenderPic: recvMsg[1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
@@ -74,7 +73,11 @@ Item{
         selectMultiple: false
         nameFilters: ['Pictures (*.png *.jpg *.jpeg *.bmp *.svg *.gif)']
         onAccepted: {
-            if (panelParent.curSeesionDestId == "") return
+            if (panelParent.curSeesionDestId == "") {
+                panelTarget.messageDialog.text = "请选择图片发送对象！"
+                panelTarget.messageDialog.open()
+                return
+            }
 
             console.log("You chose send pic path: " + picSelectFileDialog.fileUrl)
             console.log(picSelectFileDialog.fileUrl.toString().match(/.*\.gif/) ? true : false)
@@ -93,7 +96,11 @@ Item{
         selectMultiple: false
         nameFilters: ['All Files (*.*)']
         onAccepted: {
-            if (panelParent.curSeesionDestId === "") return
+            if (panelParent.curSeesionDestId === ""){
+                panelTarget.messageDialog.text = "请选择文件发送对象！"
+                panelTarget.messageDialog.open()
+                return
+            }
 
             console.log("You chose send file path: " + fileSelectFileDialog.fileUrl)
             SessionManager.sendFile(panelParent.curSeesionType, panelParent.curSeesionDestId, fileSelectFileDialog.fileUrl)
@@ -439,7 +446,11 @@ Item{
                     reversal: true
                     buttonText: "发送"
                     onButtonClicked: {
-                        if (panelParent.curSeesionDestId == "") return
+                        if (panelParent.curSeesionDestId == ""){
+                            panelTarget.messageDialog.text = "请选择消息发送对象！"
+                            panelTarget.messageDialog.open()
+                            return
+                        }
 
                         var sendText = chatMsgControlerInputArea.text.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '')
                         if (sendText.length !== 0){

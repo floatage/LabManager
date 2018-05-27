@@ -746,7 +746,7 @@ int DBOP::createMessage(const MessageInfo & message,bool isSend)
 	query.addBindValue(message.mmode);
 
 	if (query.exec()) {
-		notifyModelAppendMsg(message);
+		notifyModelAppendMsg(message, isSend);
 		qDebug() << "message insert success! source: " << message.msource << " dest: " << message.mduuid << " data: " << message.mdata;
 		if (isSend) return 0;
 
@@ -1174,7 +1174,7 @@ QVariantList DBOP::listSharedFile()
 	return result;
 }
 
-void DBOP::notifyModelAppendMsg(const MessageInfo & msgInfo)
+void DBOP::notifyModelAppendMsg(const MessageInfo & msgInfo, bool isSend)
 {
 	QVariantList recvMsg;
 	recvMsg.append(msgInfo.mid);
@@ -1184,7 +1184,7 @@ void DBOP::notifyModelAppendMsg(const MessageInfo & msgInfo)
 	recvMsg.append(msgInfo.mdata);
 	recvMsg.append(msgInfo.mdate);
 	recvMsg.append(msgInfo.mmode);
-	sessionMsgRecv(recvMsg);
+	sessionMsgRecv(recvMsg, isSend);
 }
 
 void DBOP::notifySeesionUpdateLastmsg(const SessionInfo & sessionInfo)

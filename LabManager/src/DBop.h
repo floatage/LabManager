@@ -82,14 +82,14 @@ public:
 
 private:
 	DBOP(QObject* parent = 0);
-	void notifyModelAppendMsg(const MessageInfo& msgInfo);
+	void notifyModelAppendMsg(const MessageInfo& msgInfo, bool isSend);
 	void notifySeesionUpdateLastmsg(const SessionInfo& sessionInfo);
 	void notifyNewRequestCreate(const RequestInfo& reqInfo);
 	void notifyNewTaskCreate(const TaskInfo& taskInfo);
 	void notifySharedFileAdd(const SharedFileInfo& fileInfo);
 
 signals:
-	void sessionMsgRecv(QVariantList recvMsg);
+	void sessionMsgRecv(QVariantList recvMsg, bool isSend);
 	void seesionUpdateLastmsg(QVariantList sessionMsg);
 	void requestStateChanged(const QString& rid, int state);
 	void newRequestCreate(QVariantList reqMsg);

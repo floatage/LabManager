@@ -28,7 +28,11 @@ Rectangle {
     }
 
     function updateSharedFileModel(){
-        if (panelParent.curSeesionDestId == "") return
+        if (panelParent.curSeesionDestId == ""){
+            panelTarget.messageDialog.text = "请选择文件共享对象！"
+            panelTarget.messageDialog.open()
+            return
+        }
 
         sharedFileListView.model.clear()
         var fileList = SessionManager.listSharedFile(panelParent.curSeesionDestId,
