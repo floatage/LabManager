@@ -77,15 +77,26 @@ ApplicationWindow {
                 }
             }
 
-            var user = DBOP.getUser(sessionMsg[0])
+            var objInfor
+            if (sessionMsg[1] == 1)
+                objInfor = DBOP.getUserToList(sessionMsg[0])
+            else if (sessionMsg[1] == 2)
+                objInfor = DBOP.getUserToList(sessionMsg[0])
+
             sessionListViewContent.model.append({
-                sessionDestUuid:sessionMsg[0]
-                , sessionType:sessionMsg[1]
+                sessionDestUuid: sessionMsg[0]
+                , sessionType: sessionMsg[1]
                 , sessionLastMsg: sessionMsg[2]
-                , sessionDestName:user.uname
-                , sessionPicPath: user.upic == "" ? "/img/defaultPic.jpg" : user.upic
+                , sessionDestName: objInfor[1]
+                , sessionPicPath: objInfor[5] == "" ? "/img/defaultPic.jpg" : objInfor[5]
             })
-            sessionRecvNewMsg(sessionListViewContent.model.count - 1)
+
+            sessionModel.move(sessionListViewContent.model.count - 1, 0, 1)
+            sessionListViewContent.currentItem.color = "#FFF"
+            sessionListViewContent.currentIndex = 0
+            sessionListViewContent.currentItem.color = "#FEE"
+            console.log("move to session!")
+            sessionRecvNewMsg(0)
         }
     }
 

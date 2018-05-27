@@ -118,6 +118,12 @@ void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 	auto result = validConn[ConnType::CONN_CHILD].end();
 	switch (role)
 	{
+	case ROLE_MASTER:
+		for (auto& child : validConn[ConnType::CONN_CHILD]) {
+			child.second->send(isRepackage ? sendMsg : msg);
+			break;
+		}
+		break;
 	case ROLE_ROUTER:
 		result = validConn[ConnType::CONN_CHILD].find(dest);
 		if (result != validConn[ConnType::CONN_CHILD].end()) {

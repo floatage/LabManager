@@ -224,6 +224,32 @@ QVariantHash DBOP::getUser(const ModelStringType & userId)
 	return result;
 }
 
+QVariantList DBOP::getUserToList(const ModelStringType & userId)
+{
+	static const QString USER_GET("select * from User where uid=?");
+
+	QSqlQuery query;
+	QVariantList result;
+
+	query.prepare(USER_GET);
+	query.addBindValue(userId);
+	if (!query.exec() || !query.next()) {
+		qDebug() << "user select failed! uid" << userId << " reason: " << query.lastError().text();
+		return result;
+	}
+
+	result.append(query.value("uid"));
+	result.append(query.value("uname"));
+	result.append(query.value("uip"));
+	result.append(query.value("umac"));
+	result.append(query.value("urole"));
+	result.append(query.value("upic"));
+
+	qDebug() << "user select success! uid: " << userId;
+	return result;
+}
+
+
 QVariantList DBOP::listUsers()
 {
 	static const QString USER_GET_ALL("select * from User");

@@ -22,7 +22,8 @@ public:
 	int addUser(const UserInfo& user);
     int addUsers(std::shared_ptr<std::vector<UserInfo>> userList);
 	int removeUser(const ModelStringType& userId);
-    Q_INVOKABLE QVariantHash getUser(const ModelStringType& userId);
+    QVariantHash getUser(const ModelStringType& userId);
+	Q_INVOKABLE QVariantList getUserToList(const ModelStringType& userId);
 	QVariantList listUsers();
 
 	//UserGroup operation
