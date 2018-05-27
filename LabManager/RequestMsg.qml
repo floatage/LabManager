@@ -54,12 +54,12 @@ DialogFrame {
     function appendReqToModel(req){
         //rid,rtype,rdata,rstate,rdate,rsource,rdest,uname
         waitingReqModel.append({
-            rid: req[0]
-            , rtype: req[1]
+            reqId: req[0]
+            , reqType: req[1]
             , sourceId: req[5]
             , destId: req[6]
             , reqName: req[7]
-            , rdata: req[2]
+            , reqData: req[2]
             , isSend: req[5] == localUUid ? true : false
             , isRecv: req[6] == localUUid ? true : false
         })
@@ -77,7 +77,7 @@ DialogFrame {
     Connections{
         target: panelParent
         onNewRequestCreate: {
-            if (waitingReqModel.count == 0 || reqMsg[0] != waitingReqModel.get(waitingReqModel.count-1).rid)
+            if (waitingReqModel.count == 0 || reqMsg[0] != waitingReqModel.get(waitingReqModel.count-1).reqId)
                 appendReqToModel(reqMsg)
         }
     }
@@ -127,20 +127,29 @@ DialogFrame {
                         width: parent.width
                         height: 40
 
+                        Connections{
+                            target: DBOP
+                            onRequestStateChanged: {
+                                if (reqId == rid && rstate != 0){
+                                    waitingReqModel.remove(index)
+                                }
+                            }
+                        }
+
                         Image {
                             id: requestType
                             width: 26
                             height: 22
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.left: parent.left
-                            source: requestMsgRoot.requestTypePicMap[rtype]
+                            source: requestMsgRoot.requestTypePicMap[reqType]
                         }
 
                         TextArea {
                             function getReqStr(){
-                                var reqInfor = (isSend ? "我" : (reqName + "(" + sourceId + ")")) + requestMsgRoot.requestTypeTextMap[rtype]
-                                if (rtype == 0){
-                                    var data = JSON.parse(rdata)
+                                var reqInfor = (isSend ? "我" : (reqName + "(" + sourceId + ")")) + requestMsgRoot.requestTypeTextMap[reqType]
+                                if (reqType == 0){
+                                    var data = JSON.parse(reqData)
                                     reqInfor += data["fileName"] + "(" + requestMsgRoot.panelParent.getFileSizeStr(parseInt(data["fileSize"])) + ")"
                                 }
 
@@ -189,8 +198,7 @@ DialogFrame {
                                 fillHeight: 0
                                 fillWidth:0
                                 onButtonClicked: {
-                                    if (UserReuqestManager.agreeRequest(rid, sourceId) === 0)
-                                        waitingReqModel.remove(index)
+                                    UserReuqestManager.agreeRequest(reqId, sourceId)
                                 }
                             }
 
@@ -203,8 +211,7 @@ DialogFrame {
                                 fillWidth:0
 
                                 onButtonClicked: {
-                                    if (UserReuqestManager.rejectRequest(rid, sourceId) === 0)
-                                        waitingReqModel.remove(index)
+                                    UserReuqestManager.rejectRequest(reqId, sourceId)
                                 }
                             }
 
@@ -217,8 +224,7 @@ DialogFrame {
                                 fillWidth:0
 
                                 onButtonClicked: {
-                                    if (UserReuqestManager.cancelRequest(rid, sourceId) === 0)
-                                        waitingReqModel.remove(index)
+                                    UserReuqestManager.cancelRequest(reqId, sourceId)
                                 }
                             }
                         }
@@ -249,15 +255,15 @@ DialogFrame {
                         //rid,rtype,rdata,rstate,rdate,rsource,rdest,uname
                         var reqList = UserReuqestManager.listHandledRequest()
                         for (var begin = 0; begin < reqList.length; ++begin){
-                            //rid, rtype, sourceId, sourceName, rdata
                             model.append({
-                                rid: reqList[begin][0]
-                                , rtype: reqList[begin][1]
-                                , sourceId: reqList[begin][6]
-                                , sourceName: reqList[begin][7]
-                                , rdata: reqList[begin][2]
-                                , rstate: reqList[begin][3]
-                                , rdate: reqList[begin][4]
+                                reqId: reqList[begin][0]
+                                , reqType: reqList[begin][1]
+                                , sourceId: reqList[begin][5]
+                                , destId: reqList[begin][6]
+                                , reqName: reqList[begin][7]
+                                , reqData: reqList[begin][2]
+                                , reqState: reqList[begin][3]
+                                , reqDate: reqList[begin][4]
                                 , isSend: reqList[begin][5] == localUUid ? true : false
                             })
                         }
@@ -276,7 +282,7 @@ DialogFrame {
                             height: 22
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.left: parent.left
-                            source: requestMsgRoot.requestTypePicMap[rtype]
+                            source: requestMsgRoot.requestTypePicMap[reqType]
                         }
 
                         TextArea {
@@ -285,13 +291,13 @@ DialogFrame {
                             ]
 
                             function getReqStr(){
-                                var reqInfor = sourceName + "(" + sourceId + ")" + requestMsgRoot.requestTypeTextMap[rtype]
-                                if (rtype == 0){
-                                    var data = JSON.parse(rdata)
+                                var reqInfor = (isSend ? "我" : (reqName + "(" + sourceId + ")")) + requestMsgRoot.requestTypeTextMap[reqType]
+                                if (reqType == 0){
+                                    var data = JSON.parse(reqData)
                                     reqInfor += data["fileName"] + "(" + requestMsgRoot.panelParent.getFileSizeStr(parseInt(data["fileSize"])) + ")"
                                 }
 
-                                return reqInfor
+                                return reqInfor + "到" + (isSend ? (reqName + "(" + destId + ")") : "我")
                             }
 
                             id: requestInforText
@@ -333,7 +339,7 @@ DialogFrame {
                                 color: textDColor
                                 font.pixelSize: 11
                                 renderType: Text.NativeRendering
-                                text: rdate.slice(5, 16)
+                                text: reqDate.slice(5, 16)
                             }
 
                             Label{
@@ -342,7 +348,7 @@ DialogFrame {
                                 color: "#69F"
                                 font.pixelSize: 11
                                 renderType: Text.NativeRendering
-                                text: isSend ? requestMsgRoot.requestStateTextMap[rstate] : requestMsgRoot.requestPassiveStateTextMap[rstate]
+                                text: isSend ? requestMsgRoot.requestStateTextMap[reqState] : requestMsgRoot.requestPassiveStateTextMap[reqState]
                             }
                         }
                     }

@@ -91,7 +91,7 @@ private:
 signals:
 	void sessionMsgRecv(QVariantList recvMsg, bool isSend);
 	void seesionUpdateLastmsg(QVariantList sessionMsg);
-	void requestStateChanged(const QString& rid, int state);
+	void requestStateChanged(const QString& rid, int rstate);
 	void newRequestCreate(QVariantList reqMsg, bool isSend);
 	void newTaskCreate(QVariantList taskMsg);
 	void taskHandleFinished(const QString& tid, int tstate);

@@ -110,6 +110,11 @@ int UserReuqestManager::agreeRequest(const QString& rid, const QString & source)
 		rdata["rdest"] = req["rdest"];
 		rdata["rtype"] = req["rtype"];
 		memberDataPtr->reqTypeHandlerMap[rtype](source, rdata);
+
+		JsonObjType datas;
+		datas["rid"] = rid;
+		datas["dest"] = source;
+		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, requestFamilyStr, agreeRequestActionStr, datas);
 	}
 
 	return result;
