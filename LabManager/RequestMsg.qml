@@ -224,7 +224,7 @@ DialogFrame {
                                 fillWidth:0
 
                                 onButtonClicked: {
-                                    UserReuqestManager.cancelRequest(reqId, sourceId)
+                                    UserReuqestManager.cancelRequest(reqId, destId)
                                 }
                             }
                         }

@@ -146,13 +146,13 @@ int UserReuqestManager::errorRequest(const QString& rid, const QString & source)
 	return result;
 }
 
-int UserReuqestManager::cancelRequest(const QString& rid, const QString & source)
+int UserReuqestManager::cancelRequest(const QString& rid, const QString & dest)
 {
 	int result = DBOP::getInstance()->setRequestState(rid, (int)ReqState::ReqCancel);
 	if (result == 0) {
 		JsonObjType datas;
 		datas["rid"] = rid;
-		datas["dest"] = source;
+		datas["dest"] = dest;
 		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, requestFamilyStr, cancelRequestActionStr, datas);
 	}
 	return 0;

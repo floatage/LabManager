@@ -22,7 +22,7 @@ public:
 
     Q_INVOKABLE int agreeRequest(const QString& rid, const QString & source);
     Q_INVOKABLE int rejectRequest(const QString& rid, const QString & source);
-    Q_INVOKABLE int cancelRequest(const QString& rid, const QString & source);
+    Q_INVOKABLE int cancelRequest(const QString& rid, const QString & dest);
 
     Q_INVOKABLE QVariantList listWaitingRequest();
     Q_INVOKABLE QVariantList listHandledRequest();
