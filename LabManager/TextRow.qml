@@ -14,8 +14,9 @@ Item {
     property real tWidth: 120
     property bool hasButton: false
     property string bButtonText: "default"
-    property string value: rowTextField.text
+    property alias value: rowTextField.text
     property alias inputType: rowTextField.echoMode
+    property alias inputFilter: rowTextField.validator
 
     Row{
         id: textRowCotent
@@ -42,6 +43,8 @@ Item {
         TextField{
             id: rowTextField
             anchors.verticalCenter: rowLabel.verticalCenter
+            validator: RegExpValidator { regExp: /[0-9A-Za-z]{4,16}/ }
+
             style:TextFieldStyle{
                 font: rowLabel.font
                 textColor: textColor

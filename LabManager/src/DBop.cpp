@@ -540,7 +540,7 @@ int DBOP::deleteAdmin(const ModelStringType & name, QString& sql)
 
 int DBOP::loginAdmin(const ModelStringType & name, const ModelStringType & password)
 {
-	static const QString GET_ADMIN("select apassword from Admin where anme=?");
+	static const QString GET_ADMIN("select apassword from Admin where aname=?");
 
 	auto passStr = password.toStdString();
 	ModelStringType reallyPassStr = QCryptographicHash::hash(QByteArray(passStr.c_str(), passStr.length()), QCryptographicHash::Md5).toHex().toStdString().c_str();

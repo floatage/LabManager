@@ -64,7 +64,7 @@ int AdminManager::adminLogin(const QString & name, const QString & password)
 {
 	int result = DBOP::getInstance()->loginAdmin(name, password);
 	if (result == 0) {
-        NetStructureManager::getInstance()->setAdmin(true);
+        NetStructureManager::getInstance()->setAdmin(name);
 		qDebug() << "user authority level up to admin";
 	}
 
@@ -87,6 +87,11 @@ int AdminManager::adminModifyPassword(const QString & name, const QString & oldP
 	}
 
 	return result;
+}
+
+QString AdminManager::getCurAdmin()
+{
+	return NetStructureManager::getInstance()->getCurAdmin();
 }
 
 void AdminManager::handleDbSync(JsonObjType & msg, ConnPtr conn)

@@ -14,6 +14,8 @@ ApplicationWindow {
     property var panelDict : {'a':1}
     property var curPanel : undefined
 
+    property alias messageDialog: opTipDialog
+
     function deletePanel(panelFileName){
         if (panelDict.hasOwnProperty(panelFileName)){
             delete panelDict[panelFileName]
@@ -23,7 +25,7 @@ ApplicationWindow {
     function createOrReplacePanel(panelFileName){
         if (!panelDict.hasOwnProperty(panelFileName)){
             var panel = Qt.createComponent(panelFileName)
-            panelDict[panelFileName] = panel.createObject(userView, {visible: true, y:42, x:765, panelParent:funcPanelContent})
+            panelDict[panelFileName] = panel.createObject(userView, {visible: true, y:42, x:765, panelParent:funcPanelContent, panelTarget:userView})
         }
 
         if (curPanel && curPanel !== undefined)curPanel.visible = false
@@ -92,9 +94,7 @@ ApplicationWindow {
             })
 
             sessionModel.move(sessionListViewContent.model.count - 1, 0, 1)
-            sessionListViewContent.currentItem.color = "#FFF"
             sessionListViewContent.currentIndex = 0
-            sessionListViewContent.currentItem.color = "#FEE"
             console.log("move to session!")
             sessionRecvNewMsg(0)
         }
@@ -112,6 +112,120 @@ ApplicationWindow {
     ListModel{
         id: groupModel
     }
+
+    Popup {
+        id: opTipDialog
+
+        property string title: "操作结果"
+        property alias text: dialogContentTextLabel.text
+
+        x: (userView.width-implicitWidth)/2
+        y: (userView.height-implicitHeight)/2
+        padding: 0
+
+        background: Rectangle {
+            id: dialogBack
+            implicitWidth: 460
+            implicitHeight: 150
+            color: "#FFF"
+            border.width: 0
+            radius: 8
+
+            layer.enabled: true
+            layer.effect: DropShadow {
+                transparentBorder: true
+                horizontalOffset: 0
+                verticalOffset: 0
+                color: "#999"
+                radius: 7
+            }
+        }
+
+        contentItem: Rectangle{
+            width: parent.width
+            height: parent.height
+            radius: 8
+
+            Rectangle{
+                id: dialogContentTitle
+                width: parent.width
+                height: 45
+                radius: 8
+                anchors.top: parent.top
+
+                Label{
+                    text: "操作结果"
+                    padding: 10
+                    anchors.verticalCenter: parent.verticalCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: "微软雅黑"
+                    font.weight: Font.Thin
+                    font.bold: true
+                    font.pixelSize: 15
+                    font.letterSpacing: 2
+                    renderType: Text.NativeRendering
+                    color: "#333"
+                }
+
+                Rectangle{
+                    width: parent.width
+                    height: 1
+                    color: "#6FF"
+                    anchors.bottom: parent.bottom
+                }
+            }
+
+            Rectangle{
+                width: parent.width
+                height: 55
+                anchors.top: dialogContentTitle.bottom
+
+                Label{
+                    id: dialogContentTextLabel
+                    padding: 10
+                    anchors.verticalCenter: parent.verticalCenter
+                    font.family: "微软雅黑"
+                    font.weight: Font.Thin
+                    font.bold: false
+                    font.pixelSize: 13
+                    font.letterSpacing: 1
+                    renderType: Text.NativeRendering
+                    color: "#444"
+                }
+            }
+
+            Rectangle{
+                width: parent.width
+                height: 50
+                radius: 8
+                anchors.bottom: parent.bottom
+                color: "#f5f5f5"
+
+                Row{
+                    anchors.right: parent.right
+                    spacing: parent.width * 0.12
+                    anchors.verticalCenter: parent.verticalCenter
+                    padding: 20
+
+                    NormalButton{
+                        buttonText: "确 认"
+                        reversal: true
+                        onButtonClicked: {
+                            opTipDialog.close()
+                        }
+                    }
+                }
+
+                Rectangle{
+                    width: parent.width
+                    height: 1
+                    color: "#6FF"
+                    anchors.top: parent.top
+                }
+            }
+        }
+    }
+
 
     Rectangle{
         id: membersRoot
@@ -483,7 +597,7 @@ ApplicationWindow {
                                 color: "#444"
                                 font.pixelSize: 14
                                 renderType: Text.NativeRendering
-                                text: sessionDestName + "(" + sessionDestUuid + ")"
+                                text: (sessionDestUuid == funcPanelContent.localUUid ? "我" : sessionDestName) + " (" + sessionDestUuid + ")"
 
                                 selectByMouse: true
                                 readOnly: true

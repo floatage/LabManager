@@ -41,7 +41,7 @@ std::vector<int> getLevelNumSet() {
 }
 
 NetStructureManager::NetStructureManager(io_context& context)
-	:randomEngine((uint)system_clock::to_time_t(system_clock::now())), randomRange(0, 500), voteStageTimer(context), role(ROLE_NULL), bAdmin(false),
+	:randomEngine((uint)system_clock::to_time_t(system_clock::now())), randomRange(0, 500), voteStageTimer(context), role(ROLE_NULL), curAdmin(),
 	hostSet([](const JsonObjType&l, const JsonObjType&r){
         if (l["uid"] == r["uid"])
 			return false;
@@ -267,7 +267,7 @@ void NetStructureManager::dumpUserToDB()
 		UserGroupInfo defaultGroup(QString("0"), QString::fromLocal8Bit("当前域"), QString(""), 
 			QString::fromLocal8Bit("当前局域网内所有用户"), QString("/img/defaultPic.jpg"));
 
-		AdminInfo defaultAdmin(QString::fromLocal8Bit("admin"), QString::fromLocal8Bit("18782087866"));
+		AdminInfo defaultAdmin(QString("admin"), QString("18782087866"));
 
 		IOContextManager::getInstance()->getIOLoop().post([userList, defaultGroup, defaultAdmin]() {
 			auto dbop = DBOP::getInstance();

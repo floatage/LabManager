@@ -435,6 +435,7 @@ Item{
                 rightPadding: 30
 
                 NormalButton {
+                    id: sendMsgButton
                     reversal: true
                     buttonText: "发送"
                     onButtonClicked: {

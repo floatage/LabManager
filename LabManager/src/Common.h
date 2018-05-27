@@ -5,7 +5,7 @@
 #define _WIN32_WINNT 0x0601
 #endif
 
-#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
+//#define BOOST_ASIO_ENABLE_HANDLER_TRACKING
 
 #include <string>
 #include <functional>

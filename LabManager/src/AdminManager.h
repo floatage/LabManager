@@ -22,6 +22,8 @@ public:
     Q_INVOKABLE int adminLogin(const QString& name, const QString& password);
     Q_INVOKABLE int adminModifyPassword(const QString& name, const QString& oldPass, const QString& newPass);
 
+	Q_INVOKABLE QString getCurAdmin();
+
     Q_INVOKABLE QVariantList getSettings();
     Q_INVOKABLE int setSettingOption(const QVariantList& options);
 private:

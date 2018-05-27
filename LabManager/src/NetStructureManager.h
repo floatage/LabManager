@@ -16,8 +16,9 @@ public:
 	const JsonObjType& getlocalHost() { return localHost; }
 	HostRole getLocalRole()const { return role; }
     StringType getLocalUuid()const { return localHost["uid"].toString().toStdString().c_str(); }
-	bool isAdmin()const { return bAdmin; }
-	void setAdmin(bool newIsAdmin) { bAdmin = newIsAdmin; }
+	bool isAdmin()const { return curAdmin.isEmpty(); }
+	QString getCurAdmin()const { return curAdmin; };
+	void setAdmin(const QString& newIsAdmin) { curAdmin = newIsAdmin; }
 
 	void buildNetStructure(int stage);
 private:
@@ -42,7 +43,7 @@ private:
 	std::default_random_engine randomEngine;
 	std::uniform_int_distribution<unsigned> randomRange;
 
-	bool bAdmin;
+	QString curAdmin;
 	HostRole role;
 	JsonObjType localHost;
 	std::set<JsonObjType, std::function<bool (const JsonObjType& , const JsonObjType&)>> hostSet;

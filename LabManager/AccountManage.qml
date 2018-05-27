@@ -1,6 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.3
-import QtQuick.Controls.Styles 1.3
+import QtQuick 2.10
+import QtQuick.Controls 2.3
+import QtGraphicalEffects 1.0
 
 DialogFrame{
     id: accountManageRoot
@@ -10,6 +10,8 @@ DialogFrame{
               "/img/accountPass.png":[editAccountPassword, 'editAccountPassword', false],
               "/img/settingIcon.png":[accountSetting,'accountSetting', false]}
 
+    property var panelParent
+    property var panelTarget
     property real colSpacing: 35
 
     Component{
@@ -70,6 +72,31 @@ DialogFrame{
                         NormalButton{
                             id: loginButton
                             buttonText: "登 录"
+                            onButtonClicked: {
+                                if (accountTextRow.value == "" || passwordTextRow.value == ""){
+                                    panelTarget.messageDialog.text = "输入信息不完整，请检查输入！"
+                                    panelTarget.messageDialog.open()
+                                    return
+                                }
+
+                                var result = AdminManager.adminLogin(accountTextRow.value, passwordTextRow.value)
+                                switch (result){
+                                case 0:
+                                    accountTextRow.value = ""
+                                    passwordTextRow.value = ""
+                                    panelTarget.messageDialog.text = "管理员账户登录成功！"
+                                    break
+                                case -1:
+                                    panelTarget.messageDialog.text = "管理员账户不存在，请检查输入！"
+                                    break
+                                case -2:
+                                    panelTarget.messageDialog.text = "管理员账户密码错误，请检查输入！"
+                                    break
+                                default:
+                                    panelTarget.messageDialog.text = "未知错误！"
+                                }
+                                panelTarget.messageDialog.open()
+                            }
                         }
                     }
                 }
@@ -130,6 +157,47 @@ DialogFrame{
                         NormalButton{
                             id: passEditButton
                             buttonText: "修 改 密 码"
+
+                            onButtonClicked: {
+                                if (newPasswordAgainTextRow.value == "" || newPasswordTextRow.value == ""
+                                        || nowPasswordTextRow.value == ""){
+                                    panelTarget.messageDialog.text = "输入信息不完整，请检查输入"
+                                    panelTarget.messageDialog.open()
+                                    return
+                                }
+
+                                if (newPasswordTextRow.value == newPasswordAgainTextRow.value){
+                                    var curAdmin = AdminManager.getCurAdmin()
+                                    if (curAdmin.length == 0){
+                                        panelTarget.messageDialog.text = "您当前不是管理员，请登录后重试！"
+                                        panelTarget.messageDialog.open()
+                                        return
+                                    }
+
+                                    var result = AdminManager.adminModifyPassword(curAdmin, nowPasswordTextRow.value, newPasswordTextRow.value)
+
+                                    switch (result){
+                                    case 0:
+                                        panelTarget.messageDialog.text = "管理员账户密码修改成功！"
+                                        nowPasswordTextRow.value = ""
+                                        newPasswordTextRow.value = ""
+                                        newPasswordAgainTextRow.value = ""
+                                        break;
+                                    case -1:
+                                        panelTarget.messageDialog.text = "管理员账户不存在，请检查输入！"
+                                        break;
+                                    case -2:
+                                        panelTarget.messageDialog.text = "管理员账户密码错误，请检查输入！"
+                                        break;
+                                    default:
+                                        panelTarget.messageDialog.text = "未知错误！"
+                                    }
+                                }
+                                else{
+                                    panelTarget.messageDialog.text = "前后密码不一致，请检查输入！"
+                                }
+                                panelTarget.messageDialog.open()
+                            }
                         }
                     }
                 }
