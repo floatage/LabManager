@@ -807,7 +807,7 @@ QVariantList DBOP::listSessionMessages(const ModelStringType& sessionDest)
 }
 
 //Request operation
-int DBOP::createRequest(const RequestInfo & request)
+int DBOP::createRequest(const RequestInfo & request, bool isSend)
 {
 	static const QString ADD_REQUEST("insert into Request(rid,rtype,rdata,rstate,rdate,rsource,rdest) values(?,?,?,?,?,?,?)");
 
@@ -822,7 +822,7 @@ int DBOP::createRequest(const RequestInfo & request)
 	query.addBindValue(request.rdest);
 
 	if (query.exec()) {
-		notifyNewRequestCreate(request);
+		notifyNewRequestCreate(request, isSend);
 		qDebug() << "request insert success! rid: " << request.rid << " type: " << request.rtype << " data: " << request.rdata;
 		return 0;
 	}
@@ -1196,7 +1196,7 @@ void DBOP::notifySeesionUpdateLastmsg(const SessionInfo & sessionInfo)
 	seesionUpdateLastmsg(newSession);
 }
 
-void DBOP::notifyNewRequestCreate(const RequestInfo & reqInfo)
+void DBOP::notifyNewRequestCreate(const RequestInfo & reqInfo, bool isSend)
 {
 	QVariantList newReq;
 	newReq.append(reqInfo.rid);
@@ -1206,8 +1206,8 @@ void DBOP::notifyNewRequestCreate(const RequestInfo & reqInfo)
 	newReq.append(reqInfo.rdate);
 	newReq.append(reqInfo.rsource);
 	newReq.append(reqInfo.rdest);
-	newReq.append(getUser(reqInfo.rsource)["uname"]);
-	newRequestCreate(newReq);
+	newReq.append(getUser(isSend ? reqInfo.rdest : reqInfo.rsource)["uname"]);
+	newRequestCreate(newReq, isSend);
 }
 
 void DBOP::notifyNewTaskCreate(const TaskInfo & taskInfo)

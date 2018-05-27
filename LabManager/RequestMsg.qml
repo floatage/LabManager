@@ -56,8 +56,9 @@ DialogFrame {
         waitingReqModel.append({
             rid: req[0]
             , rtype: req[1]
-            , sourceId: req[6]
-            , sourceName: req[7]
+            , sourceId: req[5]
+            , destId: req[6]
+            , reqName: req[7]
             , rdata: req[2]
             , isSend: req[5] == localUUid ? true : false
             , isRecv: req[6] == localUUid ? true : false
@@ -137,13 +138,13 @@ DialogFrame {
 
                         TextArea {
                             function getReqStr(){
-                                var reqInfor = sourceName + "(" + sourceId + ")" + requestMsgRoot.requestTypeTextMap[rtype]
+                                var reqInfor = (isSend ? "我" : (reqName + "(" + sourceId + ")")) + requestMsgRoot.requestTypeTextMap[rtype]
                                 if (rtype == 0){
                                     var data = JSON.parse(rdata)
                                     reqInfor += data["fileName"] + "(" + requestMsgRoot.panelParent.getFileSizeStr(parseInt(data["fileSize"])) + ")"
                                 }
 
-                                return reqInfor
+                                return reqInfor + "到" + (isSend ? (reqName + "(" + destId + ")") : "我")
                             }
 
                             id: requestInforText

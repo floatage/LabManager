@@ -58,7 +58,7 @@ public:
 	QVariantList listSessionMessages(const ModelStringType& sessionDest);
 
 	//Reuqest opearation
-	int createRequest(const RequestInfo& request);
+	int createRequest(const RequestInfo& request, bool isSend);
 	QVariantHash getRequestTaskNeedingInfo(const ModelStringType& requestId);
 	QVariantList listRequests(bool isFinished);
 	int setRequestState(const ModelStringType& requestId, int state);
@@ -84,7 +84,7 @@ private:
 	DBOP(QObject* parent = 0);
 	void notifyModelAppendMsg(const MessageInfo& msgInfo, bool isSend);
 	void notifySeesionUpdateLastmsg(const SessionInfo& sessionInfo);
-	void notifyNewRequestCreate(const RequestInfo& reqInfo);
+	void notifyNewRequestCreate(const RequestInfo& reqInfo, bool isSend);
 	void notifyNewTaskCreate(const TaskInfo& taskInfo);
 	void notifySharedFileAdd(const SharedFileInfo& fileInfo);
 
@@ -92,7 +92,7 @@ signals:
 	void sessionMsgRecv(QVariantList recvMsg, bool isSend);
 	void seesionUpdateLastmsg(QVariantList sessionMsg);
 	void requestStateChanged(const QString& rid, int state);
-	void newRequestCreate(QVariantList reqMsg);
+	void newRequestCreate(QVariantList reqMsg, bool isSend);
 	void newTaskCreate(QVariantList taskMsg);
 	void taskHandleFinished(const QString& tid, int tstate);
 	void taskRunningStateChanged(const QString& tid, int tstate);

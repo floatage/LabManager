@@ -63,7 +63,7 @@ int UserReuqestManager::sendRequest(const QString & duuid, int type, QVariantHas
 
     QString reqDataStr = JsonDocType::fromVariant(QVariant(data)).toJson(JSON_FORMAT).toStdString().c_str();
 	RequestInfo req(duuid, type, reqDataStr);
-	int result = DBOP::getInstance()->createRequest(req);
+	int result = DBOP::getInstance()->createRequest(req, true);
 	if (result == 0) {
 		JsonObjType datas;
 		datas["rid"] = req.rid;
@@ -152,7 +152,7 @@ void UserReuqestManager::handleSendRequest(JsonObjType & msg, ConnPtr conn)
 	JsonObjType req = msg["data"].toObject();
 	RequestInfo reqInfo(req["rid"].toString(), req["rtype"].toInt(), req["rdata"].toString(),
 		req["rdate"].toString(), req["rsource"].toString(), req["rdest"].toString());
-	DBOP::getInstance()->createRequest(reqInfo);
+	DBOP::getInstance()->createRequest(reqInfo, false);
 }
 
 void UserReuqestManager::handleAgreeRequest(JsonObjType & msg, ConnPtr conn)
