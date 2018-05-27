@@ -12,10 +12,10 @@ const StringType requestFamilyStr("ReqManage");
 const StringType sendRequestActionStr("SendReq");
 const StringType agreeRequestActionStr("AgreeReq");
 const StringType rejectRequestActionStr("RejectReq");
+const StringType cancelRequestActionStr("CancelReq");
 const StringType errorRequestAcctionStr("ErrorReq");
 
 struct UserReuqestManagerData {
-    QSet<QString> dropReqSet;
 	QHash<ReqType, std::function<void(const QString&, QVariantHash&)>> reqTypeHandlerMap;
 };
 
@@ -28,6 +28,7 @@ UserReuqestManager::UserReuqestManager(QObject *parent)
 	registerActionHandler(agreeRequestActionStr, std::bind(&UserReuqestManager::handleAgreeRequest, this, _1, _2));
 	registerActionHandler(rejectRequestActionStr, std::bind(&UserReuqestManager::handleRejectRequest, this, _1, _2));
 	registerActionHandler(errorRequestAcctionStr, std::bind(&UserReuqestManager::handleErrorRequest, this, _1, _2));
+	registerActionHandler(cancelRequestActionStr, std::bind(&UserReuqestManager::handleCancelRequest, this, _1, _2));
 }
 
 UserReuqestManager::~UserReuqestManager()
@@ -145,10 +146,15 @@ int UserReuqestManager::errorRequest(const QString& rid, const QString & source)
 	return result;
 }
 
-int UserReuqestManager::cancelRequest(const QString& rid)
+int UserReuqestManager::cancelRequest(const QString& rid, const QString & source)
 {
-	DBOP::getInstance()->setRequestState(rid, (int)ReqState::ReqCancel);
-	memberDataPtr->dropReqSet.insert(rid);
+	int result = DBOP::getInstance()->setRequestState(rid, (int)ReqState::ReqCancel);
+	if (result == 0) {
+		JsonObjType datas;
+		datas["rid"] = rid;
+		datas["dest"] = source;
+		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, requestFamilyStr, cancelRequestActionStr, datas);
+	}
 	return 0;
 }
 
@@ -176,6 +182,12 @@ void UserReuqestManager::handleErrorRequest(JsonObjType & msg, ConnPtr conn)
 {
 	auto rid = msg["data"].toObject()["rid"].toString();
 	DBOP::getInstance()->setRequestState(rid, ReqState::ReqError);
+}
+
+void UserReuqestManager::handleCancelRequest(JsonObjType & msg, ConnPtr conn)
+{
+	auto rid = msg["data"].toObject()["rid"].toString();
+	DBOP::getInstance()->setRequestState(rid, ReqState::ReqCancel);
 }
 
 QVariantList UserReuqestManager::getSettings()

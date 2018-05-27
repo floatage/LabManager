@@ -22,7 +22,7 @@ public:
 
     Q_INVOKABLE int agreeRequest(const QString& rid, const QString & source);
     Q_INVOKABLE int rejectRequest(const QString& rid, const QString & source);
-    Q_INVOKABLE int cancelRequest(const QString& rid);
+    Q_INVOKABLE int cancelRequest(const QString& rid, const QString & source);
 
     Q_INVOKABLE QVariantList listWaitingRequest();
     Q_INVOKABLE QVariantList listHandledRequest();
@@ -36,6 +36,7 @@ private:
 	void handleAgreeRequest(JsonObjType& msg, ConnPtr conn);
 	void handleRejectRequest(JsonObjType& msg, ConnPtr conn);
 	void handleErrorRequest(JsonObjType& msg, ConnPtr conn);
+	void handleCancelRequest(JsonObjType& msg, ConnPtr conn);
 
 	UserReuqestManagerDataPtr memberDataPtr;
 
