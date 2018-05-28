@@ -33,13 +33,8 @@ DialogFrame {
         "请求屏幕控制"
     ]
     property var requestStateTextMap:[
-        "等待中", "请求已同意",
-        "请求已拒绝", "请求已取消",
-        "请求超时", "未知错误"
-    ]
-    property var requestPassiveStateTextMap:[
-        "等待中", "对方已同意",
-        "对方已拒绝", "对方已取消",
+        "等待中", "已同意",
+        "已拒绝", "已取消",
         "请求超时", "未知错误"
     ]
 
@@ -348,7 +343,7 @@ DialogFrame {
                                 color: "#69F"
                                 font.pixelSize: 11
                                 renderType: Text.NativeRendering
-                                text: isSend ? requestMsgRoot.requestStateTextMap[reqState] : requestMsgRoot.requestPassiveStateTextMap[reqState]
+                                text: requestMsgRoot.requestStateTextMap[reqState]
                             }
                         }
                     }
