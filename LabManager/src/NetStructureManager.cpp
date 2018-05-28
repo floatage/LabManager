@@ -265,7 +265,7 @@ void NetStructureManager::dumpUserToDB()
 		}
 
 		UserGroupInfo defaultGroup(QString("0"), QString::fromLocal8Bit("当前域"), QString(""), 
-			QString::fromLocal8Bit("当前局域网内所有用户"), QString("/img/defaultPic.jpg"));
+			QString::fromLocal8Bit("当前局域网内所有用户"), QString(""));
 
 		AdminInfo defaultAdmin(QString("admin"), QString("18782087866"));
 

@@ -63,6 +63,7 @@ int DBOP::createTables()
 		"uid VARCHAR(32) NOT NULL, "
 		"mrole INTEGER NOT NULL, "
 		"mjoindate VARCHAR(32) NOT NULL, "
+		"primary key(ugid, uid), "
 		"foreign key(uid) references User(uid), "
 		"foreign key(ugid) references UserGroup(ugid))");
 
@@ -719,8 +720,8 @@ QVariantList DBOP::listSessions()
 	while (query.next())
 	{
 		QVariantList item;
-		item.append(query.value("stype"));
 		item.append(query.value("duuid"));
+		item.append(query.value("stype"));
 		item.append(query.value("lastmsg"));
 		item.append(query.value("ugname"));
 		item.append(query.value("ugpic"));

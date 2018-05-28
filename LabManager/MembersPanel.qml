@@ -34,16 +34,16 @@ ApplicationWindow {
     }
 
     function updateSessionModel(){
-        var userList = SessionManager.listSessions()
+        var sessionList = SessionManager.listSessions()
         sessionListViewContent.model.clear()
-        for (var begin = 0; begin < userList.length; ++begin){
+        for (var begin = 0; begin < sessionList.length; ++begin){
             //duuid, stype, uname, lastmsg, name, pic
             sessionListViewContent.model.append({
-                sessionDestUuid: userList[begin][0]
-                , sessionType: userList[begin][1]
-                , sessionLastMsg: userList[begin][2]
-                , sessionDestName: userList[begin][3]
-                , sessionPicPath: userList[begin][4] == "" ? "/img/defaultPic.jpg" : userList[begin][5]
+                sessionDestUuid: sessionList[begin][0]
+                , sessionType: sessionList[begin][1]
+                , sessionLastMsg: sessionList[begin][2]
+                , sessionDestName: sessionList[begin][3]
+                , sessionPicPath: sessionList[begin][4] == "" ? (sessionList[begin][1] == 1 ? "/img/defaultPic.jpg" : "/img/defaultGroupPic.jpg") : sessionList[begin][5]
             })
         }
     }
@@ -62,8 +62,21 @@ ApplicationWindow {
         }
     }
 
-    function updateGroupModel(){
+    function appendGroup(groupInfo){
+        //"ugid", "ugname", "ugowneruid", "ugdate", "ugintro", "ugpic"
+        memGroupListViewContent.model.append({groupId: groupInfo[0]
+            , groupName: groupInfo[1]
+            , groupIntro: groupInfo[4]
+            , groupPicPath: groupInfo[5] == "" ? "/img/defaultGroupPic.jpg" : groupInfo[5]
+        })
+    }
 
+    function updateGroupModel(){
+        var groupList = UserManager.listUserGroups()
+        memGroupListViewContent.model.clear()
+        for (var begin = 0; begin < groupList.length; ++begin){
+            appendGroup(groupList[begin])
+        }
     }
 
     Connections{
@@ -99,7 +112,6 @@ ApplicationWindow {
             sessionRecvNewMsg(0)
         }
     }
-
 
     ListModel {
         id: sessionModel
@@ -490,8 +502,9 @@ ApplicationWindow {
                         clip: true
                         ScrollBar.vertical: ScrollBar { }
 
-                        Component.onCompleted: {
-                            updateSessionModel()
+                        onVisibleChanged: {
+                            if (visible)
+                                updateSessionModel()
                         }
 
                         onCurrentItemChanged: {
@@ -662,8 +675,9 @@ ApplicationWindow {
                         clip: true
                         ScrollBar.vertical: ScrollBar { }
 
-                        Component.onCompleted: {
-                            updateUserModel()
+                        onVisibleChanged: {
+                            if (visible)
+                                updateUserModel()
                         }
 
                         model: userModel
@@ -700,8 +714,6 @@ ApplicationWindow {
 
                                     for (var pos=0; pos < sessionModel.count; ++pos){
                                         if (sessionModel.get(pos).sessionDestUuid == curUserId){
-                                            if (pos === 0) return
-
                                             sessionModel.move(pos, 0, 1)
                                             sessionListViewContent.currentItem.color = "#FFF"
                                             sessionListViewContent.currentIndex = 0
@@ -833,8 +845,9 @@ ApplicationWindow {
                         height: parent.height
                         ScrollBar.vertical: ScrollBar { }
 
-                        Component.onCompleted: {
-                            updateGroupModel()
+                        onVisibleChanged: {
+                            if (visible)
+                                updateGroupModel()
                         }
 
                         model: groupModel
@@ -855,31 +868,27 @@ ApplicationWindow {
                                     memGroupListViewContent.currentItem.color = "#FFF"
                                     memGroupListViewContent.currentIndex = index
                                     memGroupListViewContent.currentItem.color = "#FEE"
-
-
                                 }
 
                                 onDoubleClicked: {
-//                                    var curUserId = memGroupListViewContent.model.get(index).userId
-//                                    if (SessionManager.seesionIsExistsByUuid(curUserId, 1) == -1){
-//                                        SessionManager.createSession(1, curUserId)
-//                                    }
+                                    var curGroupId = memGroupListViewContent.model.get(index).groupId
+                                    if (SessionManager.seesionIsExistsByUuid(curGroupId, 2) == -1){
+                                        SessionManager.createSession(2, curGroupId)
+                                    }
 
-//                                    sessionIcon.item.iconClicked()
+                                    sessionIcon.item.iconClicked()
 
-//                                    for (var pos=0; pos < sessionModel.count; ++pos){
-//                                        if (sessionModel.get(pos).sessionDestUuid == curUserId){
-//                                            if (pos === 0) return
-
-//                                            sessionModel.move(pos, 0, 1)
-//                                            sessionListViewContent.currentItem.color = "#FFF"
-//                                            sessionListViewContent.currentIndex = 0
-//                                            sessionListViewContent.currentItem.color = "#FEE"
-//                                            console.log("move to session!")
-//                                            return
-//                                        }
-//                                    }
-//                                    console.log("don't move to session!")
+                                    for (var pos=0; pos < sessionModel.count; ++pos){
+                                        if (sessionModel.get(pos).sessionDestUuid == curGroupId){
+                                            sessionModel.move(pos, 0, 1)
+                                            sessionListViewContent.currentItem.color = "#FFF"
+                                            sessionListViewContent.currentIndex = 0
+                                            sessionListViewContent.currentItem.color = "#FEE"
+                                            console.log("move to session!")
+                                            return
+                                        }
+                                    }
+                                    console.log("don't move to session!")
                                 }
 
                                 onEntered: {
@@ -945,7 +954,7 @@ ApplicationWindow {
                                 color: "#444"
                                 font.pixelSize: 14
                                 renderType: Text.NativeRendering
-                                text: groupName + "(" + groupId + ")"
+                                text: groupName + " (" + groupId + ")"
 
                                 selectByMouse: true
                                 readOnly: true
@@ -963,10 +972,10 @@ ApplicationWindow {
                             TextArea {
                                 id: groupIntroText
                                 width: groupInforText.width
-                                anchors.bottom: userPic.bottom
+                                anchors.bottom: groupPic.bottom
                                 anchors.bottomMargin: 2
-                                anchors.left: userPic.right
-                                anchors.leftMargin: userPic.anchors.leftMargin
+                                anchors.left: groupPic.right
+                                anchors.leftMargin: groupPic.anchors.leftMargin
                                 padding: 0
 
                                 verticalAlignment: Text.AlignVCenter

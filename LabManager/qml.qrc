@@ -61,5 +61,6 @@
         <file>img/executing.png</file>
         <file>img/history.png</file>
         <file>img/defaultCurUser.jpg</file>
+        <file>img/defaultGroupPic.jpg</file>
     </qresource>
 </RCC>
