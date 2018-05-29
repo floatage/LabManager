@@ -2,6 +2,7 @@
 #include "IOContextManager.h"
 #include "NetStructureManager.h"
 #include "MessageManager.h"
+#include "DBop.h"
 
 const StringType connManagefamilyStr("ConnManage");
 const StringType sendSingleActionStr("SendSingle");
@@ -9,7 +10,7 @@ const StringType sendGroupActionStr("SendGroup");
 const StringType sendBroadcastActionStr("SendBroadcast");
 const StringType sendRandomActionStr("SendRandom");
 
-const int maxRouteCount = 5;
+const int maxRouteCount = 1;
 
 ConnectionManager::ConnectionManager()
 {
@@ -96,59 +97,87 @@ void ConnectionManager::sendtoConn(const StringType& id, JsonObjType msg)
 	}
 }
 
+QHash<QString, QStringList> ConnectionManager::getUsersJoinGroups()
+{
+	QHash<QString, QStringList> result;
+	auto dbop = DBOP::getInstance();
+	for (auto& conns : validConn) {
+		for (auto& conn : conns.second) {
+			result[conn.first.c_str()] = dbop->listJoinGroup(conn.first.c_str());
+		}
+	}
+
+	QString localUuid = NetStructureManager::getInstance()->getLocalUuid().c_str();
+	result[localUuid] = dbop->listJoinGroup(localUuid);
+
+	return result;
+}
+
 void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 {
-	qDebug() << msg;
+	qDebug() << "single msg! isSend: " << isRepackage << " package: "<< msg;
+
 	auto data = isRepackage ? msg["data"].toObject() : msg["data"].toObject()["data"].toObject();
 	auto dest = data["dest"].toString().toStdString();
 	if (dest == NetStructureManager::getInstance()->getLocalUuid()) {
-		handleMsgSingle(isRepackage ? msg : msg["data"].toObject(), nullptr);
+		familyParse(isRepackage ? msg : msg["data"].toObject(), nullptr);
 		return;
 	}
 
 	JsonObjType sendMsg;
-	(isRepackage ? sendMsg["family"] : msg["family"]) = connManagefamilyStr.c_str();
-	(isRepackage ? sendMsg["action"] : msg["action"]) = sendSingleActionStr.c_str();
-	(isRepackage ? sendMsg["state"] : msg["state"]) = TransferState::TSAvailable;
 	if (isRepackage) {
+		sendMsg["family"] = connManagefamilyStr.c_str();
+		sendMsg["action"] = sendSingleActionStr.c_str();
 		sendMsg["data"] = msg;
 	}
 
 	auto role = NetStructureManager::getInstance()->getLocalRole();
-	auto result = validConn[ConnType::CONN_CHILD].end();
 	switch (role)
 	{
 	case ROLE_MASTER:
-		for (auto& child : validConn[ConnType::CONN_CHILD]) {
-			child.second->send(isRepackage ? sendMsg : msg);
-			break;
+		if (isRepackage){
+			auto result = validConn[ConnType::CONN_CHILD].end();
+			result = validConn[ConnType::CONN_CHILD].find(dest);
+			if (result != validConn[ConnType::CONN_CHILD].end()) {
+				result->second->send(sendMsg);
+			}
+			else {
+				if (!validConn[ConnType::CONN_CHILD].empty())
+					validConn[ConnType::CONN_CHILD].begin()->second->send(sendMsg);
+			}
 		}
 		break;
 	case ROLE_ROUTER:
-		result = validConn[ConnType::CONN_CHILD].find(dest);
-		if (result != validConn[ConnType::CONN_CHILD].end()) {
-			result->second->send(isRepackage ? sendMsg : msg);
-		}
-		else {
-			if (!(isRepackage ? sendMsg.contains("routeCount") : msg.contains("routeCount"))) {
-				(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = 1;
-				for (auto& parent : validConn[ConnType::CONN_PARENT]) {
-					parent.second->send(isRepackage ? sendMsg : msg);
-				}
+		{
+			auto result = validConn[ConnType::CONN_CHILD].end();
+			result = validConn[ConnType::CONN_CHILD].find(dest);
+			if (result != validConn[ConnType::CONN_CHILD].end()) {
+				result->second->send(isRepackage ? sendMsg : msg);
 			}
-			
-			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
-			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-			if (routeCount >= routeCount) return;
+			else {
+				if (!(isRepackage ? sendMsg.contains("routeCount") : msg.contains("routeCount"))) {
+					(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = 1;
+					auto result = validConn[ConnType::CONN_PARENT].end();
+					result = validConn[ConnType::CONN_PARENT].find(dest);
+					if (result != validConn[ConnType::CONN_PARENT].end()) {
+						result->second->send(isRepackage ? sendMsg : msg);
+						return;
+					}
+				}
 
-			for (auto& brother : validConn[ConnType::CONN_BROTHER]) {
-				brother.second->send(isRepackage ? sendMsg : msg);
+				int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
+				(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
+				if (routeCount >= routeCount) return;
+
+				if (!validConn[ConnType::CONN_BROTHER].empty())
+					validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
 			}
 		}
 		break;
 	case ROLE_MEMBER:
-		for (auto& parent : validConn[ConnType::CONN_PARENT]) {
-			parent.second->send(isRepackage ? sendMsg : msg);
+		if (isRepackage) {
+			if (!validConn[ConnType::CONN_PARENT].empty())
+				validConn[ConnType::CONN_PARENT].begin()->second->send(sendMsg);
 		}
 		break;
 	default:
@@ -158,38 +187,121 @@ void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 
 void ConnectionManager::sendGroupMsg(JsonObjType& msg, bool isRepackage)
 {
-}
+	static bool isInit = false;
+	static QHash<QString, QStringList> userGroupMap;
 
-void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
-{
+	qDebug() << "group msg! isSend: " << isRepackage << " package: " << msg;
+
+	if (!isInit) {
+		userGroupMap = getUsersJoinGroups();
+		isInit = true;
+	}
+
 	JsonObjType sendMsg;
-	(isRepackage ? sendMsg["family"] : msg["family"]) = connManagefamilyStr.c_str();
-	(isRepackage ? sendMsg["action"] : msg["action"]) = sendBroadcastActionStr.c_str();
 	if (isRepackage) {
+		sendMsg["family"] = connManagefamilyStr.c_str();
+		sendMsg["action"] = sendGroupActionStr.c_str();
 		sendMsg["data"] = msg;
 	}
+
+	JsonObjType msgData = isRepackage ? msg["data"].toObject() : msg["data"].toObject()["data"].toObject();
+	QString groupId = msgData["dest"].toString();
+	QString localUuid = NetStructureManager::getInstance()->getLocalUuid().c_str();
+	if (userGroupMap[localUuid].contains(groupId))
+		familyParse(isRepackage ? msg : msg["data"].toObject(), nullptr);
 
 	auto role = NetStructureManager::getInstance()->getLocalRole();
 	switch (role)
 	{
 	case ROLE_MASTER:
-		familyParse(isRepackage ? msg : msg["data"].toObject(), nullptr);
-		(isRepackage ? sendMsg["state"] : msg["state"]) = TransferState::TSAvailable;
-		for (auto& child : validConn[ConnType::CONN_CHILD]) {
-			child.second->send(isRepackage ? sendMsg : msg);
+		if (isRepackage) {
+			if (!validConn[ConnType::CONN_CHILD].empty())
+				validConn[ConnType::CONN_CHILD].begin()->second->send(sendMsg);
 		}
 		break;
 	case ROLE_ROUTER:
-	case ROLE_MEMBER:
-		(isRepackage ? sendMsg["state"] : msg["state"]) = TransferState::TSRouting;
-		for (auto& parent : validConn[ConnType::CONN_PARENT]) {
-			parent.second->send(isRepackage ? sendMsg : msg);
+		{
+			if (!(isRepackage ? sendMsg.contains("routeCount") : msg.contains("routeCount"))) {
+				(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = 1;
+				for (auto& parent : validConn[ConnType::CONN_PARENT]) {
+					if (userGroupMap[parent.first.c_str()].contains(groupId))
+						parent.second->send(isRepackage ? sendMsg : msg);
+				}
+			}
+
+			for (auto& child : validConn[ConnType::CONN_CHILD]) {
+				if (userGroupMap[child.first.c_str()].contains(groupId))
+					child.second->send(isRepackage ? sendMsg : msg);
+			}
+
+			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
+			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
+			if (routeCount >= routeCount) return;
+
+			if (!validConn[ConnType::CONN_BROTHER].empty())
+				validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
 		}
+		break;
+	case ROLE_MEMBER:
+		if (isRepackage)
+			if (!validConn[ConnType::CONN_PARENT].empty())
+				validConn[ConnType::CONN_PARENT].begin()->second->send(sendMsg);
 		break;
 	default:
 		break;
 	}
-	
+}
+
+void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
+{
+	qDebug() << "broadcast msg! isSend: " << isRepackage << " package: " << msg;
+
+	JsonObjType sendMsg;
+	if (isRepackage) {
+		sendMsg["family"] = connManagefamilyStr.c_str();
+		sendMsg["action"] = sendBroadcastActionStr.c_str();
+		sendMsg["data"] = msg;
+	}
+
+	familyParse(isRepackage ? msg : msg["data"].toObject(), nullptr);
+
+	auto role = NetStructureManager::getInstance()->getLocalRole();
+	switch (role)
+	{
+	case ROLE_MASTER:
+		if (isRepackage) {
+			if (!validConn[ConnType::CONN_CHILD].empty())
+				validConn[ConnType::CONN_CHILD].begin()->second->send(sendMsg);
+		}
+		break;
+	case ROLE_ROUTER:
+		{
+			if (!(isRepackage ? sendMsg.contains("routeCount") : msg.contains("routeCount"))) {
+				(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = 1;
+				for (auto& parent : validConn[ConnType::CONN_PARENT]) {
+					parent.second->send(isRepackage ? sendMsg : msg);
+				}
+			}
+
+			for (auto& child : validConn[ConnType::CONN_CHILD])
+				child.second->send(isRepackage ? sendMsg : msg);
+
+			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
+			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
+			if (routeCount >= routeCount) return;
+
+			if (!validConn[ConnType::CONN_BROTHER].empty())
+				validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
+		}
+		break;
+	case ROLE_MEMBER:
+		if (isRepackage)
+			if (!validConn[ConnType::CONN_PARENT].empty())
+				validConn[ConnType::CONN_PARENT].begin()->second->send(sendMsg);
+		break;
+	default:
+		break;
+	}
 }
 
 void ConnectionManager::sendRandomMsg(JsonObjType& msg, bool isRepackage)
@@ -198,41 +310,17 @@ void ConnectionManager::sendRandomMsg(JsonObjType& msg, bool isRepackage)
 
 void ConnectionManager::handleMsgSingle(JsonObjType & msg, ConnPtr conn)
 {
-	if (!msg.contains("state")) {
-		familyParse(msg, conn);
-		return;
-	}
-
-	TransferState state = (TransferState)msg["state"].toInt();
-	switch (state)
-	{
-	case TSRouting:
-		break;
-	case TSAvailable:
-		sendSingleMsg(msg, false);
-		break;
-	default:
-		break;
-	}
+	sendSingleMsg(msg, false);
 }
 
 void ConnectionManager::handleMsgBroadcast(JsonObjType & msg, ConnPtr conn)
 {
-	TransferState state = (TransferState)msg["state"].toInt();
-	switch (state)
-	{
-	case TSRouting:
-		sendBroadcastMsg(msg, false);
-		break;
-	case TSAvailable:
-		familyParse(msg["data"].toObject(), conn);
-		sendBroadcastMsg(msg, false);
-		break;
-	}
+	sendBroadcastMsg(msg, false);
 }
 
 void ConnectionManager::handleMsgGroup(JsonObjType & msg, ConnPtr conn)
 {
+	sendGroupMsg(msg, false);
 }
 
 void ConnectionManager::handleMsgRandom(JsonObjType & msg, ConnPtr conn)

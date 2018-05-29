@@ -67,7 +67,7 @@ struct SessionInfo
 
 struct MessageInfo
 {
-	int mid;
+	ModelStringType mid;
 	int mtype;
 	int mmode;
     ModelStringType msource;
@@ -77,7 +77,7 @@ struct MessageInfo
 
 	MessageInfo();
     MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, int mmode=1);
-	MessageInfo(const ModelStringType& msource, const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, const ModelStringType& mdate, int mmode);
+	MessageInfo(const ModelStringType& mid, const ModelStringType& msource, const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, const ModelStringType& mdate, int mmode);
 };
 
 

@@ -38,6 +38,7 @@ public:
 	int removeMember(const ModelStringType& groupId, const ModelStringType& userId, QString& sql=QString());
 	QVariantList listMembers(const ModelStringType& groupId);
 	int setMemeberRole(const ModelStringType& groupId, const ModelStringType& userId, int role, QString& sql=QString());
+	QStringList listJoinGroup(const ModelStringType& userId);
 
 	//Admin operation
 	int createAdmin(const AdminInfo& admin, QString& sql = QString());
@@ -54,7 +55,7 @@ public:
 
 	//Message operation
 	int createMessage(const MessageInfo& message, bool isSend);
-	int deleteMessage(int messageId);
+	int deleteMessage(const ModelStringType& messageId);
 	QVariantList listSessionMessages(const ModelStringType& sessionDest);
 
 	//Reuqest opearation

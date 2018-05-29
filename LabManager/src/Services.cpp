@@ -251,7 +251,7 @@ void PicTransferService::dataHandle()
 			conn->stop();
 
 			QUrl fileUrl = QUrl::fromLocalFile(tmpDir.c_str() + taskParam["picStoreName"].toString());
-			MessageInfo msgInfo(taskParam["msgSource"].toString(), taskParam["msgDest"].toString(), taskParam["msgType"].toInt(), 
+			MessageInfo msgInfo(taskParam["msgId"].toString(), taskParam["msgSource"].toString(), taskParam["msgDest"].toString(), taskParam["msgType"].toInt(),
 				fileUrl.toString(), taskParam["msgDate"].toString(), taskParam["msgMode"].toInt());
 			SessionManager::getInstance()->createMessage(msgInfo, false);
 		}

@@ -715,7 +715,8 @@ ApplicationWindow {
                                     for (var pos=0; pos < sessionModel.count; ++pos){
                                         if (sessionModel.get(pos).sessionDestUuid == curUserId){
                                             sessionModel.move(pos, 0, 1)
-                                            sessionListViewContent.currentItem.color = "#FFF"
+                                            if (sessionListViewContent.currentItem)
+                                                sessionListViewContent.currentItem.color = "#FFF"
                                             sessionListViewContent.currentIndex = 0
                                             sessionListViewContent.currentItem.color = "#FEE"
                                             console.log("move to session!")
@@ -881,7 +882,8 @@ ApplicationWindow {
                                     for (var pos=0; pos < sessionModel.count; ++pos){
                                         if (sessionModel.get(pos).sessionDestUuid == curGroupId){
                                             sessionModel.move(pos, 0, 1)
-                                            sessionListViewContent.currentItem.color = "#FFF"
+                                            if (sessionListViewContent.currentItem)
+                                                sessionListViewContent.currentItem.color = "#FFF"
                                             sessionListViewContent.currentIndex = 0
                                             sessionListViewContent.currentItem.color = "#FEE"
                                             console.log("move to session!")

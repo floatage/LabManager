@@ -62,14 +62,14 @@ MessageInfo::MessageInfo()
 }
 
 MessageInfo::MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, int mmode)
-	:mid(-1), msource(NetStructureManager::getInstance()->getLocalUuid().c_str()), mduuid(mduuid), mmode(mmode),
+	:mid(QUuid::createUuid().toString()), msource(NetStructureManager::getInstance()->getLocalUuid().c_str()), mduuid(mduuid), mmode(mmode),
 	mtype(mtype), mdata(mdata), mdate(QDateTime::currentDateTime().toString(timeFormat))
 {
 }
 
-MessageInfo::MessageInfo(const ModelStringType& msource, const ModelStringType & mduuid, int mtype, 
+MessageInfo::MessageInfo(const ModelStringType& mid, const ModelStringType& msource, const ModelStringType & mduuid, int mtype,
 	const ModelStringType & mdata, const ModelStringType & mdate, int mmode)
-	: mid(-1), msource(msource), mduuid(mduuid), mtype(mtype), mdata(mdata), mdate(mdate), mmode(mmode)
+	: mid(mid), msource(msource), mduuid(mduuid), mtype(mtype), mdata(mdata), mdate(mdate), mmode(mmode)
 {
 }
 

@@ -70,6 +70,7 @@ void SessionManager::sendChatMsg(int stype, const QString & duuid, const QString
 	DBOP::getInstance()->createMessage(msgInfo, true);
 
 	JsonObjType datas;
+	datas["id"] = msgInfo.mid;
 	datas["type"] = msgInfo.mtype;
 	datas["source"] = msgInfo.msource;
 	datas["dest"] = msgInfo.mduuid;
@@ -89,6 +90,7 @@ void SessionManager::sendPic(int stype, const QString & duuid, const QUrl & picP
 	DBOP::getInstance()->createMessage(msgInfo, true);
 
     QVariantHash taskData;
+	taskData["msgId"] = msgInfo.mid;
 	taskData["msgType"] = msgInfo.mtype;
 	taskData["msgSource"] = msgInfo.msource;
 	taskData["msgDest"] = msgInfo.mduuid;
@@ -103,13 +105,18 @@ void SessionManager::sendPic(int stype, const QString & duuid, const QUrl & picP
 		TaskManager::getInstance()->createSendPicSingleTask(duuid, taskData);
 	}
 	else if (SessionType::GroupSession == SessionType(stype)) {
-		//传送图片，修改路径
+		//上传到路由节点
 	}
 }
 
 void SessionManager::sendFile(int stype, const QString & duuid, const QUrl & filePath)
 {
-    UserReuqestManager::getInstance()->sendFileTrangferReq(duuid, filePath.toString().split("///")[1]);
+	if (SessionType::UserSession == SessionType(stype)) {
+		UserReuqestManager::getInstance()->sendFileTrangferReq(duuid, filePath.toString().split("///")[1]);
+	}
+	else if (SessionType::GroupSession == SessionType(stype)) {
+		//上传到路由节点
+	}
 }
 
 void SessionManager::publishHomework(const QString & duuid, const QVariantList & hwInfo)
@@ -171,7 +178,7 @@ void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 {
 	qDebug() << "RECV CHAT MSG: " << msg;
 	auto data = msg["data"].toObject();
-	MessageInfo msgInfo(data["source"].toString(), data["dest"].toString(), data["type"].toInt(), 
+	MessageInfo msgInfo(data["id"].toString(), data["source"].toString(), data["dest"].toString(), data["type"].toInt(),
 		data["data"].toString(), data["date"].toString(), data["mode"].toInt());
 	DBOP::getInstance()->createMessage(msgInfo, false);
 }

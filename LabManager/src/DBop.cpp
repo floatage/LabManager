@@ -75,7 +75,7 @@ int DBOP::createTables()
 		"suid VARCHAR(32) NOT NULL, "
 		"lastmsg VARCHAR(32))");
 
-	bool bMessage = query.exec("CREATE TABLE IF NOT EXISTS Message(mid INTEGER PRIMARY KEY AUTOINCREMENT, "
+	bool bMessage = query.exec("CREATE TABLE IF NOT EXISTS Message(mid VARCHAR(32) PRIMARY KEY, "
 		"msource VARCHAR(32) NOT NULL, "
 		"mduuid VARCHAR(32) NOT NULL, "
 		"mtype INTEGER NOT NULL, "
@@ -498,6 +498,27 @@ int DBOP::setMemeberRole(const ModelStringType & groupId, const ModelStringType 
 	return -1;
 }
 
+QStringList DBOP::listJoinGroup(const ModelStringType & userId)
+{
+	static const QString GET_USER_ALL_GROUP("select ugid from GroupMember where uid=?");
+
+	QSqlQuery query;
+	QStringList result;
+
+	query.prepare(GET_USER_ALL_GROUP);
+	query.addBindValue(userId);
+	if (!query.exec()) {
+		qDebug() << "user join all group select failed! uid: " << userId << " reason: " << query.lastError().text();
+		return result;
+	}
+
+	while (query.next())
+		result.append(query.value("ugid").toString());
+
+	qDebug() << "user join all group select success! uid: " << userId;
+	return result;
+}
+
 //Admin operation
 int DBOP::createAdmin(const AdminInfo & admin, QString& sql)
 {
@@ -735,10 +756,11 @@ QVariantList DBOP::listSessions()
 //Message operation
 int DBOP::createMessage(const MessageInfo & message,bool isSend)
 {
-	static const QString ADD_MESSAGE("insert into Message(msource,mduuid,mtype,mdata,mdate,mmode) values(?,?,?,?,?,?)");
+	static const QString ADD_MESSAGE("insert into Message(mid,msource,mduuid,mtype,mdata,mdate,mmode) values(?,?,?,?,?,?,?)");
 
 	QSqlQuery query;
 	query.prepare(ADD_MESSAGE);
+	query.addBindValue(message.mid);
 	query.addBindValue(message.msource);
 	query.addBindValue(message.mduuid);
 	query.addBindValue(message.mtype);
@@ -759,7 +781,7 @@ int DBOP::createMessage(const MessageInfo & message,bool isSend)
 	return -1;
 }
 
-int DBOP::deleteMessage(int messageId)
+int DBOP::deleteMessage(const ModelStringType& messageId)
 {
 	static const QString REMOVE_MESSAGE("delete from Message where mid=?");
 

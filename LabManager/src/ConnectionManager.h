@@ -62,6 +62,8 @@ private:
 
 	enum TransferState{TSRouting, TSAvailable};
 
+	QHash<QString, QStringList> getUsersJoinGroups();
+
 	void sendSingleMsg(JsonObjType& msg, bool isRepackage=true);
 	void sendGroupMsg(JsonObjType& msg, bool isRepackage = true);
 	void sendBroadcastMsg(JsonObjType& msg, bool isRepackage = true);

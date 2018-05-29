@@ -54,7 +54,7 @@ Item{
             chatMsgControlerContentListView.model.append({
                 msgSenderPic: recvMsg[1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
                 , isGroup: panelParent.curSeesionType == 1 ? false : true
-                , msgSenderRole: ""
+                , msgSenderRole: "成员"
                 , msgSender: recvMsg[1] == panelParent.localUUid ?  "我" : panelParent.curSessionName
                 , msgSenderUuid: recvMsg[2]
                 , msgDate: recvMsg[5]
