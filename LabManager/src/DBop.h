@@ -56,7 +56,7 @@ public:
 	//Message operation
 	int createMessage(const MessageInfo& message, bool isSend);
 	int deleteMessage(const ModelStringType& messageId);
-	QVariantList listSessionMessages(const ModelStringType& sessionDest);
+	QVariantList listSessionMessages(const ModelStringType& sessionDest, bool isGroup);
 
 	//Reuqest opearation
 	int createRequest(const RequestInfo& request, bool isSend);

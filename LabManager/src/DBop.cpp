@@ -250,7 +250,6 @@ QVariantList DBOP::getUserToList(const ModelStringType & userId)
 	return result;
 }
 
-
 QVariantList DBOP::listUsers()
 {
 	static const QString USER_GET_ALL("select * from User");
@@ -798,17 +797,26 @@ int DBOP::deleteMessage(const ModelStringType& messageId)
 	return -1;
 }
 
-QVariantList DBOP::listSessionMessages(const ModelStringType& sessionDest)
+QVariantList DBOP::listSessionMessages(const ModelStringType& sessionDest, bool isGroup)
 {
-	static const QString SESSION_MESSAGE_GET_ALL("select * from Message where msource=? or mduuid=? order by datetime(mdate) asc");
+	static const QString SESSION_MESSAGE_GET_ALL_USER("select * from (select * from Message where msource=? or mduuid=? order by datetime(mdate) asc) where mmode=1");
+	static const QString SESSION_MESSAGE_GET_ALL_GROUP("select * from Message where  mduuid=? and mmode=2 order by datetime(mdate) asc");
 
 	QSqlQuery query;
 	QVariantList result;
-	query.prepare(SESSION_MESSAGE_GET_ALL);
-	query.addBindValue(sessionDest);
-	query.addBindValue(sessionDest);
+
+	if (isGroup) {
+		query.prepare(SESSION_MESSAGE_GET_ALL_GROUP);
+		query.addBindValue(sessionDest);
+	}
+	else {
+		query.prepare(SESSION_MESSAGE_GET_ALL_USER);
+		query.addBindValue(sessionDest);
+		query.addBindValue(sessionDest);
+	}
+
 	if (!query.exec()) {
-		qDebug() << "session message select all failed!" << " dest: " << sessionDest << " reason: " << query.lastError().text();
+		qDebug() << "session message select all failed!" << " dest: " << sessionDest << " group: " << isGroup << " reason: " << query.lastError().text();
 		return result;
 	}
 
@@ -825,7 +833,7 @@ QVariantList DBOP::listSessionMessages(const ModelStringType& sessionDest)
 		result.append(QVariant(item));
 	}
 
-	qDebug() << "session message select all success!" << " dest: " << sessionDest;
+	qDebug() << "session message select all success!" << " dest: " << sessionDest << " group: " << isGroup;
 	return result;
 }
 

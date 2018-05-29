@@ -22,7 +22,7 @@ public:
     Q_INVOKABLE QVariantList listSessions();
     Q_INVOKABLE int seesionIsExistsByUuid(const QString& uuid, int type);
 
-	Q_INVOKABLE QVariantList getChatMsgs(const QString& duuid);
+	Q_INVOKABLE QVariantList getChatMsgs(const QString& duuid, bool isGroup);
     Q_INVOKABLE void sendChatMsg(int stype, const QString& duuid, const QString& msg);
     Q_INVOKABLE void sendPic(int stype, const QString& duuid, const QUrl& picPath, bool isAnimation);
     Q_INVOKABLE void sendFile(int stype, const QString& duuid, const QUrl& filePath);

@@ -12,7 +12,8 @@ Item{
     property int commonLeftMargin: 15
 
     function updateMsgModel(){
-        var msgList = SessionManager.getChatMsgs(panelParent.curSeesionDestId)
+        console.log(panelParent.curSeesionType, panelParent.curSeesionType == 2)
+        var msgList = SessionManager.getChatMsgs(panelParent.curSeesionDestId, panelParent.curSeesionType == 2)
         chatMsgControlerContentListView.model.clear()
 
         //0:msg, 1:pic, 2:anemation
@@ -21,8 +22,8 @@ Item{
         for (var begin = 0; begin < msgList.length; ++begin){
             chatMsgControlerContentListView.model.append({
                 msgSenderPic: msgList[begin][1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
-                , isGroup: panelParent.curSeesionType == 1 ? false : true
-                , msgSenderRole: ""
+                , isGroup: panelParent.curSeesionType == 2
+                , msgSenderRole: "成员"
                 , msgSender: msgList[begin][1] == panelParent.localUUid ? "我" : panelParent.curSessionName
                 , msgSenderUuid: msgList[begin][2]
                 , msgDate: msgList[begin][5]
@@ -53,7 +54,7 @@ Item{
 
             chatMsgControlerContentListView.model.append({
                 msgSenderPic: recvMsg[1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
-                , isGroup: panelParent.curSeesionType == 1 ? false : true
+                , isGroup: panelParent.curSeesionType == 2
                 , msgSenderRole: "成员"
                 , msgSender: recvMsg[1] == panelParent.localUUid ?  "我" : panelParent.curSessionName
                 , msgSenderUuid: recvMsg[2]

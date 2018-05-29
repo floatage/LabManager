@@ -103,7 +103,7 @@ ApplicationWindow {
                 , sessionType: sessionMsg[1]
                 , sessionLastMsg: sessionMsg[2]
                 , sessionDestName: objInfor[1]
-                , sessionPicPath: objInfor[5] == "" ? "/img/defaultPic.jpg" : objInfor[5]
+                , sessionPicPath: objInfor[5] == "" ? (sessionMsg[1] == 1 ? "/img/defaultPic.jpg" : "/img/defaultGroupPic.jpg") : objInfor[5]
             })
 
             sessionModel.move(sessionListViewContent.model.count - 1, 0, 1)
@@ -509,9 +509,9 @@ ApplicationWindow {
 
                         onCurrentItemChanged: {
                             funcPanelContent.curSessionName = sessionModel.get(currentIndex).sessionDestName
-                            funcPanelContent.curSeesionDestId = sessionModel.get(currentIndex).sessionDestUuid
                             funcPanelContent.curSeesionDestPic = sessionModel.get(currentIndex).sessionPicPath
                             funcPanelContent.curSeesionType = sessionModel.get(currentIndex).sessionType
+                            funcPanelContent.curSeesionDestId = sessionModel.get(currentIndex).sessionDestUuid
                         }
 
                         model: sessionModel

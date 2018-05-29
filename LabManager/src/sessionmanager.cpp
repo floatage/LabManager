@@ -59,9 +59,9 @@ int SessionManager::seesionIsExistsByUuid(const QString& uuid, int type)
 	return result.empty() ? -1 : 0;
 }
 
-QVariantList SessionManager::getChatMsgs(const QString& duuid)
+QVariantList SessionManager::getChatMsgs(const QString& duuid, bool isGroup)
 {
-	return DBOP::getInstance()->listSessionMessages(duuid);
+	return DBOP::getInstance()->listSessionMessages(duuid, isGroup);
 }
 
 void SessionManager::sendChatMsg(int stype, const QString & duuid, const QString & msg)
