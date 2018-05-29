@@ -76,7 +76,7 @@ struct MessageInfo
 	ModelStringType mdate;
 
 	MessageInfo();
-    MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, int mmode=1);
+    MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, int mmode);
 	MessageInfo(const ModelStringType& mid, const ModelStringType& msource, const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, const ModelStringType& mdate, int mmode);
 };
 

@@ -37,8 +37,8 @@ Item{
     }
 
     Connections{
-        target: panelParent
-        onCurSessionChanged:{
+        target: panelTarget
+        onCurrentSessionChanged:{
             if (panelParent.panelStackView.currentItem == panelParent.panelMap['ChatPanel']){
                 chatMsgControlerDestObjectName.text = panelParent.curSessionName
                 updateMsgModel()

@@ -10,6 +10,7 @@ ApplicationWindow {
     flags: Qt.FramelessWindowHint | Qt.Window
 
     signal sessionRecvNewMsg(var itemIndex)
+    signal currentSessionChanged()
 
     property var panelDict : {'a':1}
     property var curPanel : undefined
@@ -512,6 +513,8 @@ ApplicationWindow {
                             funcPanelContent.curSeesionDestPic = sessionModel.get(currentIndex).sessionPicPath
                             funcPanelContent.curSeesionType = sessionModel.get(currentIndex).sessionType
                             funcPanelContent.curSeesionDestId = sessionModel.get(currentIndex).sessionDestUuid
+                            console.log(sessionModel.get(currentIndex).sessionType)
+                            userView.currentSessionChanged()
                         }
 
                         model: sessionModel

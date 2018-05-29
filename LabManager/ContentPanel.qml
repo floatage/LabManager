@@ -22,7 +22,6 @@ Rectangle {
         'b', 'Kb', 'Mb', 'Gb', 'Tb'
     ]
 
-    signal curSessionChanged()
     signal newRequestCreate(var reqMsg)
     signal newTaskCreate(var taskMsg)
 
@@ -37,10 +36,6 @@ Rectangle {
         }
 
         return fileSize.toFixed(2) + fileSizeUnitMap[sizeUnit]
-    }
-
-    onCurSeesionDestIdChanged: {
-        curSessionChanged()
     }
 
     Connections{

@@ -7,6 +7,8 @@
 #include "QtCore\qdatetime.h"
 #include "QtCore\qcryptographichash.h"
 
+#include "NetStructureManager.h"
+
 DBOP::DBOP(QObject* parent) 
 	:QObject(parent)
 {
@@ -666,6 +668,11 @@ int DBOP::updateSessionLastmsg(const MessageInfo& message, bool isSend)
 	}
 
 	SessionInfo session(message.mmode, isSend ? message.msource : message.mduuid, isSend ? message.mduuid : message.msource, lastmsg);
+	if (message.mmode == SessionType::GroupSession) {
+		session.suid = NetStructureManager::getInstance()->getLocalUuid().c_str();
+		session.duuid = message.mduuid;
+	}
+
 	query.addBindValue(session.duuid);
 	query.addBindValue(session.stype);
 	query.addBindValue(session.suid);
