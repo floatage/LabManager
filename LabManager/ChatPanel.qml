@@ -11,27 +11,29 @@ Item{
 
     property int commonLeftMargin: 15
 
+    //0:msg, 1:pic, 2:anemation
+    //mid, msource, mduuid, mtype, mdata, mdate, mmode, uanme
+    function appendMsg(msg){
+        var bSend = (msg[1] == panelParent.localUUid)
+        chatMsgControlerContentListView.model.append({
+            msgSenderPic: bSend ? panelParent.localPic : panelParent.curSeesionDestPic
+            , isGroup: panelParent.curSeesionType == 2
+            , msgSenderRole: "成员"
+            , msgSender: bSend ?  "我" : msg[7]
+            , msgSenderUuid: msg[1]
+            , isSend: bSend
+            , msgType: msg[3]
+            , msgRealData: msg[4]
+            , msgDate: msg[5]
+        })
+    }
+
     function updateMsgModel(){
-        console.log(panelParent.curSeesionType, panelParent.curSeesionType == 2)
         var msgList = SessionManager.getChatMsgs(panelParent.curSeesionDestId, panelParent.curSeesionType == 2)
         chatMsgControlerContentListView.model.clear()
 
-        //0:msg, 1:pic, 2:anemation
-        //mid, msource, mduuid, mtype, mdata, mdate
-        //msgSenderPic,isGroup,msgSenderRole,msgSender,msgSenderUuid,msgDate,isSend,msgType,msgRealData
-        for (var begin = 0; begin < msgList.length; ++begin){
-            chatMsgControlerContentListView.model.append({
-                msgSenderPic: msgList[begin][1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
-                , isGroup: panelParent.curSeesionType == 2
-                , msgSenderRole: "成员"
-                , msgSender: msgList[begin][1] == panelParent.localUUid ? "我" : panelParent.curSessionName
-                , msgSenderUuid: msgList[begin][2]
-                , msgDate: msgList[begin][5]
-                , isSend: msgList[begin][1] == panelParent.localUUid ? true : false
-                , msgType: msgList[begin][3]
-                , msgRealData: msgList[begin][4]
-            })
-        }
+        for (var begin = 0; begin < msgList.length; ++begin)
+            appendMsg(msgList[begin])
 
         chatMsgControlerContentListView.positionViewAtEnd()
     }
@@ -50,19 +52,15 @@ Item{
         target: DBOP
         onSessionMsgRecv: {
             console.log("Recv text and update model! session: ", panelParent.curSeesionDestId, recvMsg)
-            if ((isSend ? recvMsg[2] : recvMsg[1]) != panelParent.curSeesionDestId) return
 
-            chatMsgControlerContentListView.model.append({
-                msgSenderPic: recvMsg[1] == panelParent.localUUid ? panelParent.localPic : panelParent.curSeesionDestPic
-                , isGroup: panelParent.curSeesionType == 2
-                , msgSenderRole: "成员"
-                , msgSender: recvMsg[1] == panelParent.localUUid ?  "我" : panelParent.curSessionName
-                , msgSenderUuid: recvMsg[2]
-                , msgDate: recvMsg[5]
-                , isSend: recvMsg[1] == panelParent.localUUid ? true : false
-                , msgType: recvMsg[3]
-                , msgRealData: recvMsg[4]
-            })
+            if (recvMsg[6] == 1){
+                if ((isSend ? recvMsg[2] : recvMsg[1]) != panelParent.curSeesionDestId) return
+            }
+            else if (recvMsg[6] == 2){
+                if (recvMsg[2] != panelParent.curSeesionDestId) return
+            }
+
+            appendMsg(recvMsg)
             chatMsgControlerContentListView.positionViewAtEnd()
         }
     }

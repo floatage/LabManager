@@ -30,6 +30,7 @@ public:
 	int createUserGroup(const UserGroupInfo& group, QString& sql = QString());
 	int deleteUserGroup(const ModelStringType& groupId, QString& sql = QString());
 	QVariantHash getUserGroup(const ModelStringType& groupId);
+	Q_INVOKABLE QVariantList getGroupToList(const ModelStringType& groupId);
 	QVariantList listUserGroups();
 
 	//GroupMember operation

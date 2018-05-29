@@ -348,6 +348,31 @@ QVariantHash DBOP::getUserGroup(const ModelStringType & groupId)
 	return result;
 }
 
+QVariantList DBOP::getGroupToList(const ModelStringType & groupId)
+{
+	static const QString GROUP_GET("select * from UserGroup where ugid=?");
+
+	QSqlQuery query;
+	QVariantList result;
+
+	query.prepare(GROUP_GET);
+	query.addBindValue(groupId);
+	if (!query.exec() || !query.next()) {
+		qDebug() << "group select failed! ugid: " << groupId << " reason: " << query.lastError().text();
+		return result;
+	}
+
+	result.append(query.value("ugid"));
+	result.append(query.value("ugname"));
+	result.append(query.value("ugowneruid"));
+	result.append(query.value("ugdate"));
+	result.append(query.value("ugintro"));
+	result.append(query.value("ugpic"));
+
+	qDebug() << "group select success! ugid" << groupId;
+	return result;
+}
+
 QVariantList DBOP::listUserGroups()
 {
 	static const QString GROUP_GET_ALL("select * from UserGroup");
@@ -806,8 +831,10 @@ int DBOP::deleteMessage(const ModelStringType& messageId)
 
 QVariantList DBOP::listSessionMessages(const ModelStringType& sessionDest, bool isGroup)
 {
-	static const QString SESSION_MESSAGE_GET_ALL_USER("select * from (select * from Message where msource=? or mduuid=? order by datetime(mdate) asc) where mmode=1");
-	static const QString SESSION_MESSAGE_GET_ALL_GROUP("select * from Message where  mduuid=? and mmode=2 order by datetime(mdate) asc");
+	static const QString SESSION_MESSAGE_GET_ALL_USER("select mid,msource,mduuid,mtype,mdata,mdate,mmode,uname from \
+	(select * from Message where msource=? or mduuid=? order by datetime(mdate) asc),User where mmode=1 and msource=uid");
+	static const QString SESSION_MESSAGE_GET_ALL_GROUP("select mid,msource,mduuid,mtype,mdata,mdate,mmode,uname from Message,User \
+	where mduuid=? and mmode=2 and msource=uid order by datetime(mdate) asc");
 
 	QSqlQuery query;
 	QVariantList result;
@@ -837,6 +864,7 @@ QVariantList DBOP::listSessionMessages(const ModelStringType& sessionDest, bool 
 		item.append(query.value("mdata"));
 		item.append(query.value("mdate"));
 		item.append(query.value("mmode"));
+		item.append(query.value("uname"));
 		result.append(QVariant(item));
 	}
 
@@ -1222,6 +1250,8 @@ void DBOP::notifyModelAppendMsg(const MessageInfo & msgInfo, bool isSend)
 	recvMsg.append(msgInfo.mdata);
 	recvMsg.append(msgInfo.mdate);
 	recvMsg.append(msgInfo.mmode);
+	recvMsg.append(getUser(msgInfo.msource)["uname"]);
+
 	sessionMsgRecv(recvMsg, isSend);
 }
 

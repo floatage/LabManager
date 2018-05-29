@@ -38,13 +38,13 @@ ApplicationWindow {
         var sessionList = SessionManager.listSessions()
         sessionListViewContent.model.clear()
         for (var begin = 0; begin < sessionList.length; ++begin){
-            //duuid, stype, uname, lastmsg, name, pic
+            //duuid, stype, uname, lastmsg, pic
             sessionListViewContent.model.append({
                 sessionDestUuid: sessionList[begin][0]
                 , sessionType: sessionList[begin][1]
                 , sessionLastMsg: sessionList[begin][2]
                 , sessionDestName: sessionList[begin][3]
-                , sessionPicPath: sessionList[begin][4] == "" ? (sessionList[begin][1] == 1 ? "/img/defaultPic.jpg" : "/img/defaultGroupPic.jpg") : sessionList[begin][5]
+                , sessionPicPath: sessionList[begin][4] == "" ? (sessionList[begin][1] == 1 ? "/img/defaultPic.jpg" : "/img/defaultGroupPic.jpg") : sessionList[begin][4]
             })
         }
     }
@@ -97,7 +97,7 @@ ApplicationWindow {
             if (sessionMsg[1] == 1)
                 objInfor = DBOP.getUserToList(sessionMsg[0])
             else if (sessionMsg[1] == 2)
-                objInfor = DBOP.getUserToList(sessionMsg[0])
+                objInfor = DBOP.getGroupToList(sessionMsg[0])
 
             sessionListViewContent.model.append({
                 sessionDestUuid: sessionMsg[0]
@@ -513,7 +513,6 @@ ApplicationWindow {
                             funcPanelContent.curSeesionDestPic = sessionModel.get(currentIndex).sessionPicPath
                             funcPanelContent.curSeesionType = sessionModel.get(currentIndex).sessionType
                             funcPanelContent.curSeesionDestId = sessionModel.get(currentIndex).sessionDestUuid
-                            console.log(sessionModel.get(currentIndex).sessionType)
                             userView.currentSessionChanged()
                         }
 
