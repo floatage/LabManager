@@ -56,8 +56,8 @@ Rectangle {
     }
 
     Connections{
-        target: panelParent
-        onCurSessionChanged:{
+        target: panelTarget
+        onCurrentSessionChanged:{
             if (panelParent.panelStackView.currentItem == panelParent.panelMap['FileSharedPanel']){
                 curDirText.text = panelParent.curSessionName + "的共享文件夹"
                 updateSharedFileModel()

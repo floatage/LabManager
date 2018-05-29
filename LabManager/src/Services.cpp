@@ -305,11 +305,11 @@ void PicTransferService::execute()
 FileDownloadService::FileDownloadService(const QString & fileName, JsonObjType & taskData)
 	:isInit(false), filePath(fileName), fileSize(0), handleFileLen(0), isProvider(false), taskData(taskData)
 {
-    readBuff.resize(1024*1024);
+    readBuff.resize(1024*512);
 }
 
 FileDownloadService::FileDownloadService(JsonObjType & taskData)
-    : isInit(false), isProvider(true), fileSize(0), handleFileLen(0), writeBuff(1024*1024, '\0'), taskData(taskData), isExe(true)
+    : isInit(false), isProvider(true), fileSize(0), handleFileLen(0), writeBuff(1024*512, '\0'), taskData(taskData), isExe(true)
 {
 }
 
