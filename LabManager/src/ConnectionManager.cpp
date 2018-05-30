@@ -179,7 +179,7 @@ void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 
 				int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
 				(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-				if (routeCount > maxRouteCount) return;
+				if (routeCount >= maxRouteCount) return;
 
 				if (!validConn[ConnType::CONN_BROTHER].empty())
 					validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
@@ -242,7 +242,7 @@ void ConnectionManager::sendGroupMsg(JsonObjType& msg, bool isRepackage)
 
 			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
 			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-			if (routeCount > maxRouteCount) return;
+			if (routeCount >= maxRouteCount) return;
 
 			if (!validConn[ConnType::CONN_BROTHER].empty())
 				validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
@@ -294,7 +294,7 @@ void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
 
 			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
 			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-			if (routeCount > maxRouteCount) return;
+			if (routeCount >= maxRouteCount) return;
 
 			if (!validConn[ConnType::CONN_BROTHER].empty())
 				validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
@@ -378,10 +378,9 @@ void ConnectionManager::uploadPicMsgToCommonSpace(const QString & groupId, QVari
 
 			int routeCount = data["routeCount"].toInt();
 			data["routeCount"] = routeCount + 1;
-			if (routeCount > maxRouteCount) return;
-
-			if (!validConn[ConnType::CONN_BROTHER].empty())
+			if (routeCount < maxRouteCount && !validConn[ConnType::CONN_BROTHER].empty()) {
 				destNodes.append(validConn[ConnType::CONN_BROTHER].begin()->first.c_str());
+			}
 		}
 		break;
 	case ROLE_MEMBER:
