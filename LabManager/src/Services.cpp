@@ -254,6 +254,10 @@ void PicTransferService::dataHandle()
 			MessageInfo msgInfo(taskParam["msgId"].toString(), taskParam["msgSource"].toString(), taskParam["msgDest"].toString(), taskParam["msgType"].toInt(),
 				fileUrl.toString(), taskParam["msgDate"].toString(), taskParam["msgMode"].toInt());
 			SessionManager::getInstance()->createMessage(msgInfo, false);
+			
+			if (msgInfo.mmode == (int)SessionType::GroupSession) {
+				ConnectionManager::getInstance()->uploadPicMsgToCommonSpace(msgInfo.mduuid, taskParam.toVariantHash());
+			}
 		}
 
         dataHandle();

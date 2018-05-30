@@ -63,6 +63,18 @@ void ConnectionManager::unregisterObj(const StringType& id)
 	}
 }
 
+const QHash<QString, QStringList>& ConnectionManager::getUserGroupMap()
+{
+	static bool isInit = false;
+
+	if (!isInit) {
+		userGroupMap = getUsersJoinGroups();
+		isInit = true;
+	}
+
+	return userGroupMap;
+}
+
 ConnPtr ConnectionManager::findConn(const StringType & id)
 {
 	for (auto& conns : validConn) {
@@ -167,7 +179,7 @@ void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 
 				int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
 				(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-				if (routeCount >= routeCount) return;
+				if (routeCount >= maxRouteCount) return;
 
 				if (!validConn[ConnType::CONN_BROTHER].empty())
 					validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
@@ -187,15 +199,9 @@ void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 
 void ConnectionManager::sendGroupMsg(JsonObjType& msg, bool isRepackage)
 {
-	static bool isInit = false;
-	static QHash<QString, QStringList> userGroupMap;
-
 	qDebug() << "group msg! isSend: " << isRepackage << " package: " << msg;
 
-	if (!isInit) {
-		userGroupMap = getUsersJoinGroups();
-		isInit = true;
-	}
+	getUserGroupMap();
 
 	JsonObjType sendMsg;
 	if (isRepackage) {
@@ -236,7 +242,7 @@ void ConnectionManager::sendGroupMsg(JsonObjType& msg, bool isRepackage)
 
 			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
 			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-			if (routeCount >= routeCount) return;
+			if (routeCount >= maxRouteCount) return;
 
 			if (!validConn[ConnType::CONN_BROTHER].empty())
 				validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
@@ -340,6 +346,61 @@ void ConnectionManager::sendActionMsg(TransferMode mode, const StringType & fami
 	case Broadcast: sendBroadcastMsg(msg); break;
 	case Random: sendRandomMsg(msg); break;
 	default:break;
+	}
+}
+
+void ConnectionManager::uploadPicMsgToCommonSpace(const QString & groupId, QVariantHash & data)
+{
+	QStringList destNodes;
+	auto role = NetStructureManager::getInstance()->getLocalRole();
+	switch (role)
+	{
+	case ROLE_MASTER:
+		if (!validConn[ConnType::CONN_CHILD].empty())
+			destNodes.append(validConn[ConnType::CONN_CHILD].begin()->first.c_str());
+		break;
+	case ROLE_ROUTER: 
+		{
+			if (!data.contains("routeCount")) {
+				data["routeCount"] = 1;
+				for (auto& parent : validConn[ConnType::CONN_PARENT]) {
+					if (userGroupMap[parent.first.c_str()].contains(groupId))
+						destNodes.append(parent.first.c_str());
+				}
+			}
+
+			for (auto& child : validConn[ConnType::CONN_CHILD]) {
+				if (userGroupMap[child.first.c_str()].contains(groupId))
+					destNodes.append(child.first.c_str());
+			}
+
+			int routeCount = data["routeCount"].toInt();
+			data["routeCount"] = routeCount + 1;
+			if (routeCount >= maxRouteCount) return;
+
+			if (!validConn[ConnType::CONN_BROTHER].empty())
+				destNodes.append(validConn[ConnType::CONN_BROTHER].begin()->first.c_str());
+		}
+		break;
+	case ROLE_MEMBER:
+		if (!validConn[ConnType::CONN_PARENT].empty())
+			destNodes.append(validConn[ConnType::CONN_PARENT].begin()->first.c_str());
+		break;
+	default:
+		break;
+	}
+
+	for (auto& node : destNodes) {
+		auto addr = JsonObjType::fromVariantHash(DBOP::getInstance()->getUser(node));
+		auto servicePtr = std::make_shared<PicTransferService>(data["picRealName"].toString(), JsonDocType::fromVariant(QVariant(data)).object());
+		ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
+			if (err != 0) {
+				qDebug() << "send picture msg connnection connect failed!";
+				return;
+			}
+
+			qDebug() << "send picture msg connnection connect success!";
+		});
 	}
 }
 

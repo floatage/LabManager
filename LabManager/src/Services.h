@@ -63,6 +63,7 @@ public:
 private:
 	bool isSender;
 	bool isInit;
+	bool isGroup;
 	int fileSize;
 	int recvFileLen;
 	QString fileName;

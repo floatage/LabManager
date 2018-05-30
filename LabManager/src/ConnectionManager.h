@@ -51,11 +51,14 @@ public:
 	void registerObj(StringType id, ConnImplType type, ConnPtr conn);
 	void unregisterObj(const StringType& id);
 
+	const QHash<QString, QStringList>& getUserGroupMap();
 	ConnPtr findConn(const StringType& id);
 
 	ConnPtr connnectHost(ConnImplType type, const StringType& id, JsonObjType& addr, ServicePtr servicePtr, ConnectHandler&& handler);
 	void sendtoConn(const StringType &id, JsonObjType msg);
 	void sendActionMsg(TransferMode mode, const StringType& family, const StringType& action, JsonObjType& datas);
+
+	void uploadPicMsgToCommonSpace(const QString& groupId, QVariantHash& data);
 
 private:
 	ConnectionManager();
@@ -75,6 +78,7 @@ private:
 	void handleMsgRandom(JsonObjType& msg, ConnPtr conn);
 
 	std::unordered_map<ConnImplType, ConnMap> validConn;
+	QHash<QString, QStringList> userGroupMap;
 };
 
 #endif
