@@ -105,7 +105,7 @@ void SessionManager::sendPic(int stype, const QString & duuid, const QUrl & picP
 		TaskManager::getInstance()->createSendPicSingleTask(duuid, taskData);
 	}
 	else if (SessionType::GroupSession == SessionType(stype)) {
-		ConnectionManager::getInstance()->uploadPicMsgToCommonSpace(duuid, taskData);
+		ConnectionManager::getInstance()->uploadPicMsgToCommonSpace(duuid, taskData, false);
 	}
 }
 

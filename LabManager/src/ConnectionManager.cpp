@@ -179,7 +179,7 @@ void ConnectionManager::sendSingleMsg(JsonObjType& msg, bool isRepackage)
 
 				int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
 				(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-				if (routeCount >= maxRouteCount) return;
+				if (routeCount > maxRouteCount) return;
 
 				if (!validConn[ConnType::CONN_BROTHER].empty())
 					validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
@@ -242,7 +242,7 @@ void ConnectionManager::sendGroupMsg(JsonObjType& msg, bool isRepackage)
 
 			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
 			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-			if (routeCount >= maxRouteCount) return;
+			if (routeCount > maxRouteCount) return;
 
 			if (!validConn[ConnType::CONN_BROTHER].empty())
 				validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
@@ -294,7 +294,7 @@ void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
 
 			int routeCount = isRepackage ? sendMsg["routeCount"].toInt() : msg["routeCount"].toInt();
 			(isRepackage ? sendMsg["routeCount"] : msg["routeCount"]) = routeCount + 1;
-			if (routeCount >= routeCount) return;
+			if (routeCount > maxRouteCount) return;
 
 			if (!validConn[ConnType::CONN_BROTHER].empty())
 				validConn[ConnType::CONN_BROTHER].begin()->second->send(isRepackage ? sendMsg : msg);
@@ -349,14 +349,16 @@ void ConnectionManager::sendActionMsg(TransferMode mode, const StringType & fami
 	}
 }
 
-void ConnectionManager::uploadPicMsgToCommonSpace(const QString & groupId, QVariantHash & data)
+void ConnectionManager::uploadPicMsgToCommonSpace(const QString & groupId, QVariantHash & data, bool isRoute)
 {
+	getUserGroupMap();
+
 	QStringList destNodes;
 	auto role = NetStructureManager::getInstance()->getLocalRole();
 	switch (role)
 	{
 	case ROLE_MASTER:
-		if (!validConn[ConnType::CONN_CHILD].empty())
+		if (!isRoute && !validConn[ConnType::CONN_CHILD].empty())
 			destNodes.append(validConn[ConnType::CONN_CHILD].begin()->first.c_str());
 		break;
 	case ROLE_ROUTER: 
@@ -376,14 +378,14 @@ void ConnectionManager::uploadPicMsgToCommonSpace(const QString & groupId, QVari
 
 			int routeCount = data["routeCount"].toInt();
 			data["routeCount"] = routeCount + 1;
-			if (routeCount >= maxRouteCount) return;
+			if (routeCount > maxRouteCount) return;
 
 			if (!validConn[ConnType::CONN_BROTHER].empty())
 				destNodes.append(validConn[ConnType::CONN_BROTHER].begin()->first.c_str());
 		}
 		break;
 	case ROLE_MEMBER:
-		if (!validConn[ConnType::CONN_PARENT].empty())
+		if (!isRoute && !validConn[ConnType::CONN_PARENT].empty())
 			destNodes.append(validConn[ConnType::CONN_PARENT].begin()->first.c_str());
 		break;
 	default:
@@ -395,11 +397,11 @@ void ConnectionManager::uploadPicMsgToCommonSpace(const QString & groupId, QVari
 		auto servicePtr = std::make_shared<PicTransferService>(data["picRealName"].toString(), JsonDocType::fromVariant(QVariant(data)).object());
 		ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
 			if (err != 0) {
-				qDebug() << "send picture msg connnection connect failed!";
+				qDebug() << "send picture group msg connnection connect failed!";
 				return;
 			}
 
-			qDebug() << "send picture msg connnection connect success!";
+			qDebug() << "send picture group msg connnection connect success!";
 		});
 	}
 }

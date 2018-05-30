@@ -58,7 +58,7 @@ public:
 	void sendtoConn(const StringType &id, JsonObjType msg);
 	void sendActionMsg(TransferMode mode, const StringType& family, const StringType& action, JsonObjType& datas);
 
-	void uploadPicMsgToCommonSpace(const QString& groupId, QVariantHash& data);
+	void uploadPicMsgToCommonSpace(const QString& groupId, QVariantHash& data, bool isRoute);
 
 private:
 	ConnectionManager();

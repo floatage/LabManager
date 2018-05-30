@@ -256,7 +256,8 @@ void PicTransferService::dataHandle()
 			SessionManager::getInstance()->createMessage(msgInfo, false);
 			
 			if (msgInfo.mmode == (int)SessionType::GroupSession) {
-				ConnectionManager::getInstance()->uploadPicMsgToCommonSpace(msgInfo.mduuid, taskParam.toVariantHash());
+				taskParam["picRealName"] = tmpDir.c_str() + taskParam["picStoreName"].toString();
+				ConnectionManager::getInstance()->uploadPicMsgToCommonSpace(msgInfo.mduuid, taskParam.toVariantHash(), true);
 			}
 		}
 

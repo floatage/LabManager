@@ -1,7 +1,6 @@
 ﻿#include "TaskManager.h"
 #include "DBop.h"
 #include "ConnectionManager.h"
-#include "NetStructureManager.h"
 
 const StringType taskManagFamilyStr("TaskManage");
 
