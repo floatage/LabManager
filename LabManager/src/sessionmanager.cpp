@@ -131,7 +131,7 @@ QVariantList SessionManager::listSharedFile(const QString & duuid, bool isRemote
 	JsonObjType datas;
 	datas["source"] = getLocalUuid();
 	datas["dest"] = duuid;
-	datas["isGroup"] = int(isGroup);
+	datas["groupId"] = isGroup ? duuid : "-1";
 	ConnectionManager::getInstance()->sendActionMsg(isGroup ? TransferMode::Random : TransferMode::Single, sessionFamilyStr, listSharedFileInfoActionStr, datas);
 	return QVariantList();
 }
@@ -182,12 +182,12 @@ void SessionManager::handleRecvChatMsg(JsonObjType & msg, ConnPtr conn)
 void SessionManager::handleListSharedFileInfo(JsonObjType & msg, ConnPtr conn)
 {
 	auto recvData = msg["data"].toObject();
-	auto isGroup = recvData["isGroup"].toInt();
-	auto fileInfoList = DBOP::getInstance()->listSharedFile(isGroup == 0, recvData["dest"].toString());
+	auto groupId = recvData["groupId"].toString();
+	auto fileInfoList = DBOP::getInstance()->listSharedFile(groupId == "-1", recvData["dest"].toString());
 
 	JsonObjType datas;
 	datas["fileInfoList"] = JsonAryType::fromVariantList(fileInfoList);
-	datas["source"] = getLocalUuid();
+	datas["source"] = recvData["dest"].toString();
 	datas["dest"] = recvData["source"];
 	ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, sessionFamilyStr, sendSharedFileInfoActionStr, datas);
 }
@@ -195,5 +195,6 @@ void SessionManager::handleListSharedFileInfo(JsonObjType & msg, ConnPtr conn)
 void SessionManager::handleSendSharedFileInfo(JsonObjType & msg, ConnPtr conn)
 {
 	JsonObjType data = msg["data"].toObject();
+	qDebug() << "recv shared file list" << data;
 	remoteSharedFileInforRecv(data["source"].toString(), data["fileInfoList"].toArray().toVariantList());
 }

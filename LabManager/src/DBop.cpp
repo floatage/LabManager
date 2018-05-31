@@ -1217,7 +1217,7 @@ QVariantList DBOP::listSharedFile(bool isLocal, const QString& groupId)
 	query.prepare(SHARED_FILE_GET_ALL);
 	query.addBindValue(isLocal ? "-1" : groupId);
 	if (!query.exec()) {
-		qDebug() << "shared file select all failed! reason: " << query.lastError().text();
+		qDebug() << "shared file select all failed! isLocal: " << isLocal << " groupId: " << groupId << " reason: " << query.lastError().text();
 		return result;
 	}
 
@@ -1237,7 +1237,7 @@ QVariantList DBOP::listSharedFile(bool isLocal, const QString& groupId)
 		result.append(QVariant(item));
 	}
 
-	qDebug() << "shared file select all success!";
+	qDebug() << "shared file select all success! isLocal: " << isLocal << " groupId: " << groupId;
 	return result;
 }
 
