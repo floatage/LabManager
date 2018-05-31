@@ -309,13 +309,37 @@ void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
 	}
 }
 
+QString ConnectionManager::getRandomServiceDest()
+{
+	getUserGroupMap();
+
+	QString destNode;
+	auto role = NetStructureManager::getInstance()->getLocalRole();
+	switch (role)
+	{
+	case ROLE_MASTER:
+		if (!validConn[ConnType::CONN_CHILD].empty())
+			destNode = validConn[ConnType::CONN_CHILD].begin()->first.c_str();
+		break;
+	case ROLE_ROUTER:
+		destNode = NetStructureManager::getInstance()->getLocalUuid().c_str();
+		break;
+	case ROLE_MEMBER:
+		if (!validConn[ConnType::CONN_PARENT].empty())
+			destNode = validConn[ConnType::CONN_PARENT].begin()->first.c_str();
+		break;
+	default:
+		break;
+	}
+	return destNode;
+}
+
 void ConnectionManager::sendRandomMsg(JsonObjType& msg, bool isRepackage)
 {
 	qDebug() << "random msg! isSend: " << isRepackage << " package: " << msg;
 
 	getUserGroupMap();
 
-	QString destNode;
 	auto role = NetStructureManager::getInstance()->getLocalRole();
 	switch (role)
 	{

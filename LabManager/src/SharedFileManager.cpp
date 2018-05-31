@@ -45,10 +45,9 @@ void SharedFileManager::uploadGroupSharedFile(const QString & groupId, const QSt
 
 void SharedFileManager::downloadSharedFile(bool isGroup, const QString & duuid, QVariantHash& fileData, const QString & storePath)
 {
-	if (!isGroup) {
-		fileData["rsource"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
-		fileData["rdest"] = duuid;
-		TaskManager::getInstance()->createFileDownloadTask(duuid, fileData, storePath);
-	}
+	QString dest = isGroup ? ConnectionManager::getInstance()->getRandomServiceDest() : duuid;
+	fileData["rsource"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
+	fileData["rdest"] = dest;
+	TaskManager::getInstance()->createFileDownloadTask(dest, fileData, storePath);
 }
 

@@ -50,7 +50,8 @@ public:
 
 	void registerObj(StringType id, ConnImplType type, ConnPtr conn);
 	void unregisterObj(const StringType& id);
-
+	
+	QString getRandomServiceDest();
 	const QHash<QString, QStringList>& getUserGroupMap();
 	ConnPtr findConn(const StringType& id);
 

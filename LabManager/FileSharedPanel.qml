@@ -561,8 +561,8 @@ Rectangle {
                                     hoverEnabled: true
 
                                     onClicked: {
-                                        sharedFileStorePathSelectFileDialog.bGroup = fileGroup == "" ? false : true
-                                        sharedFileStorePathSelectFileDialog.duuid = fileGroup == "" ? fileOwner : fileGroup
+                                        sharedFileStorePathSelectFileDialog.bGroup = fileGroup == "-1" ? false : true
+                                        sharedFileStorePathSelectFileDialog.duuid = fileGroup == "-1" ? fileOwner : fileGroup
 
                                         sharedFileStorePathSelectFileDialog.fileDetail = [fileName, fileSize, filePath]
                                         sharedFileStorePathSelectFileDialog.open()
