@@ -1207,14 +1207,15 @@ int DBOP::removeSharedFile(const ModelStringType & path)
 	return -1;
 }
 
-QVariantList DBOP::listSharedFile()
+QVariantList DBOP::listSharedFile(bool isLocal, const QString& groupId)
 {
-	static const QString SHARED_FILE_GET_ALL("select fpath,fowner,fgroup,uname from SharedFile, User where fowner=uid");
+	static const QString SHARED_FILE_GET_ALL("select fpath,fowner,fgroup,uname from SharedFile, User where fgroup=? and fowner=uid");
 
 	QSqlQuery query;
 	QVariantList result;
 
 	query.prepare(SHARED_FILE_GET_ALL);
+	query.addBindValue(isLocal ? "-1" : groupId);
 	if (!query.exec()) {
 		qDebug() << "shared file select all failed! reason: " << query.lastError().text();
 		return result;

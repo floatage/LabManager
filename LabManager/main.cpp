@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
     DBOP::getInstance();
     auto nt = QThread::create([](){
 		QDir().mkdir(tmpDir.c_str());
+		QDir().mkdir(groupDir.c_str());
         auto msgm = MessageManager::getInstance();
         msgm->run();
 

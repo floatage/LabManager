@@ -94,3 +94,4 @@ LabManager/Release/
 LabManager/tmp/
 *.pro
 debug
+LabManager/group/

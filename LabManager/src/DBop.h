@@ -80,7 +80,7 @@ public:
 	//Shared file operation
 	int addSharedFile(const SharedFileInfo& file);
 	int removeSharedFile(const ModelStringType& path);
-	QVariantList listSharedFile();
+	QVariantList listSharedFile(bool isLocal, const QString& groupId);
 
 private:
 	DBOP(QObject* parent = 0);

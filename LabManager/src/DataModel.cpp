@@ -127,7 +127,7 @@ HomeworkInfo::HomeworkInfo(const ModelStringType &hid, const ModelStringType& ha
 }
 
 SharedFileInfo::SharedFileInfo(const ModelStringType & fpath)
-	: fpath(fpath), fowner(NetStructureManager::getInstance()->getLocalUuid().c_str()), fgroup("")
+	: fpath(fpath), fowner(NetStructureManager::getInstance()->getLocalUuid().c_str()), fgroup("-1")
 {
 }
 
