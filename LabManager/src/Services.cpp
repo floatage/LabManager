@@ -4,6 +4,8 @@
 #include "TaskManager.h"
 #include "SessionManager.h"
 #include "DataModel.h"
+#include "NetStructureManager.h"
+#include "SharedFileManager.h"
 
 #include "QtCore\qfile.h"
 #include "QtCore\qfileinfo.h"
@@ -13,6 +15,7 @@
 const QString netStructureServiceStr("NetStructureService");
 const QString picTransferServiceStr("PicTransferService");
 const QString fileDownloadServiceStr("FileDownloadService");
+const QString groupFileUploadServiceStr("GroupFileUploadService");
 const QString taskPauseStr("TaskPause");
 const QString taskStopStr("TaskStop");
 const QString taskRestartStr("TaskRestart");
@@ -27,6 +30,9 @@ ServicePtr Service::getServicePtr(const QString & name, JsonObjType & params)
     }
 	else if (name == fileDownloadServiceStr) {
 		return std::make_shared<FileDownloadService>(params);
+	}
+	else if (name == groupFileUploadServiceStr) {
+		return std::make_shared<GroupFileUploadService>(params);
 	}
 
     return ServicePtr();
@@ -259,6 +265,7 @@ void PicTransferService::dataHandle()
 				taskParam["picRealName"] = tmpDir.c_str() + taskParam["picStoreName"].toString();
 				ConnectionManager::getInstance()->uploadPicMsgToCommonSpace(msgInfo.mduuid, taskParam.toVariantHash(), true);
 			}
+			return;
 		}
 
         dataHandle();
@@ -307,6 +314,7 @@ void PicTransferService::execute()
 	});
 }
 
+
 FileDownloadService::FileDownloadService(const QString & fileName, JsonObjType & taskData)
 	:isInit(false), filePath(fileName), fileSize(0), handleFileLen(0), isProvider(false), taskData(taskData)
 {
@@ -347,7 +355,6 @@ void FileDownloadService::start()
 	}
 }
 
-using namespace std::chrono_literals;
 void FileDownloadService::dataHandle()
 {
 	if (!isExe) return;
@@ -504,4 +511,178 @@ void FileDownloadService::taskControlMsgHandle()
 
 		taskControlMsgHandle();
 	});
+}
+
+
+GroupFileUploadService::GroupFileUploadService(const QString & filePath, const QString& groupId)
+	: writeBuff(1024 * 512, '\0'), isInit(false), isSender(true), isExe(true), isRoute(false), fileSize(0), handleFileLen(0), filePath(filePath), groupId(groupId)
+{
+}
+
+GroupFileUploadService::GroupFileUploadService(JsonObjType & groupFileData, bool)
+	: writeBuff(1024 * 512, '\0'), isInit(false), isSender(true), isExe(true), isRoute(true), fileSize(0), handleFileLen(0), groupFileData(groupFileData)
+{
+}
+
+GroupFileUploadService::GroupFileUploadService(JsonObjType & groupFileData)
+	: isInit(false), isSender(false), isRoute(true), fileSize(0), handleFileLen(0), groupFileData(groupFileData)
+{
+	readBuff.resize(1024 * 512);
+}
+
+GroupFileUploadService::~GroupFileUploadService()
+{
+}
+
+void GroupFileUploadService::start()
+{
+	if (isSender)
+	{
+		if (isRoute){
+			filePath = groupDir.c_str() + groupFileData["fileName"].toString();
+			fileSize = groupFileData["fileSize"].toInt();
+		}
+		else {
+			QFileInfo fileInfo(filePath);
+			fileSize = fileInfo.size();
+			groupFileData["fileName"] = fileInfo.fileName();
+			groupFileData["fileSize"] = fileSize;
+			groupFileData["fileGroup"] = groupId;
+			groupFileData["fileOwner"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
+
+			TaskInfo task(groupId, TaskType::FileTransferTask, TransferMode::Group, JsonDocType(groupFileData).toJson(JsonDocType::Compact));
+			TaskManager::getInstance()->createTask(task, conn);
+			taskId = task.tid;
+		}
+
+		JsonObjType serviceInfor;
+		serviceInfor["serviceName"] = groupFileUploadServiceStr;
+		serviceInfor["serviceParam"] = groupFileData;
+		Service::sendData(serviceInfor);
+		execute();
+	}
+	else {
+		filePath = groupDir.c_str() + groupFileData["fileName"].toString();
+		fileSize = groupFileData["fileSize"].toInt();
+		dataHandle(); 
+	}
+}
+
+void GroupFileUploadService::dataHandle()
+{
+	conn->sock.async_receive(boost::asio::buffer(readBuff.data(), readBuff.size()), [this](const boost::system::error_code& ec, std::size_t readBytes) {
+		if (ec != 0) {
+			qDebug() << "GroupFileUploadService tcp connect error: " << ec;
+			if (file.isOpen()) file.close();
+			conn->stop();
+			return;
+		}
+
+		auto rawMsg = readBuff.length() == readBytes ? readBuff : readBuff.left(readBytes);
+		if (!readRemain.isEmpty()) {
+			rawMsg.push_front(readRemain);
+			readRemain.clear();
+		}
+
+		if (!isInit) {
+			file.setFileName(filePath);
+			if (!file.open(QFile::WriteOnly)) {
+				qDebug() << "write group file open failed! filenme:" << filePath;
+				conn->stop();
+				return;
+			}
+			isInit = true;
+		}
+
+		int writeBytes = file.write(rawMsg);
+		if (writeBytes == -1) {
+			qDebug() << "recv group file write failed! filePath: " << filePath << " errorCode: " << ec;
+			file.close();
+			conn->stop();
+			return;
+		}
+
+		handleFileLen += writeBytes;
+		if (handleFileLen >= fileSize) {
+			qDebug() << "recv group file recv finished! filePath: " << filePath;
+			file.close();
+			conn->stop();
+
+			QString sharedFilePath = groupDir.c_str() + groupFileData["fileName"].toString();
+			SharedFileInfo sharedFile(sharedFilePath, groupFileData["fileOwner"].toString(), groupFileData["fileGroup"].toString());
+			SharedFileManager::getInstance()->addSharedFile(sharedFile);
+
+			ConnectionManager::getInstance()->uploadFileToGroupSpace(groupFileData, true);
+			return;
+		}
+
+		dataHandle();
+	});
+}
+
+void GroupFileUploadService::execute()
+{
+	if (!isExe) return;
+
+	if (!isInit) {
+		file.setFileName(filePath);
+		if (!file.open(QFile::ReadOnly)) {
+			qDebug() << "send group file open failed! filePath:" << filePath;
+			conn->stop();
+			if (!isRoute) TaskManager::getInstance()->errorTask(taskId);
+			return;
+		}
+
+		isInit = true;
+	}
+
+	int readBytes = file.read(writeBuff.data(), writeBuff.size());
+	handleFileLen += readBytes;
+	if (readBytes < 0) {
+		qDebug() << "send group file read failed! filePath: " << filePath << " errorCode: " << file.errorString();
+		file.close();
+		conn->stop();
+		if (!isRoute) TaskManager::getInstance()->errorTask(taskId);
+		return;
+	}
+	else if (readBytes == 0) {
+		conn->sock.async_send(boost::asio::buffer(writeBuff.data(), readBytes), [this](const boost::system::error_code& ec, std::size_t writeBytes) {
+			qDebug() << "send group file read finished! filePath: " << filePath;
+			file.close();
+			if (!isRoute) TaskManager::getInstance()->finishTask(taskId);
+		});
+		return;
+	}
+
+	conn->sock.async_send(boost::asio::buffer(writeBuff.data(), readBytes), [this](const boost::system::error_code& ec, std::size_t writeBytes) {
+		if (ec != 0) {
+			qDebug() << "send group file send failed! filename: " << filePath << " errorCode: " << ec;
+			file.close();
+			conn->stop();
+			if (!isRoute) TaskManager::getInstance()->errorTask(taskId);
+			return;
+		}
+
+		execute();
+	});
+}
+
+void GroupFileUploadService::pause()
+{
+	if (isSender) {
+		isExe = false;
+	}
+}
+
+void GroupFileUploadService::restore()
+{
+	if (isSender) {
+		isExe = true;
+		execute();
+	}
+}
+
+int GroupFileUploadService::getProgress()
+{
+	return int(float(handleFileLen) / fileSize * 100);
 }

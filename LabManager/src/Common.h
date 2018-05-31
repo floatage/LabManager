@@ -81,6 +81,8 @@ const StringType MSG_DEP = "\r\n";
 
 const StringType tmpDir = ".\\tmp\\";
 
+const StringType groupDir = ".\\group\\";
+
 const StringType UDP_BROADCAST_ADDR = "255.255.255.255";
 
 const StringType INVALID_ID = "";

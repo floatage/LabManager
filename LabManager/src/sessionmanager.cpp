@@ -115,7 +115,7 @@ void SessionManager::sendFile(int stype, const QString & duuid, const QUrl & fil
 		UserReuqestManager::getInstance()->sendFileTrangferReq(duuid, filePath.toString().split("///")[1]);
 	}
 	else if (SessionType::GroupSession == SessionType(stype)) {
-		//上传到路由节点
+		SharedFileManager::getInstance()->uploadGroupSharedFile(duuid, filePath.toString().split("///")[1]);
 	}
 }
 
@@ -131,7 +131,7 @@ QVariantList SessionManager::listSharedFile(const QString & duuid, bool isRemote
 	JsonObjType datas;
 	datas["source"] = getLocalUuid();
 	datas["dest"] = duuid;
-	ConnectionManager::getInstance()->sendActionMsg(isGroup ? TransferMode::Group : TransferMode::Single, sessionFamilyStr, listSharedFileInfoActionStr, datas);
+	ConnectionManager::getInstance()->sendActionMsg(isGroup ? TransferMode::Random : TransferMode::Single, sessionFamilyStr, listSharedFileInfoActionStr, datas);
 	return QVariantList();
 }
 
@@ -143,11 +143,6 @@ int SessionManager::addSharedFile(const QUrl & filePath)
 int SessionManager::removeSharedFile(const QString & filePath)
 {
 	return SharedFileManager::getInstance()->removeSharedFile(filePath);
-}
-
-void SessionManager::uploadSharedFile(const QString & groupId, const QUrl & filePath)
-{
-	SharedFileManager::getInstance()->uploadSharedFile(groupId, filePath.toString().split("///")[1]);
 }
 
 void SessionManager::downloadSharedFile(bool isGroup, const QString & duuid, QVariantList fileData, const QUrl& storePath)

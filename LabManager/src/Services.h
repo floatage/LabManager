@@ -61,11 +61,8 @@ public:
 	virtual void execute();
 
 private:
-	bool isSender;
-	bool isInit;
-	bool isGroup;
-	int fileSize;
-	int recvFileLen;
+	bool isSender, isInit, isGroup;
+	int fileSize, recvFileLen;
 	QString fileName;
 	SendBufferType writeBuff;
 	JsonObjType taskParam;
@@ -86,18 +83,37 @@ public:
 	virtual int getProgress();
 
 private:
-	bool isExe;
-	bool isInit;
-	bool isProvider;
-	int fileSize;
-	int handleFileLen;
-	QString filePath;
-	QString taskId;
+	bool isExe, isInit, isProvider;
+	int fileSize, handleFileLen;
+	QString filePath, taskId;
 	QFile file;
 	SendBufferType writeBuff;
 	JsonObjType taskData;
 
 	void taskControlMsgHandle();
+};
+
+class GroupFileUploadService : public Service {
+public:
+	GroupFileUploadService(const QString& filePath, const QString& groupId);
+	GroupFileUploadService(JsonObjType& groupFileData, bool isRoute);
+	GroupFileUploadService(JsonObjType& groupFileData);
+	~GroupFileUploadService();
+
+	virtual void start();
+	virtual void dataHandle();
+	virtual void execute();
+	virtual void pause();
+	virtual void restore();
+	virtual int getProgress();
+
+private:
+	bool isRoute, isExe, isInit, isSender;
+	int fileSize, handleFileLen;
+	QString filePath, groupId, taskId;
+	QFile file;
+	SendBufferType writeBuff;
+	JsonObjType groupFileData;
 };
 
 #endif

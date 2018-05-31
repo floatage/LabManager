@@ -31,7 +31,6 @@ public:
 	Q_INVOKABLE QVariantList listSharedFile(const QString& duuid, bool isRemote, bool isGroup);
 	Q_INVOKABLE int addSharedFile(const QUrl& filePath);
 	Q_INVOKABLE int removeSharedFile(const QString& filePath);
-	Q_INVOKABLE void uploadSharedFile(const QString& groupId, const QUrl& filePath);
     Q_INVOKABLE void downloadSharedFile(bool isGroup, const QString& duuid, QVariantList fileData, const QUrl& storePath);
 
 	Q_INVOKABLE QString getLocalUuid();

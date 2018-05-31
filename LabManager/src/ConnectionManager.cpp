@@ -24,7 +24,6 @@ ConnectionManager::ConnectionManager()
 	registerActionHandler(sendSingleActionStr, std::bind(&ConnectionManager::handleMsgSingle, this, _1, _2));
 	registerActionHandler(sendGroupActionStr, std::bind(&ConnectionManager::handleMsgGroup, this, _1, _2));
 	registerActionHandler(sendBroadcastActionStr, std::bind(&ConnectionManager::handleMsgBroadcast, this, _1, _2));
-	registerActionHandler(sendRandomActionStr, std::bind(&ConnectionManager::handleMsgRandom, this, _1, _2));
 }
 
 ConnectionManager::~ConnectionManager()
@@ -312,6 +311,28 @@ void ConnectionManager::sendBroadcastMsg(JsonObjType& msg, bool isRepackage)
 
 void ConnectionManager::sendRandomMsg(JsonObjType& msg, bool isRepackage)
 {
+	qDebug() << "random msg! isSend: " << isRepackage << " package: " << msg;
+
+	getUserGroupMap();
+
+	QString destNode;
+	auto role = NetStructureManager::getInstance()->getLocalRole();
+	switch (role)
+	{
+	case ROLE_MASTER:
+		if (!validConn[ConnType::CONN_CHILD].empty())
+			validConn[ConnType::CONN_CHILD].begin()->second->send(msg);
+		break;
+	case ROLE_ROUTER:
+		familyParse(msg, nullptr);
+		break;
+	case ROLE_MEMBER:
+		if (!validConn[ConnType::CONN_PARENT].empty())
+			validConn[ConnType::CONN_PARENT].begin()->second->send(msg);
+		break;
+	default:
+		break;
+	}
 }
 
 void ConnectionManager::handleMsgSingle(JsonObjType & msg, ConnPtr conn)
@@ -327,10 +348,6 @@ void ConnectionManager::handleMsgBroadcast(JsonObjType & msg, ConnPtr conn)
 void ConnectionManager::handleMsgGroup(JsonObjType & msg, ConnPtr conn)
 {
 	sendGroupMsg(msg, false);
-}
-
-void ConnectionManager::handleMsgRandom(JsonObjType & msg, ConnPtr conn)
-{
 }
 
 void ConnectionManager::sendActionMsg(TransferMode mode, const StringType & family, const StringType & action, JsonObjType& datas)
@@ -403,6 +420,65 @@ void ConnectionManager::uploadPicMsgToCommonSpace(const QString & groupId, QVari
 			qDebug() << "send picture group msg connnection connect success!";
 		});
 	}
+}
+
+void ConnectionManager::uploadFileToGroupSpace(JsonObjType& sharedFileInfo, bool isRoute)
+{
+	getUserGroupMap();
+
+	QString destNode;
+	auto role = NetStructureManager::getInstance()->getLocalRole();
+	switch (role)
+	{
+	case ROLE_MASTER:
+		if (!isRoute && !validConn[ConnType::CONN_CHILD].empty())
+			destNode = validConn[ConnType::CONN_CHILD].begin()->first.c_str();
+		break;
+	case ROLE_ROUTER:
+	{
+		if (!isRoute) {
+			destNode = NetStructureManager::getInstance()->getLocalUuid().c_str();
+		}
+		else {
+			if (!sharedFileInfo.contains("routeCount")) {
+				sharedFileInfo["routeCount"] = 1;
+			}
+
+			int routeCount = sharedFileInfo["routeCount"].toInt();
+			sharedFileInfo["routeCount"] = routeCount + 1;
+			if (routeCount < maxRouteCount && !validConn[ConnType::CONN_BROTHER].empty()) {
+				destNode = validConn[ConnType::CONN_BROTHER].begin()->first.c_str();
+			}
+		}
+	}
+	break;
+	case ROLE_MEMBER:
+		if (!isRoute && !validConn[ConnType::CONN_PARENT].empty())
+			destNode = validConn[ConnType::CONN_PARENT].begin()->first.c_str();
+		break;
+	default:
+		break;
+	}
+
+	if (destNode.isEmpty()) return;
+
+	ServicePtr servicePtr;
+	if (isRoute) {
+		servicePtr = std::make_shared<GroupFileUploadService>(sharedFileInfo, true);
+	}
+	else {
+		servicePtr = std::make_shared<GroupFileUploadService>(sharedFileInfo["fileName"].toString(), sharedFileInfo["fileGroup"].toString());
+	}
+
+	auto addr = JsonObjType::fromVariantHash(DBOP::getInstance()->getUser(destNode));
+	ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
+		if (err != 0) {
+			qDebug() << "upload group file connnection connect failed!";
+			return;
+		}
+
+		qDebug() << "upload group file connnection connect success!";
+	});
 }
 
 

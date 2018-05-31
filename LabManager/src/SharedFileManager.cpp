@@ -2,6 +2,7 @@
 #include "DBOP.h"
 #include "TaskManager.h"
 #include "NetStructureManager.h"
+#include "ConnectionManager.h"
 
 #include "QtCore\qfileinfo.h"
 
@@ -24,13 +25,22 @@ int SharedFileManager::addSharedFile(const QString & filePath)
 	return DBOP::getInstance()->addSharedFile(SharedFileInfo(filePath));
 }
 
+int SharedFileManager::addSharedFile(const SharedFileInfo & sharedFile)
+{
+	return DBOP::getInstance()->addSharedFile(sharedFile);
+}
+
 int SharedFileManager::removeSharedFile(const QString & filePath)
 {
 	return DBOP::getInstance()->removeSharedFile(filePath);
 }
 
-void SharedFileManager::uploadSharedFile(const QString & groupId, const QString & filePath)
+void SharedFileManager::uploadGroupSharedFile(const QString & groupId, const QString & filePath)
 {
+	JsonObjType sharedFileInfo;
+	sharedFileInfo["fileName"] = filePath;
+	sharedFileInfo["fileGroup"] = groupId;
+	ConnectionManager::getInstance()->uploadFileToGroupSpace(sharedFileInfo, false);
 }
 
 void SharedFileManager::downloadSharedFile(bool isGroup, const QString & duuid, QVariantHash& fileData, const QString & storePath)

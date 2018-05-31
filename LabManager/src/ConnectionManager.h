@@ -59,6 +59,7 @@ public:
 	void sendActionMsg(TransferMode mode, const StringType& family, const StringType& action, JsonObjType& datas);
 
 	void uploadPicMsgToCommonSpace(const QString& groupId, QVariantHash& data, bool isRoute);
+	void uploadFileToGroupSpace(JsonObjType& sharedFileInfo, bool isRoute);
 
 private:
 	ConnectionManager();
@@ -75,8 +76,7 @@ private:
 	void handleMsgSingle(JsonObjType& msg, ConnPtr conn);
 	void handleMsgGroup(JsonObjType& msg, ConnPtr conn);
 	void handleMsgBroadcast(JsonObjType& msg, ConnPtr conn);
-	void handleMsgRandom(JsonObjType& msg, ConnPtr conn);
-
+	
 	std::unordered_map<ConnImplType, ConnMap> validConn;
 	QHash<QString, QStringList> userGroupMap;
 };
