@@ -6,6 +6,8 @@ Rectangle {
     id: userViewRoot
     width: 750
     height: 580
+    radius: 10
+    color: "#58F"
 
     property var panelMap: {'ChatPanel' : chatMsgArea}
     property alias panelParent: appMenuBarInView.target
@@ -54,6 +56,7 @@ Rectangle {
     AppMenuBar{
         id: appMenuBarInView
         target: panelParent
+        width: parent.width
     }
 
     Rectangle {

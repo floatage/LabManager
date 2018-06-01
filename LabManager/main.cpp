@@ -16,6 +16,8 @@
 #include "src/TaskManager.h"
 #include "src/HomeworkManager.h"
 
+#include <qquickwindow.h>
+
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -58,6 +60,10 @@ int main(int argc, char *argv[])
 
     engine.addImportPath(":/imports");
     engine.load(QUrl(QStringLiteral("qrc:/MembersPanel.qml")));
+	QObject *topLevel = engine.rootObjects().value(0);
+	QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
+	window->setColor(QColor(Qt::transparent));
+
 	app.exec();
     abort();
 

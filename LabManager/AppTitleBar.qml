@@ -1,42 +1,59 @@
 import QtQuick 2.10
+import QtGraphicalEffects 1.0
 
 Rectangle {
     id: titleArea
-    width: parent.width
-//    height: parent.height * 0.1
+    width: 238
     height: 42
     anchors.left: parent.left
     anchors.top: parent.top
     color: sleepColor
+    radius: 7
 
-    property alias iconPath: iconPic.source
     property color sleepColor: "#58F"
-    property color activeColor: "#6CF"
-    property string fontFamily: "方正兰亭超细黑简体"
+    property string fontFamily: "微软雅黑"
     property var target: null
-
-    Component.onCompleted: {
-        titleArea.iconPath = "/img/appEasyIcon.png"
-    }
 
     Flow{
         width: parent.width * 0.9
-        height: parent.height
+        height: 32
         anchors.left: parent.left
         anchors.leftMargin: parent.width * 0.05
         anchors.rightMargin: parent.width * 0.05
         spacing: parent.width * 0.05
+        anchors.verticalCenter: parent.verticalCenter
 
         Rectangle {
             id: iconArea
-            width: parent.width * 0.20
+            width: height
             height: parent.height
             color: titleArea.color
 
             Image {
-                id: iconPic
-                anchors.centerIn: parent
-                focus: true
+                id: localImg
+                smooth: true
+                visible: false
+                antialiasing: true
+                anchors.fill: parent
+                source: SessionManager.getLocalPic()
+                sourceSize: Qt.size(parent.size, parent.size)
+            }
+
+            Rectangle{
+                id: localImgMask
+                anchors.fill: parent
+                radius: width * 0.5
+                visible: false
+                smooth: true
+                antialiasing: true
+            }
+
+            OpacityMask {
+                anchors.fill: parent
+                source: localImg
+                maskSource: localImgMask
+                visible: true
+                antialiasing: true
             }
         }
 
@@ -47,12 +64,13 @@ Rectangle {
             color: titleArea.color
 
             Text {
-                text: "刘飞飞飞"
+                text: SessionManager.getLocalName()
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 14
-                font.bold: true
+                font.pixelSize: 12
                 font.family: fontFamily
+                font.letterSpacing: 1
+                renderType: Text.NativeRendering
                 color: "#FFF"
             }
         }

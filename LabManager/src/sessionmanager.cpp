@@ -160,6 +160,11 @@ QString SessionManager::getLocalUuid()
 	return  NetStructureManager::getInstance()->getLocalUuid().c_str();
 }
 
+QString SessionManager::getLocalName()
+{
+	return DBOP::getInstance()->getUser(getLocalUuid())["uname"].toString();
+}
+
 QString SessionManager::getLocalPic()
 {
 	return QString("/img/defaultPic.jpg");

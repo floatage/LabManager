@@ -34,6 +34,7 @@ public:
     Q_INVOKABLE void downloadSharedFile(bool isGroup, const QString& duuid, QVariantList fileData, const QUrl& storePath);
 
 	Q_INVOKABLE QString getLocalUuid();
+	Q_INVOKABLE QString getLocalName();
 	Q_INVOKABLE QString getLocalPic();
 
 	int createMessage(const MessageInfo& msg, bool isSend);

@@ -5,9 +5,11 @@ import QtGraphicalEffects 1.0
 ApplicationWindow {
     id: userView
     visible: true
-    width: 975
+    width: 973
     height: 580
     flags: Qt.FramelessWindowHint | Qt.Window
+
+    color: "#00FFFFFF"
 
     signal sessionRecvNewMsg(var itemIndex)
     signal currentSessionChanged()
@@ -246,6 +248,8 @@ ApplicationWindow {
         height: 580
         anchors.left: parent.left
         anchors.top: parent.top
+        color: "#58F"
+        radius: 7
 
         AppTitleBar {
             id: userMsgBarInMem

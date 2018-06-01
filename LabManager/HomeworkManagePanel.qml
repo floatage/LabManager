@@ -85,13 +85,6 @@ Rectangle {
                 console.log("修改作业信息")
             }
         }
-
-        Action{
-            text: "删除考试/作业记录"
-            onTriggered: {
-                console.log("删除考试记录")
-            }
-        }
     }
 
     Rectangle{

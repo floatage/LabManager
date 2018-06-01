@@ -6,246 +6,173 @@ Rectangle {
     id: titleMenuArea
     width: parent.width
     height: 42
-    anchors.left: parent.left
+    anchors.right: parent.right
     anchors.top: parent.top
     color: backColor
+    radius: 7
 
     property color backColor: "#58F"
     property var target: null
 
-    Rectangle{
-        id: textMenuArea
-        width: parent.width * 0.74
-        height: parent.height
-        anchors.leftMargin: parent.width * 0.05
-        anchors.left: parent.left
-        anchors.top: parent.top
-        color: parent.color
+    Component {
+        id: iconMenuItem
 
-        Flow{
-            id: textMenuFlow
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 30
+        Rectangle {
+            id: iconArea
+            width: 30
+            height: width
+            color: backColor
 
-            Component{
-                id: textMenuItem
+            property alias iconPath: iconImg.source
+            property alias iconWidth: iconImg.width
+            property alias iconHeight: iconImg.height
+            property alias iconColor: iconMask.color
+            signal iconClicked()
 
-                Rectangle{
-                    id: itemArea
-                    width: menuText.contentWidth + 20
-                    height: menuText.contentHeight + 10
-                    anchors.verticalCenter: parent.verticalCenter
-                    radius: 3
-                    color: backColor
+            Image {
+                id: iconImg
+                anchors.centerIn: parent
+                sourceSize.width: 14
+                sourceSize.height: 14
 
-                    property alias itemText: menuText.text
-                    signal itemClicked()
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    hoverEnabled: true
 
-                    Text{
-                        id: menuText
-                        verticalAlignment: Text.AlignVCenter
-                        font.family: "方正兰亭超细黑简体"
-                        font.pixelSize: 14
-                        font.letterSpacing: 1
-                        font.bold: true
-                        anchors.fill: parent
-                        anchors.leftMargin: 5
-                        anchors.rightMargin: anchors.leftMargin
-                        anchors.topMargin: 10
-                        anchors.bottomMargin: anchors.topMargin
-                        color: "#FFF"
-                    }
-
-                    MouseArea{
-                        id: textArea
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton
-                        hoverEnabled: true
-
-                        onClicked: itemArea.itemClicked()
-                        onEntered: {menuText.color = "#FEE"}
-                        onExited: {menuText.color = "#FFF"}
-                    }
+                    onClicked: iconArea.iconClicked()
+                    onEntered: {iconMask.color = "#EEE"}
+                    onExited: {iconMask.color = "#FFF"}
                 }
             }
 
+            ColorOverlay {
+                id: iconMask
+                anchors.fill: iconImg
+                source: iconImg
+                color: "#FFF"
+            }
+        }
+    }
 
-            Loader{
-                id: modeMenuItem
-                sourceComponent: textMenuItem
-                Component.onCompleted: {
-                    item.itemText = "模式"
-                }
+    Flow{
+        id: iconMenuFlow
+        height: 30
+        anchors.right: parent.right
+        anchors.rightMargin: 10
+        anchors.verticalCenter: parent.verticalCenter
+        layoutDirection: Qt.RightToLeft
+        spacing: 10
 
-                Connections{
-                    target: modeMenuItem.item
-                    onItemClicked: {
-                        titleMenuArea.target.createOrReplacePanel("RunMode.qml")
-                    }
-                }
+        Loader{
+            id: closeIcon
+            sourceComponent: iconMenuItem
+
+            Component.onCompleted: {
+                item.iconPath = "/img/close.png"
             }
 
-            Loader{
-                id: accountMenuItem
-                sourceComponent: textMenuItem
-                Component.onCompleted: {
-                    item.itemText = "账号"
-                }
-
-                Connections{
-                    target: accountMenuItem.item
-                    onItemClicked: {
-                        titleMenuArea.target.createOrReplacePanel("AccountManage.qml")
-                    }
+            Connections{
+                target: closeIcon.item
+                onIconClicked: {
+                    Qt.quit()
                 }
             }
+        }
 
-            Loader{
-                id: installMenuItem
-                sourceComponent: textMenuItem
-                Component.onCompleted: {
-                    item.itemText = "安装"
-                }
+        Loader {
+            id: minIcon
+            sourceComponent: iconMenuItem
 
-                Connections{
-                    target: installMenuItem.item
-                    onItemClicked: {
-                        titleMenuArea.target.createOrReplacePanel("ClientDistribute.qml")
-                    }
-                }
+            Component.onCompleted: {
+                item.iconWidth = 16
+                item.iconPath = "/img/min.png"
             }
 
-            Loader{
-                id: settingMenuItem
-                sourceComponent: textMenuItem
-                Component.onCompleted: {
-                    item.itemText = "设置"
-                }
-
-                Connections{
-                    target: settingMenuItem.item
-                    onItemClicked: {
-                        titleMenuArea.target.createOrReplacePanel("GeneralSetting.qml")
-                    }
-                }
-            }
-
-            Loader{
-                id: styleMenuItem
-                sourceComponent: textMenuItem
-                Component.onCompleted: {
-                    item.itemText = "风格"
-                }
-            }
-
-            Loader{
-                id: helpMenuItem
-                sourceComponent: textMenuItem
-                Component.onCompleted: {
-                    item.itemText = "帮助"
-                }
-            }
-
-            Loader{
-                id: aboutMenuItem
-                sourceComponent: textMenuItem
-                Component.onCompleted: {
-                    item.itemText = "关于"
+            Connections{
+                target: minIcon.item
+                onIconClicked: {
+                    titleMenuArea.target.showMinimized()
                 }
             }
         }
     }
 
     Rectangle{
-        id: iconMenuArea
-        width: parent.width * 0.25
-        height: parent.height
-        anchors.left: textMenuArea.right
-        anchors.leftMargin: parent.width * 0.05
-        anchors.top: parent.top
-        color: backColor
+        id: menuSeparator
+        width: 1
+        height: 14
+        color: "#CCC"
+        anchors.right: iconMenuFlow.left
+        anchors.rightMargin: 25
+        anchors.verticalCenter: parent.verticalCenter
+    }
 
-        Flow{
-            id: iconMenuFlow
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 10
 
-            Component {
-                id: iconMenuItem
+    Flow{
+        height: 30
+        anchors.right: menuSeparator.left
+        anchors.rightMargin: 25
+        anchors.verticalCenter: parent.verticalCenter
+        layoutDirection: Qt.RightToLeft
+        spacing: 15
 
-                Rectangle {
-                    id: iconArea
-                    width: 30
-                    height: width
-                    color: backColor
-
-                    property alias iconPath: iconImg.source
-                    signal iconClicked()
-
-                    Image {
-                        id: iconImg
-                        anchors.centerIn: parent
-                        sourceSize.width: 16
-                        sourceSize.height: 16
-
-                        MouseArea {
-                            anchors.fill: parent
-                            acceptedButtons: Qt.LeftButton
-                            hoverEnabled: true
-
-                            onClicked: iconArea.iconClicked()
-                            onEntered: {iconMask.color = "#FFF"}
-                            onExited: {iconMask.color = "#EEE"}
-                        }
-                    }
-
-                    ColorOverlay {
-                        id: iconMask
-                        anchors.fill: iconImg
-                        source: iconImg
-                        color: "#EEE"
-                    }
-                }
+        Loader{
+            id: settingMenuItem
+            sourceComponent: iconMenuItem
+            Component.onCompleted: {
+                item.iconPath = "/img/settingIcon.png"
             }
 
-            Loader {
-                id: hideIcon
-                sourceComponent: iconMenuItem
-
-                Component.onCompleted: {
-                    item.iconPath = "/img/back.svg"
+            Connections{
+                target: settingMenuItem.item
+                onIconClicked: {
+                    titleMenuArea.target.createOrReplacePanel("GeneralSetting.qml")
                 }
             }
+        }
 
-            Loader {
-                id: minIcon
-                sourceComponent: iconMenuItem
-
-                Component.onCompleted: {
-                    item.iconPath = "/img/subtract.svg"
-                }
-
-                Connections{
-                    target: minIcon.item
-                    onIconClicked: {
-                        titleMenuArea.target.showMinimized()
-                    }
-                }
+        Loader{
+            id: modeMenuItem
+            sourceComponent: iconMenuItem
+            Component.onCompleted: {
+                item.iconPath = "/img/modeIcon.png"
             }
 
-            Loader{
-                id: closeIcon
-                sourceComponent: iconMenuItem
-
-                Component.onCompleted: {
-                    item.iconPath = "/img/close.svg"
+            Connections{
+                target: modeMenuItem.item
+                onIconClicked: {
+                    titleMenuArea.target.createOrReplacePanel("RunMode.qml")
                 }
+            }
+        }
 
-                Connections{
-                    target: closeIcon.item
-                    onIconClicked: {
-                        Qt.quit()
-                    }
+        Loader{
+            id: installMenuItem
+            sourceComponent: iconMenuItem
+            Component.onCompleted: {
+                item.iconPath = "/img/distributionIcon.png"
+            }
+
+            Connections{
+                target: installMenuItem.item
+                onIconClicked: {
+                    titleMenuArea.target.createOrReplacePanel("ClientDistribute.qml")
+                }
+            }
+        }
+
+        Loader{
+            id: accountMenuItem
+            sourceComponent: iconMenuItem
+            Component.onCompleted: {
+                item.iconPath = "/img/accountPass.png"
+            }
+
+            Connections{
+                target: accountMenuItem.item
+                onIconClicked: {
+                    titleMenuArea.target.createOrReplacePanel("AccountManage.qml")
                 }
             }
         }
