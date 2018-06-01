@@ -128,7 +128,7 @@ Item{
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left
                     horizontalAlignment: Text.AlignVCenter
-                    text: "请选择聊天对象"
+                    text: "请选择通信对象"
                     font.family: "微软雅黑"
                     font.weight: Font.Thin
                     font.letterSpacing: 1

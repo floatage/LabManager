@@ -142,6 +142,12 @@ Rectangle {
             Connections{
                 target: modeMenuItem.item
                 onIconClicked: {
+                    if (SessionManager.getLocalAdmin() == ""){
+                        titleMenuArea.target.messageDialog.text = "只有管理员可设置系统运行模式，请先登录管理员账户！"
+                        titleMenuArea.target.messageDialog.open()
+                        return
+                    }
+
                     titleMenuArea.target.createOrReplacePanel("RunMode.qml")
                 }
             }
@@ -157,6 +163,11 @@ Rectangle {
             Connections{
                 target: installMenuItem.item
                 onIconClicked: {
+                    if (SessionManager.getLocalAdmin() == ""){
+                        titleMenuArea.target.messageDialog.text = "只有管理员可分发客户端，请先登录管理员账户！"
+                        titleMenuArea.target.messageDialog.open()
+                        return
+                    }
                     titleMenuArea.target.createOrReplacePanel("ClientDistribute.qml")
                 }
             }

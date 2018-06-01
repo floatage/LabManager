@@ -14,6 +14,14 @@ Rectangle {
     property string fontFamily: "微软雅黑"
     property var target: null
 
+    Connections{
+        target: DBOP
+        onSystemDataInitFinished:{
+            localImg.source = SessionManager.getLocalPic()
+            curUserNameArea.text = SessionManager.getLocalName()
+        }
+    }
+
     Flow{
         width: parent.width * 0.9
         height: 32
@@ -35,7 +43,7 @@ Rectangle {
                 visible: false
                 antialiasing: true
                 anchors.fill: parent
-                source: SessionManager.getLocalPic()
+                source: "/img/defaultPic.jpg"
                 sourceSize: Qt.size(parent.size, parent.size)
             }
 
@@ -64,7 +72,8 @@ Rectangle {
             color: titleArea.color
 
             Text {
-                text: SessionManager.getLocalName()
+                id: curUserNameArea
+                text: "系统数据初始中..."
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: 12

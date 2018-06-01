@@ -269,12 +269,13 @@ void NetStructureManager::dumpUserToDB()
 
 		AdminInfo defaultAdmin(QString("admin"), QString("18782087866"));
 
-		IOContextManager::getInstance()->getIOLoop().post([userList, defaultGroup, defaultAdmin]() {
+		IOContextManager::getInstance()->getIOLoop().post([this, userList, defaultGroup, defaultAdmin]() {
 			auto dbop = DBOP::getInstance();
 			dbop->addUsers(userList);
 			dbop->createUserGroup(defaultGroup);
 			dbop->addMembers(userList, defaultGroup);
 			dbop->createAdmin(defaultAdmin);
+			dbop->systemDataInitFinished();
 		});
 		hostSet.clear();		
 	}

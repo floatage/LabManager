@@ -36,6 +36,7 @@ public:
 	Q_INVOKABLE QString getLocalUuid();
 	Q_INVOKABLE QString getLocalName();
 	Q_INVOKABLE QString getLocalPic();
+	Q_INVOKABLE QString getLocalAdmin();
 
 	int createMessage(const MessageInfo& msg, bool isSend);
 private:

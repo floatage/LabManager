@@ -12,7 +12,7 @@
         <file>img/settingIcon.png</file>
         <file>img/testIcon.png</file>
         <file>img/uploadIcon.png</file>
-        <file>MembersPanel.qml</file>
+        <file>MainWindow.qml</file>
         <file>AppTitleBar.qml</file>
         <file>MainForm.ui.qml</file>
         <file>img/curSeesionIcon_light.png</file>

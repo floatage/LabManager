@@ -114,6 +114,11 @@ ApplicationWindow {
             console.log("move to session!")
             sessionRecvNewMsg(0)
         }
+
+        onSystemDataInitFinished:{
+            userView.messageDialog.text = "系统数据初始化完成！"
+            userView.messageDialog.open()
+        }
     }
 
     ListModel {
@@ -131,7 +136,6 @@ ApplicationWindow {
     Popup {
         id: opTipDialog
 
-        property string title: "操作结果"
         property alias text: dialogContentTextLabel.text
 
         x: (userView.width-implicitWidth)/2
@@ -169,7 +173,7 @@ ApplicationWindow {
                 anchors.top: parent.top
 
                 Label{
-                    text: "操作结果"
+                    text: "提示"
                     padding: 10
                     anchors.verticalCenter: parent.verticalCenter
                     verticalAlignment: Text.AlignVCenter
@@ -241,6 +245,10 @@ ApplicationWindow {
         }
     }
 
+    Component.onCompleted: {
+        userView.messageDialog.text = "正在初始化系统数据，请稍候！"
+        userView.messageDialog.open()
+    }
 
     Rectangle{
         id: membersRoot

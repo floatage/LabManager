@@ -170,6 +170,11 @@ QString SessionManager::getLocalPic()
 	return QString("/img/defaultPic.jpg");
 }
 
+QString SessionManager::getLocalAdmin()
+{
+	return NetStructureManager::getInstance()->getCurAdmin();
+}
+
 int SessionManager::createMessage(const MessageInfo & msg, bool isSend)
 {
 	return DBOP::getInstance()->createMessage(msg, isSend);

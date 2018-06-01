@@ -183,13 +183,18 @@ Rectangle {
                     Connections {
                         target: fileTransferIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(fileTransferIcon)
+                            if (userViewRoot.curSeesionDestId == ""){
+                                panelParent.messageDialog.text = "请选择文件共享对象！"
+                                panelParent.messageDialog.open()
+                                return
+                            }
 
                             if (panelMap && !panelMap.hasOwnProperty("FileSharedPanel")){
                                 var panel = Qt.createComponent("FileSharedPanel.qml")
                                 panelMap["FileSharedPanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.panelParent, width: contentStackView.width, height: contentStackView.height})
                             }
 
+                            iconRow.setIconTrue(fileTransferIcon)
                             iconRow.replaceToStackTop(contentStackView, panelMap["FileSharedPanel"])
                         }
                     }
@@ -203,8 +208,11 @@ Rectangle {
                     Connections {
                         target: broadcastIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(broadcastIcon)
-                            iconRow.replaceToStackTop(contentStackView, chatMsgArea)
+                            panelParent.messageDialog.text = "功能暂未实现，敬请期待！"
+                            panelParent.messageDialog.open()
+                            return
+
+//                            iconRow.setIconTrue(broadcastIcon)
                         }
                     }
                 }
@@ -217,8 +225,11 @@ Rectangle {
                     Connections {
                         target: screeControlIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(screeControlIcon)
-                            iconRow.replaceToStackTop(contentStackView, chatMsgArea)
+                            panelParent.messageDialog.text = "功能暂未实现，敬请期待！"
+                            panelParent.messageDialog.open()
+                            return
+
+//                            iconRow.setIconTrue(screeControlIcon)
                         }
                     }
                 }
@@ -231,13 +242,24 @@ Rectangle {
                     Connections {
                         target: testIcon.item
                         onIconClicked: {
-                            iconRow.setIconTrue(testIcon)
+                            if (userViewRoot.curSeesionDestId == ""){
+                                panelParent.messageDialog.text = "管理作业需先选择用户组！"
+                                panelParent.messageDialog.open()
+                                return
+                            }
+
+                            if (SessionManager.getLocalAdmin() == ""){
+                                panelParent.messageDialog.text = "只有管理员和组创建者可管理作业，请先登录管理员账户或创建组！"
+                                panelParent.messageDialog.open()
+                                return
+                            }
 
                             if (panelMap && !panelMap.hasOwnProperty("HomeworkManagePanel")){
                                 var panel = Qt.createComponent("HomeworkManagePanel.qml")
                                 panelMap["HomeworkManagePanel"] = panel.createObject(null, {visible: false, panelParent:userViewRoot, panelTarget:userViewRoot.panelParent, width: contentStackView.width, height: contentStackView.height})
                             }
 
+                            iconRow.setIconTrue(testIcon)
                             iconRow.replaceToStackTop(contentStackView, panelMap["HomeworkManagePanel"])
                         }
                     }

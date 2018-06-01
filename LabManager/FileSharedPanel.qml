@@ -29,8 +29,6 @@ Rectangle {
 
     function updateSharedFileModel(){
         if (panelParent.curSeesionDestId == ""){
-            panelTarget.messageDialog.text = "请选择文件共享对象！"
-            panelTarget.messageDialog.open()
             return
         }
 

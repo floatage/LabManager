@@ -100,6 +100,7 @@ signals:
 	void taskRunningStateChanged(const QString& tid, int tstate);
 	void newSharedFileAdd(QVariantList fileMsg);
 	void sharedFileRemove(const QString& fpath);
+	void systemDataInitFinished();
 };
 
 #endif // !DBOP_H

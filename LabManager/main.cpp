@@ -16,7 +16,7 @@
 #include "src/TaskManager.h"
 #include "src/HomeworkManager.h"
 
-#include <qquickwindow.h>
+#include <QQuickWindow>
 
 int main(int argc, char *argv[])
 {
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     DBOP::getInstance();
-    auto nt = QThread::create([](){
+    auto networkThread = QThread::create([](){
 		QDir().mkdir(tmpDir.c_str());
 		QDir().mkdir(groupDir.c_str());
         auto msgm = MessageManager::getInstance();
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
         iom->wait();
         qDebug() << "thread stop";
     });
-    nt->start();
+	networkThread->start();
 
     engine.rootContext()->setContextProperty("UserManager", UserManager::getInstance());
     engine.rootContext()->setContextProperty("AdminManager", AdminManager::getInstance());
@@ -53,13 +53,13 @@ int main(int argc, char *argv[])
         IOContextManager::getInstance()->stop();
     });
 
-    QObject::connect(nt, &QThread::finished, [&](){
-        qDebug() << "thread finished";
+    QObject::connect(networkThread, &QThread::finished, [&](){
+        qDebug() << "network thread finished";
 		app.quit();
     });
 
     engine.addImportPath(":/imports");
-    engine.load(QUrl(QStringLiteral("qrc:/MembersPanel.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/MainWindow.qml")));
 	QObject *topLevel = engine.rootObjects().value(0);
 	QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
 	window->setColor(QColor(Qt::transparent));
