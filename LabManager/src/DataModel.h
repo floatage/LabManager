@@ -119,15 +119,18 @@ struct HomeworkInfo
 {
 	ModelStringType hid;
 	ModelStringType hadmin;
+	ModelStringType hsource;
 	ModelStringType hugid;
-	ModelStringType htype;
 	ModelStringType hstartdate;
 	ModelStringType hduration;
 	ModelStringType hfilepath;
 	ModelStringType hintro;
+	int hstate;
 
 	HomeworkInfo();
-	HomeworkInfo(const ModelStringType &hid, const ModelStringType& hadmin, const ModelStringType& hugid, const ModelStringType &htype,
+	HomeworkInfo(const ModelStringType& hugid, const ModelStringType& hstartdate,
+		const ModelStringType& hduration, const ModelStringType& hfilepathm, const ModelStringType &hintro);
+	HomeworkInfo(const ModelStringType &hid, const ModelStringType& hadmin, const ModelStringType& hsource, const ModelStringType& hugid,
 		const ModelStringType &hstartdate, const ModelStringType &hduration, const ModelStringType &hfilepath, const ModelStringType &hintro);
 };
 

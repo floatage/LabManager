@@ -111,6 +111,8 @@ enum SessionType { UserSession=1, GroupSession=2 };
 
 enum GroupRole { GroupMem, GroupOwner, GroupAdmin };
 
+enum HomeworkState { HwReady, HwRun, HwPause, HwFinished, HwAhead, HwCancel, HwError };
+
 typedef int ConnImplType;
 
 struct ConnType

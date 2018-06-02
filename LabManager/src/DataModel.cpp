@@ -62,7 +62,7 @@ MessageInfo::MessageInfo()
 }
 
 MessageInfo::MessageInfo(const ModelStringType& mduuid, int mtype, const ModelStringType &mdata, int mmode)
-	:mid(QUuid::createUuid().toString()), msource(NetStructureManager::getInstance()->getLocalUuid().c_str()), mduuid(mduuid), mmode(mmode),
+	:mid(QUuid::createUuid().toString().remove(QRegExp("[{}]{1}"))), msource(NetStructureManager::getInstance()->getLocalUuid().c_str()), mduuid(mduuid), mmode(mmode),
 	mtype(mtype), mdata(mdata), mdate(QDateTime::currentDateTime().toString(timeFormat))
 {
 }
@@ -79,11 +79,12 @@ RequestInfo::RequestInfo()
 
 RequestInfo::RequestInfo(const ModelStringType& rdest, int rtype, const ModelStringType &rdata)
 	:rdest(rdest), rtype(rtype), rdata(rdata), rstate(ReqState::ReqWaiting), rdate(QDateTime::currentDateTime().toString(timeFormat)),
-	rid(QUuid::createUuid().toString()), rsource(NetStructureManager::getInstance()->getLocalUuid().c_str())
+	rid(QUuid::createUuid().toString().remove(QRegExp("[{}]{1}"))), rsource(NetStructureManager::getInstance()->getLocalUuid().c_str())
 {
 }
 
-RequestInfo::RequestInfo(const ModelStringType& rid, int rtype, const ModelStringType &rdata, const ModelStringType& rdate, const ModelStringType& rsource, const ModelStringType& rdest)
+RequestInfo::RequestInfo(const ModelStringType& rid, int rtype, const ModelStringType &rdata, 
+	const ModelStringType& rdate, const ModelStringType& rsource, const ModelStringType& rdest)
 	:rid(rid), rtype(rtype), rdata(rdata), rstate(ReqState::ReqWaiting), rsource(rsource), rdest(rdest), rdate(rdate)
 {
 }
@@ -100,13 +101,13 @@ TaskInfo::TaskInfo()
 
 TaskInfo::TaskInfo(const ModelStringType & tdest, int ttype, int tmode, const ModelStringType & tdata)
 	: tdest(tdest), ttype(ttype), tmode(tmode), tdata(tdata), tstate(TaskState::TaskExecute),  tdate(QDateTime::currentDateTime().toString(timeFormat)),
-	tid(QUuid::createUuid().toString()), tsource(NetStructureManager::getInstance()->getLocalUuid().c_str())
+	tid(QUuid::createUuid().toString().remove(QRegExp("[{}]{1}"))), tsource(NetStructureManager::getInstance()->getLocalUuid().c_str())
 {
 }
 
 TaskInfo::TaskInfo(const ModelStringType & tsource, const ModelStringType & tdest, int ttype, int tmode, const ModelStringType & tdata)
 	: tdest(tdest), ttype(ttype), tmode(tmode), tdata(tdata), tstate(TaskState::TaskExecute), tdate(QDateTime::currentDateTime().toString(timeFormat)),
-	tid(QUuid::createUuid().toString()), tsource(tsource)
+	tid(QUuid::createUuid().toString().remove(QRegExp("[{}]{1}"))), tsource(tsource)
 {
 }
 
@@ -120,9 +121,19 @@ HomeworkInfo::HomeworkInfo()
 {
 }
 
-HomeworkInfo::HomeworkInfo(const ModelStringType &hid, const ModelStringType& hadmin, const ModelStringType& hugid, const ModelStringType &htype,
+HomeworkInfo::HomeworkInfo(const ModelStringType & hugid, const ModelStringType & hstartdate, 
+	const ModelStringType & hduration, const ModelStringType & hfilepath, const ModelStringType &hintro)
+	:hugid(hugid), hstartdate(hstartdate), hduration(hduration), hfilepath(hfilepath), hintro(hintro), hstate(HomeworkState::HwReady)
+{
+	hid = QUuid::createUuid().toString().remove(QRegExp("[{}]{1}"));
+	auto nm = NetStructureManager::getInstance();
+	hadmin = nm->getCurAdmin();
+	hsource = nm->getLocalUuid().c_str();
+}
+
+HomeworkInfo::HomeworkInfo(const ModelStringType &hid, const ModelStringType& hadmin, const ModelStringType& hsource, const ModelStringType& hugid,
 	const ModelStringType &hstartdate, const ModelStringType &hduration, const ModelStringType &hfilepath, const ModelStringType &hintro)
-	:hid(hid), hadmin(hadmin), hugid(hugid), htype(htype), hstartdate(hstartdate), hduration(hduration), hfilepath(hfilepath), hintro(hintro)
+	:hid(hid), hadmin(hadmin), hsource(hsource), hugid(hugid), hstartdate(hstartdate), hduration(hduration), hfilepath(hfilepath), hintro(hintro), hstate(HomeworkState::HwReady)
 {
 }
 

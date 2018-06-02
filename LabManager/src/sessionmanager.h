@@ -26,7 +26,6 @@ public:
     Q_INVOKABLE void sendChatMsg(int stype, const QString& duuid, const QString& msg);
     Q_INVOKABLE void sendPic(int stype, const QString& duuid, const QUrl& picPath, bool isAnimation);
     Q_INVOKABLE void sendFile(int stype, const QString& duuid, const QUrl& filePath);
-    Q_INVOKABLE void publishHomework(const QString& duuid, const QVariantList& hwInfo);
 
 	Q_INVOKABLE QVariantList listSharedFile(const QString& duuid, bool isRemote, bool isGroup);
 	Q_INVOKABLE int addSharedFile(const QUrl& filePath);

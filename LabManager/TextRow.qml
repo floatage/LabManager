@@ -10,6 +10,7 @@ Item {
     property alias rowText: rowLabel.text
     property color textColor: "#949494"
     property alias rSpacing: textRowCotent.spacing
+    property alias rowReadOnly: rowTextField.readOnly
     property alias tPlaceholderText: rowTextField.placeholderText
     property real tWidth: 120
     property bool hasButton: false
@@ -17,6 +18,8 @@ Item {
     property alias value: rowTextField.text
     property alias inputType: rowTextField.echoMode
     property alias inputFilter: rowTextField.validator
+
+    signal buttonClicked()
 
     Row{
         id: textRowCotent

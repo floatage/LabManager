@@ -8,7 +8,7 @@ Rectangle {
     anchors.left: parent.left
     anchors.top: parent.top
     color: sleepColor
-    radius: 7
+    radius: 5
 
     property color sleepColor: "#58F"
     property string fontFamily: "微软雅黑"

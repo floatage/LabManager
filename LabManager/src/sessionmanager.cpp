@@ -99,7 +99,7 @@ void SessionManager::sendPic(int stype, const QString & duuid, const QUrl & picP
     QFileInfo picInfo(picPath.toString().split("///")[1]);
 	taskData["picRealName"] = picInfo.absoluteFilePath();
     taskData["picSize"] = picInfo.size();
-	taskData["picStoreName"] = QUuid::createUuid().toString() + "." + picInfo.completeSuffix();
+	taskData["picStoreName"] = QUuid::createUuid().toString().remove(QRegExp("[{}]{1}")) + "." + picInfo.completeSuffix();
 
 	if (SessionType::UserSession == SessionType(stype)) {
 		TaskManager::getInstance()->createSendPicSingleTask(duuid, taskData);
@@ -117,11 +117,6 @@ void SessionManager::sendFile(int stype, const QString & duuid, const QUrl & fil
 	else if (SessionType::GroupSession == SessionType(stype)) {
 		SharedFileManager::getInstance()->uploadGroupSharedFile(duuid, filePath.toString().split("///")[1]);
 	}
-}
-
-void SessionManager::publishHomework(const QString & duuid, const QVariantList & hwInfo)
-{
-    HomeworkManager::getInstance()->publishHomework();
 }
 
 QVariantList SessionManager::listSharedFile(const QString & duuid, bool isRemote, bool isGroup)

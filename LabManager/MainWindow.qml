@@ -9,7 +9,7 @@ ApplicationWindow {
     height: 580
     flags: Qt.FramelessWindowHint | Qt.Window
 
-    color: "#00FFFFFF"
+    color: "#00000000"
 
     signal sessionRecvNewMsg(var itemIndex)
     signal currentSessionChanged()
@@ -257,7 +257,7 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.top: parent.top
         color: "#58F"
-        radius: 7
+        radius: 5
 
         AppTitleBar {
             id: userMsgBarInMem

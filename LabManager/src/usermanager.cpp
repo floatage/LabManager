@@ -61,7 +61,7 @@ int UserManager::removeUser(const QString & userId)
 
 int UserManager::createUserGroup(const QString & name, const QString & intro, const QString & picPath)
 {
-	QString groupId(QUuid::createUuid().toString());
+	QString groupId(QUuid::createUuid().toString().remove(QRegExp("[{}]{1}")));
     QString ownerId(NetStructureManager::getInstance()->getLocalUuid().c_str());
 	UserGroupInfo group(groupId, name, ownerId, intro, picPath);
 

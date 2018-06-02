@@ -20,8 +20,55 @@ Rectangle {
     property bool fontBolder: false
     property int textRenderMode: Text.NativeRendering
 
+    property var hwStateTextMap: [
+        "准备中", "正在进行", "暂停中", "已完成", "提前收取", "已取消", "未知错误"
+    ]
+
+    function updateHomeworkModel(){
+        if (panelParent.curSeesionDestId == "")
+            return
+
+        homeworkListView.model.clear()
+        var homeworkList = HomeworkManager.listHomework(panelParent.curSeesionDestId)
+        for (var index = 0; index < homeworkList.length; ++index){
+            appendHomeworkItem(homeworkList[index])
+        }
+    }
+
+    function appendHomeworkItem(homework){
+        //hid, hadmin, hsource, hugid, hstartdate, hduration, hfilepath, hintro, hstate
+        homeworkListView.model.append({homeworkPic: "/img/testIcon.png"
+                                            ,homeworkId: homework[0]
+                                            ,homeworkName: homework[7]
+                                            ,homeworkStartDate: homework[4]
+                                            ,homeworkTime: homework[5]
+                                            ,homeworkFile: homework[6]
+                                            ,homeworkState: homeworkManageImpPanel.hwStateTextMap[homework[8]]})
+    }
+
+    Connections{
+        target: panelTarget
+        onCurrentSessionChanged:{
+            if (panelParent.panelStackView.currentItem == panelParent.panelMap['HomeworkManagePanel']){
+                homeworkTitleText.text = panelParent.curSessionName + " 的作业/考试管理"
+                updateHomeworkModel()
+            }
+        }
+    }
+
     Menu {
         id: homeworkManageMenu
+        property var selectId
+
+        onVisibleChanged: {
+            if(visible){
+                var isAdmin = SessionManager.getLocalAdmin() != ""
+                cancelHwAction.enabled = isAdmin
+                pauselHwAction.enabled = isAdmin
+                restoreHwAction.enabled = isAdmin
+                modifyHwAction.enabled = isAdmin
+            }
+        }
 
         background: Rectangle {
             id: menuback
@@ -50,7 +97,7 @@ Rectangle {
                 font.family: fontFamily
                 font.weight: fontWeight
                 font.pixelSize: 13
-                color: "#111"
+                color: enabled ? "#111" : "#777"
                 renderType: Text.NativeRendering
                 horizontalAlignment: Text.AlignLeft
                 verticalAlignment: Text.AlignVCenter
@@ -59,30 +106,41 @@ Rectangle {
         }
 
         Action{
-            text: "终止考试/作业"
+            id: cancelHwAction
+            text: "取消考试/作业"
             onTriggered: {
-                console.log("终止作业")
+                HomeworkManager.cancelHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectId)
             }
         }
 
         Action{
+            id: pauselHwAction
             text: "暂停考试/作业"
             onTriggered: {
-                console.log("暂停作业")
+                HomeworkManager.pauseHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectId)
             }
         }
 
         Action{
-            text: "开始考试/作业"
+            id: restoreHwAction
+            text: "恢复考试/作业"
             onTriggered: {
-                console.log("暂停作业")
+                HomeworkManager.restoreHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectId)
             }
         }
 
         Action{
+            id: modifyHwAction
             text: "修改考试/作业信息"
             onTriggered: {
                 console.log("修改作业信息")
+            }
+        }
+
+        Action{
+            text: "提交考试/作业文件"
+            onTriggered: {
+                console.log("提交考试/作业文件")
             }
         }
     }
@@ -112,7 +170,7 @@ Rectangle {
                         id: homeworkTitleText
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
-                        text: "作业/考试管理"
+                        text: "当前域 的作业/考试管理"
                         font.family: fontFamily
                         font.weight: fontWeight
                         font.bold: fontBolder
@@ -179,20 +237,11 @@ Rectangle {
                             }
                         }
 
-                        Loader {
-                            id: homeworkSettingIcon
-                            sourceComponent: iconItem
-                            onLoaded: {
-                                item.iconWidth = 18
-                                item.iconHeight = 18
-                                item.visible = true
-                            }
-
-                            Connections{
-                                target:homeworkSettingIcon.item
-                                onPicLoad: img.source = "/img/set.svg"
-                                onIconClicked: {
-                                }
+                        onVisibleChanged: {
+                            if (visible){
+                                var isAdmin = SessionManager.getLocalAdmin() != ""
+                                homeworkSettingIcon.item.visible = isAdmin
+                                addHomeworkIcon.item.visible = isAdmin
                             }
                         }
 
@@ -209,6 +258,24 @@ Rectangle {
                                 target:homeworkRefreshIcon.item
                                 onPicLoad: img.source = "/img/refresh.svg"
                                 onIconClicked: {
+                                    updateHomeworkModel()
+                                }
+                            }
+                        }
+
+                        Loader {
+                            id: homeworkSettingIcon
+                            sourceComponent: iconItem
+                            onLoaded: {
+                                item.iconWidth = 18
+                                item.iconHeight = 18
+                                item.visible = SessionManager.getLocalAdmin() != ""
+                            }
+
+                            Connections{
+                                target:homeworkSettingIcon.item
+                                onPicLoad: img.source = "/img/set.svg"
+                                onIconClicked: {
                                 }
                             }
                         }
@@ -219,7 +286,7 @@ Rectangle {
                             onLoaded: {
                                 item.iconWidth = 22
                                 item.iconHeight = 22
-                                item.visible = true
+                                item.visible = SessionManager.getLocalAdmin() != ""
                             }
 
                             Connections{
@@ -255,6 +322,13 @@ Rectangle {
                 clip: true
                 ScrollBar.vertical: ScrollBar { }
 
+                onVisibleChanged: {
+                    if (visible){
+                        homeworkTitleText.text = panelParent.curSessionName + " 的作业/考试管理"
+                        updateHomeworkModel()
+                    }
+                }
+
                 header: Rectangle {
                     id: homeworkListHeader
                     width: parent.width
@@ -277,17 +351,17 @@ Rectangle {
                             font.bold: fontBolder
                             font.pixelSize: fontSize
                             renderType: textRenderMode
-                            text: "作业"
+                            text: "作业描述"
                         }
 
                         Text {
-                            id: homeworkGroupHeader
+                            id: homeworkFileHeader
                             width: parent.width * 0.25
                             anchors.verticalCenter: homeworkNameHeader.verticalCenter
                             font: homeworkNameHeader.font
                             color: homeworkNameHeader.color
                             renderType: homeworkNameHeader.renderType
-                            text: "所属组"
+                            text: "作业文件"
                         }
 
                         Text {
@@ -322,17 +396,6 @@ Rectangle {
                     }
                 }
 
-                Component.onCompleted: {
-                    for(var count = 0; count < 10; ++count){
-                        model.append({homeworkPicInfor: "/img/testIcon.png"
-                                        ,homeworkNameInfor: "软件工程考试"
-                                        ,homeworkStartDateInfor: "21:05 2016/12/3"
-                                        ,homeworkGroupInfor: "应用141班"
-                                        ,homeworkTimeInfor: "90 分钟"
-                                        ,homeworkStateInfor: "正在进行"})
-                    }
-                }
-
                 model: ListModel {
                 }
 
@@ -352,8 +415,10 @@ Rectangle {
                             homeworkListView.currentIndex = index
                             homeworkListView.currentItem.color = "#FEE"
 
-                            if (mouse.button === Qt.RightButton)
+                            if (mouse.button === Qt.RightButton){
+                                homeworkManageMenu.selectId = homeworkId
                                 homeworkManageMenu.popup()
+                            }
                         }
                         onEntered: {
                             if (homeworkListView.currentIndex !== index)
@@ -365,10 +430,8 @@ Rectangle {
                         }
                     }
 
-
-
                     Rectangle {
-                        id: homeworkPic
+                        id: homeworkPicArea
                         width: 30
                         height: width
                         color: parent.color
@@ -377,7 +440,7 @@ Rectangle {
                         Image {
                             id: homeworkImg
                             anchors.centerIn: parent
-                            source: homeworkPicInfor
+                            source: homeworkPic
                             scale: 0.8
                         }
                     }
@@ -385,12 +448,12 @@ Rectangle {
                     Row{
                         width: parent.width - 60
                         height: parent.height
-                        anchors.left: homeworkPic.right
-                        anchors.leftMargin: 30
+                        anchors.left: homeworkPicArea.right
+                        anchors.leftMargin: 15
 
                         Label {
-                            id: homeworkName
-                            width: parent.width * 0.25
+                            id: homeworkNameArea
+                            width: parent.width * 0.20
                             anchors.verticalCenter: parent.verticalCenter
                             font.family: fontFamily
                             font.weight: fontWeight
@@ -398,53 +461,59 @@ Rectangle {
                             color: "#444"
                             font.bold: fontBolder
                             font.pixelSize: fontSize
-                            text: homeworkNameInfor
+                            text: homeworkName + "(" + homeworkId + ")"
                             clip: true
                             renderType: textRenderMode
+                            padding: 2
+                        }
+
+                        Rectangle{
+                            width: parent.width * 0.05+15
+                            height: 1
                         }
 
                         Label {
-                            id: homeworkGroup
+                            id: homeworkFileArea
                             width: parent.width * 0.25
-                            anchors.verticalCenter: homeworkName.verticalCenter
-                            font: homeworkName.font
+                            anchors.verticalCenter: homeworkNameArea.verticalCenter
+                            font: homeworkNameArea.font
                             color: fontColor
-                            text: homeworkGroupInfor
+                            text: homeworkFile
                             clip: true
-                            renderType: homeworkName.renderType
+                            renderType: homeworkNameArea.renderType
                         }
 
                         Label {
-                            id: homeworkStartDate
+                            id: homeworkStartDateArea
                             width: parent.width * 0.2
-                            anchors.verticalCenter: homeworkName.verticalCenter
-                            font: homeworkName.font
-                            color: homeworkGroup.color
-                            text: homeworkStartDateInfor
+                            anchors.verticalCenter: homeworkNameArea.verticalCenter
+                            font: homeworkNameArea.font
+                            color: homeworkFileArea.color
+                            text: homeworkStartDate
                             clip: true
-                            renderType: homeworkName.renderType
+                            renderType: homeworkNameArea.renderType
                         }
 
                         Label {
-                            id: homeworkTime
+                            id: homeworkTimeArea
                             width: parent.width * 0.15
-                            anchors.verticalCenter: homeworkName.verticalCenter
-                            font: homeworkName.font
-                            color: homeworkGroup.color
-                            text: homeworkTimeInfor
+                            anchors.verticalCenter: homeworkNameArea.verticalCenter
+                            font: homeworkNameArea.font
+                            color: homeworkFileArea.color
+                            text: homeworkTime
                             clip: true
-                            renderType: homeworkName.renderType
+                            renderType: homeworkNameArea.renderType
                         }
 
                         Label {
-                            id: homeworkState
+                            id: homeworkStateArea
                             width: parent.width * 0.15
-                            anchors.verticalCenter: homeworkName.verticalCenter
-                            font: homeworkName.font
-                            color: homeworkGroup.color
-                            text: homeworkStateInfor
+                            anchors.verticalCenter: homeworkNameArea.verticalCenter
+                            font: homeworkNameArea.font
+                            color: homeworkFileArea.color
+                            text: homeworkState
                             clip: true
-                            renderType: homeworkName.renderType
+                            renderType: homeworkNameArea.renderType
                         }
                     }
                 }

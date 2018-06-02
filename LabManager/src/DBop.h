@@ -73,9 +73,9 @@ public:
 	//Homework operation
 	int createHomework(const HomeworkInfo& homework);
 	int deleteHomework(const ModelStringType& homeworkId);
-	QVariantHash getHomework(const ModelStringType& homeworkId);
-	QVariantList listHomeworks();
-	int setHomeworkState(const ModelStringType& homeworkId, const ModelStringType& state);
+	QVariantList getHomework(const ModelStringType& homeworkId);
+	QVariantList listHomeworks(const ModelStringType& groupId);
+	int setHomeworkState(const ModelStringType& homeworkId, int state);
 
 	//Shared file operation
 	int addSharedFile(const SharedFileInfo& file);

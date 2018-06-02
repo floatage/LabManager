@@ -75,12 +75,6 @@ DialogFrame{
                     }
 
                     TextRow{
-                        rowText: "屏幕画面传输端口"
-                        tWidth: 71
-                        tPlaceholderText: "8801"
-                    }
-
-                    TextRow{
                         rowText: "扫描超时时间"
                         tWidth: 95
                         tPlaceholderText: "5000"

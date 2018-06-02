@@ -1,6 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.3
-import QtQuick.Controls.Styles 1.3
+import QtQuick 2.10
+import QtQuick.Controls 2.3
+import QtQuick.Dialogs 1.3
 
 DialogFrame{
     id: homeworkDistribute
@@ -10,6 +10,8 @@ DialogFrame{
               "/img/settingIcon.png":[hwkDistributeSetting, "hwkDistributeSetting", false]}
 
     property real colSpacing: 30
+    property var panelParent
+    property var panelTarget
 
     Component{
         id: hwkDistributeContent
@@ -17,6 +19,17 @@ DialogFrame{
         Item{
             width: parent.width
             height: parent.height
+
+            FileDialog{
+                id: homeworkFileSelectFileDialog
+                title: qsTr("请选择文件")
+                selectFolder: false
+                selectMultiple: false
+                nameFilters: ['All Files (*.*)']
+                onAccepted: {
+                    homeworkFilePathArea.value = homeworkFileSelectFileDialog.fileUrl.toString().split("///")[1]
+                }
+            }
 
             Rectangle{
                 width: parent.width * 0.85
@@ -27,48 +40,51 @@ DialogFrame{
                 anchors.topMargin: parent.height * 0.07
 
                 Column{
-                    width: parent.width
-                    height: parent.height
+                    anchors.fill: parent
                     spacing: colSpacing
 
                     TextRow{
-                        rowText: "考试科目"
-                        tPlaceholderText: "软件工程"
+                        id: homeworkIntroArea
+                        rowText: "作业描述"
+                        tPlaceholderText: "应用141班的软件工程作业"
+                        inputFilter: RegExpValidator { regExp: /^.{4,20}$/ }
                     }
 
                     TextRow{
-                        rowText: "考试班级"
-                        tPlaceholderText: "应用141班"
-                    }
-
-                    TextRow{
+                        id: homeworkStartTimeArea
                         rowText: "开始时间";
-                        tPlaceholderText: "8:30 4/12"
+                        tPlaceholderText: "2018.04.20 00:00:00"
+                        inputFilter: RegExpValidator { regExp: /(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2})/ }
                     }
 
                     TextRow{
-                        rowText: "考试时长"
+                        id: homeworkDurationArea
+                        rowText: "作业时长"
                         tPlaceholderText: "90"
-                    }
-
-
-                    TextRow{
-                        rowText: "考卷文件"
-                        tPlaceholderText: "file.zip"
+                        inputFilter: IntValidator { bottom:0; top: 720}
                     }
 
                     TextRow{
-                        rowText: "扫描超时时间"
-                        tWidth: 96
-                        tPlaceholderText: "5000"
-                    }
-
-
-                    TextRow{
-                        rowText: "考卷目录"
+                        id: homeworkFilePathArea
+                        rowText: "作业文件"
                         tPlaceholderText: "C:Test.."
-                        hasButton: true
-                        bButtonText: "选择"
+                        tWidth: 95
+                        rowReadOnly: true
+
+                        NormalButton{
+                            buttonText:"选择"
+                            hasBorder: false
+                            fillHeight: 0
+                            fillWidth:0
+                            anchors.left: homeworkFilePathArea.right
+                            anchors.leftMargin: 4
+                            anchors.top: parent.top
+                            anchors.topMargin: -4
+
+                            onButtonClicked: {
+                                homeworkFileSelectFileDialog.open()
+                            }
+                        }
                     }
 
                     Row{
@@ -78,12 +94,35 @@ DialogFrame{
                             id: startClientDistributeButton
                             hasBorder: false
                             buttonText: "发布作业"
+
+                            onButtonClicked: {
+                                if (homeworkIntroArea.value=="" || homeworkStartTimeArea.value=="" ||
+                                        homeworkDurationArea.value=="" ||  homeworkFilePathArea.value==""){
+                                    panelTarget.messageDialog.text = "请填写完整信息！"
+                                    panelTarget.messageDialog.open()
+                                    return
+                                }
+
+                                if (HomeworkManager.createHomework(panelParent.curSeesionDestId, homeworkIntroArea.value,
+                                    homeworkStartTimeArea.value, homeworkDurationArea.value, homeworkFilePathArea.value) == 0){
+                                    panelTarget.messageDialog.text = "作业发布成功！"
+                                    panelTarget.messageDialog.open()
+                                }
+                                else{
+                                    panelTarget.messageDialog.text = "作业发布失败！"
+                                    panelTarget.messageDialog.open()
+                                }
+                            }
                         }
 
                         NormalButton{
                             id: endClientDistributeButton
                             hasBorder: false
                             buttonText: "收取作业"
+
+                            onButtonClicked: {
+
+                            }
                         }
                     }
                 }

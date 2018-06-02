@@ -110,12 +110,13 @@ int DBOP::createTables()
 
 	bool bHomework = query.exec("CREATE TABLE IF NOT EXISTS Homework(hid VARCHAR(32) PRIMARY KEY, "
 		"hadmin VARCHAR(32) NOT NULL, "
+		"hsource VARCHAR(32) NOT NULL, "
 		"hugid VARCHAR(32) NOT NULL, "
-		"htype VARCHAR(16) NOT NULL, "
 		"hstartdate VARCHAR(32) NOT NULL, "
 		"hduration VARCHAR(32) NOT NULL, "
 		"hfilepath VARCHAR(128) NOT NULL, "
 		"hintro VARCHAR(128) NOT NULL, "
+		"hstate INTEGER NOT NULL, "
 		"foreign key(hadmin) references Admin(aname), "
 		"foreign key(hugid) references UserGroup(hugid))");
 
@@ -598,17 +599,17 @@ int DBOP::loginAdmin(const ModelStringType & name, const ModelStringType & passw
 	query.addBindValue(name);
 
 	if (!query.exec() || !query.next()) {
-		qDebug() << "admin not exists! name: " << name;
+		qDebug() << "admin not exists! name: " << name << " reason: " << query.lastError().text();
 		return -1;
 	}
 
 	QString dbPassword = query.value("apassword").toString();
 	if (dbPassword != reallyPassStr) {
-		qDebug() << "admin password incorrect! name: " << name << " reason: " << query.lastError().text();
+		qDebug() << "admin password incorrect! name: " << name;
 		return -2;
 	}
 	
-	qDebug() << "admin password correct! name: " << name << " reason: " << query.lastError().text();
+	qDebug() << "admin password correct! name: " << name;
 	return 0;
 }
 
@@ -1054,25 +1055,26 @@ int DBOP::setTaskState(const QString& taskId, int state)
 //Homework operation
 int DBOP::createHomework(const HomeworkInfo & homework)
 {
-	static const QString ADD_HOMEWORK("insert into Homework(hid,hadmin,hugid,htype,hstartdate,hduration,hfilepath,hintro) values(?,?,?,?,?,?,?,?)");
+	static const QString ADD_HOMEWORK("insert into Homework(hid,hadmin,hsource,hugid,hstartdate,hduration,hfilepath,hintro,hstate) values(?,?,?,?,?,?,?,?,?)");
 
 	QSqlQuery query;
 	query.prepare(ADD_HOMEWORK);
 	query.addBindValue(homework.hid);
 	query.addBindValue(homework.hadmin);
+	query.addBindValue(homework.hsource);
 	query.addBindValue(homework.hugid);
-	query.addBindValue(homework.htype);
 	query.addBindValue(homework.hstartdate);
 	query.addBindValue(homework.hduration);
 	query.addBindValue(homework.hfilepath);
 	query.addBindValue(homework.hintro);
+	query.addBindValue(homework.hstate);
 
 	if (query.exec()) {
-		qDebug() << "homework insert success";
+		qDebug() << "homework insert success! hid: " << homework.hid << " admin: " << homework.hadmin << " hugid: " << homework.hugid << " hintro: " << homework.hintro;
 		return 0;
 	}
 
-	qDebug() << "homework insert failed" << " reason: " << query.lastError().text();
+	qDebug() << "homework insert failed! hid: " << homework.hid << " admin: " << homework.hadmin << " hugid: " << homework.hugid << " hintro: " << homework.hintro << " reason: " << query.lastError().text();
 	return -1;
 }
 
@@ -1085,51 +1087,53 @@ int DBOP::deleteHomework(const ModelStringType & homeworkId)
 	query.addBindValue(homeworkId);
 
 	if (query.exec()) {
-		qDebug() << "homework delete success";
+		qDebug() << "homework delete success! hid: " << homeworkId;
 		return 0;
 	}
 
-	qDebug() << "homework delete failed" << " reason: " << query.lastError().text();
+	qDebug() << "homework delete failed! hid: " << homeworkId << " reason: " << query.lastError().text();
 	return -1;
 }
 
-QVariantHash DBOP::getHomework(const ModelStringType & homeworkId)
+QVariantList DBOP::getHomework(const ModelStringType & homeworkId)
 {
 	static const QString HOMEWORK_GET("select * from Homework where hid=?");
 
 	QSqlQuery query;
-	QVariantHash result;
+	QVariantList result;
 
 	query.prepare(HOMEWORK_GET);
 	query.addBindValue(homeworkId);
 	if (!query.exec() || !query.next()) {
-		qDebug() << "homework select failed" << " reason: " << query.lastError().text();
+		qDebug() << "homework select failed! hid: " << homeworkId << " reason: " << query.lastError().text();
 		return result;
 	}
 
-	result["hid"] = query.value("hid");
-	result["hadmin"] = query.value("hadmin");
-	result["hugid"] = query.value("hugid");
-	result["htype"] = query.value("htype");
-	result["hstartdate"] = query.value("hstartdate");
-	result["hduration"] = query.value("hduration");
-	result["hfilepath"] = query.value("hfilepath");
-	result["hintro"] = query.value("hintro");
+	result.append(query.value("hid"));
+	result.append(query.value("hadmin"));
+	result.append(query.value("hsource"));
+	result.append(query.value("hugid"));
+	result.append(query.value("hstartdate"));
+	result.append(query.value("hduration"));
+	result.append(query.value("hfilepath"));
+	result.append(query.value("hintro"));
+	result.append(query.value("hstate"));
 
-	qDebug() << "homework select success";
+	qDebug() << "homework select success! hid: " << homeworkId;
 	return result;
 }
 
-QVariantList DBOP::listHomeworks()
+QVariantList DBOP::listHomeworks(const ModelStringType& groupId)
 {
-	static const QString HOMEWORK_GET_ALL("select * from Homework");
+	static const QString HOMEWORK_GET_ALL("select * from Homework where hugid=?");
 
 	QSqlQuery query;
 	QVariantList result;
 
 	query.prepare(HOMEWORK_GET_ALL);
+	query.addBindValue(groupId);
 	if (!query.exec()) {
-		qDebug() << "homework select all failed" << " reason: " << query.lastError().text();
+		qDebug() << "homework select all failed! reason: " << query.lastError().text();
 		return result;
 	}
 
@@ -1138,20 +1142,21 @@ QVariantList DBOP::listHomeworks()
 		QVariantList item;
 		item.append(query.value("hid"));
 		item.append(query.value("hadmin"));
+		item.append(query.value("hsource"));
 		item.append(query.value("hugid"));
-		item.append(query.value("htype"));
 		item.append(query.value("hstartdate"));
 		item.append(query.value("hduration"));
 		item.append(query.value("hfilepath"));
 		item.append(query.value("hintro"));
+		item.append(query.value("hstate"));
 		result.append(QVariant(item));
 	}
 
-	qDebug() << "homework select all success";
+	qDebug() << "homework select all success!";
 	return result;
 }
 
-int DBOP::setHomeworkState(const ModelStringType & homeworkId, const ModelStringType& state)
+int DBOP::setHomeworkState(const ModelStringType & homeworkId, int state)
 {
 	static const QString SET_HOMEWORK_STATE("update Homework set hstate=? where hid=?");
 
@@ -1161,11 +1166,11 @@ int DBOP::setHomeworkState(const ModelStringType & homeworkId, const ModelString
 	query.addBindValue(homeworkId);
 
 	if (query.exec()) {
-		qDebug() << "homework set state success: " << homeworkId << " " << state;
+		qDebug() << "homework set state success! hid: " << homeworkId << " hstate: " << state;
 		return 0;
 	}
 
-	qDebug() << "homework set state failed: " << homeworkId << " " << state << " reason: " << query.lastError().text();
+	qDebug() << "homework set state failed! hid: " << homeworkId << " hstate: " << state << " reason: " << query.lastError().text();
 	return -1;
 }
 

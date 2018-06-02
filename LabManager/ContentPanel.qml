@@ -242,14 +242,8 @@ Rectangle {
                     Connections {
                         target: testIcon.item
                         onIconClicked: {
-                            if (userViewRoot.curSeesionDestId == ""){
+                            if (userViewRoot.curSeesionDestId == "" || userViewRoot.curSeesionType == 1){
                                 panelParent.messageDialog.text = "管理作业需先选择用户组！"
-                                panelParent.messageDialog.open()
-                                return
-                            }
-
-                            if (SessionManager.getLocalAdmin() == ""){
-                                panelParent.messageDialog.text = "只有管理员和组创建者可管理作业，请先登录管理员账户或创建组！"
                                 panelParent.messageDialog.open()
                                 return
                             }

@@ -9,7 +9,7 @@ Rectangle {
     anchors.right: parent.right
     anchors.top: parent.top
     color: backColor
-    radius: 7
+    radius: 5
 
     property color backColor: "#58F"
     property var target: null
