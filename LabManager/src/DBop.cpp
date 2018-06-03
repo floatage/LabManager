@@ -1248,6 +1248,31 @@ QVariantList DBOP::listSharedFile(bool isLocal, const QString& groupId)
 	return result;
 }
 
+QVariantList DBOP::getSharedFile(const ModelStringType & path)
+{
+	static const QString QUERY_SHARED_FILE("select * from SharedFile where fpath=?");
+
+	QSqlQuery query;
+	QVariantList result;
+
+	query.prepare(QUERY_SHARED_FILE);
+	query.addBindValue(path);
+
+	if (!query.exec() || !query.next()) {
+		qDebug() << "shared file select failed! fpath: " << path << " reason: " << query.lastError().text();
+		return result;
+	}
+
+	QString fpath = query.value("fpath").toString();
+	QFileInfo fileInfo(fpath);
+	result.append(fileInfo.fileName());
+	result.append(fileInfo.size());
+	result.append(fpath);
+
+	qDebug() << "shared file select success! fpath: " << path;
+	return result;
+}
+
 void DBOP::notifyModelAppendMsg(const MessageInfo & msgInfo, bool isSend)
 {
 	QVariantList recvMsg;

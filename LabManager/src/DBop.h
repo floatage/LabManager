@@ -81,6 +81,7 @@ public:
 	int addSharedFile(const SharedFileInfo& file);
 	int removeSharedFile(const ModelStringType& path);
 	QVariantList listSharedFile(bool isLocal, const QString& groupId);
+	QVariantList getSharedFile(const ModelStringType& path);
 
 private:
 	DBOP(QObject* parent = 0);
