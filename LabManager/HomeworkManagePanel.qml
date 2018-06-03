@@ -21,7 +21,7 @@ Rectangle {
     property int textRenderMode: Text.NativeRendering
 
     property var hwStateTextMap: [
-        "准备中", "正在进行", "暂停中", "已完成", "提前收取", "已取消", "未知错误"
+        "准备中", "正在进行", "暂停中", "已结束", "提前收取", "已取消", "未知错误"
     ]
 
     function updateHomeworkModel(){
@@ -43,7 +43,7 @@ Rectangle {
                                             ,homeworkStartDate: homework[4]
                                             ,homeworkTime: homework[5]
                                             ,homeworkFile: homework[6]
-                                            ,homeworkState: homeworkManageImpPanel.hwStateTextMap[homework[8]]})
+                                            ,homeworkState: homework[8]})
     }
 
     Connections{
@@ -56,17 +56,46 @@ Rectangle {
         }
     }
 
+    Connections{
+        target: DBOP
+        onNewHomeworkCreate:{
+            appendHomeworkItem(hwMsg)
+        }
+    }
+
     Menu {
         id: homeworkManageMenu
-        property var selectId
+        property var selectHwId
+        property int selectHwState
 
         onVisibleChanged: {
             if(visible){
                 var isAdmin = SessionManager.getLocalAdmin() != ""
-                cancelHwAction.enabled = isAdmin
-                pauselHwAction.enabled = isAdmin
-                restoreHwAction.enabled = isAdmin
-                modifyHwAction.enabled = isAdmin
+
+                if (selectHwState == 1){
+                    pauselHwAction.enabled = isAdmin
+                    restoreHwAction.enabled = false
+                    modifyHwAction.enabled = isAdmin
+                    cancelHwAction.enabled = isAdmin
+                    gatherHwAction.enabled = isAdmin
+                    submitHwAction.enabled = true
+                }
+                else if (selectHwState == 2){
+                    pauselHwAction.enabled = false
+                    restoreHwAction.enabled = isAdmin
+                    modifyHwAction.enabled = isAdmin
+                    cancelHwAction.enabled = isAdmin
+                    gatherHwAction.enabled = isAdmin
+                    submitHwAction.enabled = true
+                }
+                else{
+                    pauselHwAction.enabled = false
+                    restoreHwAction.enabled = false
+                    modifyHwAction.enabled = false
+                    cancelHwAction.enabled = false
+                    gatherHwAction.enabled = false
+                    submitHwAction.enabled = false
+                }
             }
         }
 
@@ -106,18 +135,10 @@ Rectangle {
         }
 
         Action{
-            id: cancelHwAction
-            text: "取消考试/作业"
-            onTriggered: {
-                HomeworkManager.cancelHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectId)
-            }
-        }
-
-        Action{
             id: pauselHwAction
             text: "暂停考试/作业"
             onTriggered: {
-                HomeworkManager.pauseHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectId)
+                HomeworkManager.pauseHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectHwId)
             }
         }
 
@@ -125,7 +146,7 @@ Rectangle {
             id: restoreHwAction
             text: "恢复考试/作业"
             onTriggered: {
-                HomeworkManager.restoreHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectId)
+                HomeworkManager.restoreHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectHwId)
             }
         }
 
@@ -138,6 +159,23 @@ Rectangle {
         }
 
         Action{
+            id: gatherHwAction
+            text: "结束考试/作业"
+            onTriggered: {
+                HomeworkManager.gatherHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectHwId)
+            }
+        }
+
+        Action{
+            id: cancelHwAction
+            text: "取消考试/作业"
+            onTriggered: {
+                HomeworkManager.cancelHomework(panelParent.curSeesionDestId, homeworkManageMenu.selectHwId)
+            }
+        }
+
+        Action{
+            id: submitHwAction
             text: "提交考试/作业文件"
             onTriggered: {
                 console.log("提交考试/作业文件")
@@ -404,6 +442,16 @@ Rectangle {
                     width: parent.width
                     height: 50
 
+                    Connections{
+                        target: DBOP
+                        onHomeworkStateChanged:{
+                            if (hid == homeworkId){
+                                homeworkState = hstate
+                                homeworkStateArea.text = homeworkManageImpPanel.hwStateTextMap[hstate]
+                            }
+                        }
+                    }
+
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
@@ -416,7 +464,8 @@ Rectangle {
                             homeworkListView.currentItem.color = "#FEE"
 
                             if (mouse.button === Qt.RightButton){
-                                homeworkManageMenu.selectId = homeworkId
+                                homeworkManageMenu.selectHwId = homeworkId
+                                homeworkManageMenu.selectHwState = homeworkState
                                 homeworkManageMenu.popup()
                             }
                         }
@@ -469,7 +518,8 @@ Rectangle {
 
                         Rectangle{
                             width: parent.width * 0.05+15
-                            height: 1
+                            height: parent.height
+                            color: "#00000000"
                         }
 
                         Label {
@@ -511,7 +561,7 @@ Rectangle {
                             anchors.verticalCenter: homeworkNameArea.verticalCenter
                             font: homeworkNameArea.font
                             color: homeworkFileArea.color
-                            text: homeworkState
+                            text: homeworkManageImpPanel.hwStateTextMap[homeworkState]
                             clip: true
                             renderType: homeworkNameArea.renderType
                         }

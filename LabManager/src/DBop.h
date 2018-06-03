@@ -89,6 +89,7 @@ private:
 	void notifyNewRequestCreate(const RequestInfo& reqInfo, bool isSend);
 	void notifyNewTaskCreate(const TaskInfo& taskInfo);
 	void notifySharedFileAdd(const SharedFileInfo& fileInfo);
+	void notifyHomeworkCreate(const HomeworkInfo& hwInfo);
 
 signals:
 	void sessionMsgRecv(QVariantList recvMsg, bool isSend);
@@ -101,6 +102,8 @@ signals:
 	void newSharedFileAdd(QVariantList fileMsg);
 	void sharedFileRemove(const QString& fpath);
 	void systemDataInitFinished();
+	void homeworkStateChanged(const QString& hid, int hstate);
+	void newHomeworkCreate(QVariantList hwMsg);
 };
 
 #endif // !DBOP_H

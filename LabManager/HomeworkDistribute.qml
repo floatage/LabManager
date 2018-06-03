@@ -88,11 +88,15 @@ DialogFrame{
                     }
 
                     Row{
-                        spacing: parent.width * 0.12
+                        width: parent.width
+
+                        Rectangle{
+                            width: (parent.width - startClientDistributeButton.width) * 0.5
+                            height: parent.height
+                        }
 
                         NormalButton{
                             id: startClientDistributeButton
-                            hasBorder: false
                             buttonText: "发布作业"
 
                             onButtonClicked: {
@@ -112,16 +116,6 @@ DialogFrame{
                                     panelTarget.messageDialog.text = "作业发布失败！"
                                     panelTarget.messageDialog.open()
                                 }
-                            }
-                        }
-
-                        NormalButton{
-                            id: endClientDistributeButton
-                            hasBorder: false
-                            buttonText: "收取作业"
-
-                            onButtonClicked: {
-
                             }
                         }
                     }

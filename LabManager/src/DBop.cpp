@@ -1070,6 +1070,7 @@ int DBOP::createHomework(const HomeworkInfo & homework)
 	query.addBindValue(homework.hstate);
 
 	if (query.exec()) {
+		notifyHomeworkCreate(homework);
 		qDebug() << "homework insert success! hid: " << homework.hid << " admin: " << homework.hadmin << " hugid: " << homework.hugid << " hintro: " << homework.hintro;
 		return 0;
 	}
@@ -1166,6 +1167,7 @@ int DBOP::setHomeworkState(const ModelStringType & homeworkId, int state)
 	query.addBindValue(homeworkId);
 
 	if (query.exec()) {
+		homeworkStateChanged(homeworkId, state);
 		qDebug() << "homework set state success! hid: " << homeworkId << " hstate: " << state;
 		return 0;
 	}
@@ -1311,4 +1313,19 @@ void DBOP::notifySharedFileAdd(const SharedFileInfo & file)
 	newSharedFile.append(fileInfo.lastModified().toString(timeFormat));
 	newSharedFile.append(fileInfo.size());
 	newSharedFileAdd(newSharedFile);
+}
+
+void DBOP::notifyHomeworkCreate(const HomeworkInfo & hwInfo)
+{
+	QVariantList newHomework;
+	newHomework.append(hwInfo.hid);
+	newHomework.append(hwInfo.hadmin);
+	newHomework.append(hwInfo.hsource);
+	newHomework.append(hwInfo.hugid);
+	newHomework.append(hwInfo.hstartdate);
+	newHomework.append(hwInfo.hduration);
+	newHomework.append(hwInfo.hfilepath);
+	newHomework.append(hwInfo.hintro);
+	newHomework.append(hwInfo.hstate);
+	newHomeworkCreate(newHomework);
 }
