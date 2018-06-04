@@ -25,11 +25,10 @@ const StringType homeworkGatherActionStr("HomeworkGather");
 const StringType homeworkPauseActionStr("HomeworkPause");
 const StringType homeworkRestoreActionStr("HomeworkRestore");
 const StringType homeworkCancelActionStr("HomeworkCancel");
-const StringType homeworkFileQueryActionStr("HomeworkFileQuery");
-const StringType sendQueryResultActionStr("SendQueryResult");
 
 struct HomeworkManagerData {
-	QHash<QString, TimerPtr> hwDownloadTimerMap;
+	QHash<QString, QString> hwDirMap;
+	QHash<QString, QStringList> hwInfoMap;
 	QHash<QString, TimerPtr> hwExecuteTimerMap;
 	QHash<QString, TimerPtr> hwCountdownTimerMap;
 };
@@ -39,8 +38,6 @@ HomeworkManager::HomeworkManager(QObject *parent)
 {
 	ConnectionManager::getInstance()->registerFamilyHandler(homeworkFamilyStr, std::bind(&HomeworkManager::actionParse, this, _1, _2));
 
-	registerActionHandler(sendQueryResultActionStr, std::bind(&HomeworkManager::handleSendQueryResult, this, _1, _2));
-	registerActionHandler(homeworkFileQueryActionStr, std::bind(&HomeworkManager::handleQueryAndDownloadHwFile, this, _1, _2));
 	registerActionHandler(homeworkCreateActionStr, std::bind(&HomeworkManager::handleHomeworkCreate, this, _1, _2));
 	registerActionHandler(homeworkGatherActionStr, std::bind(&HomeworkManager::handleHomeworkGather, this, _1, _2));
 	registerActionHandler(homeworkPauseActionStr, std::bind(&HomeworkManager::handleHomeworkPause, this, _1, _2));
@@ -77,11 +74,13 @@ int HomeworkManager::createHomework(const QString & groupId, const QString & hwI
 		datas["date"] = hw.hstartdate;
 		datas["duration"] = hw.hduration;
 
-		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, homeworkFamilyStr, homeworkCreateActionStr, datas);
-
 		QDir dir;
 		dir.mkdir(homeworkDir.c_str());
-		dir.mkdir(homeworkDir.c_str() + hw.hintro + "_" + hw.hid);
+		QString answerDir = homeworkDir.c_str() + hw.hintro + "_" + hw.hid;
+		dir.mkdir(answerDir);
+		datas["storePath"] = answerDir;
+
+		ConnectionManager::getInstance()->sendActionMsg(TransferMode::Group, homeworkFamilyStr, homeworkCreateActionStr, datas);
 	}
 
 	return result;
@@ -156,12 +155,16 @@ void HomeworkManager::handleHomeworkCreate(JsonObjType & msg, ConnPtr conn)
 		QString homeworkDir = localDesktopDir + "/" + hw.hintro + "_" + hw.hid;
 		QDir dir;
 		dir.mkdir(homeworkDir);
-		dir.mkdir(homeworkDir + "/" + QString::fromLocal8Bit("请将答案放置在此, 此目录中应只有一个文件夹"));
-		
-		TimerPtr hwFileDownloadTimerPtr = std::make_shared<boost::asio::steady_timer>(IOContextManager::getInstance()->getIOLoop());
-		startQueryAndDownloadHwFileTimer(hwFileDownloadTimerPtr, hw.hfilepath, hw.hugid, hw.hid, homeworkDir);
-		memberDataPtr->hwDownloadTimerMap[hw.hid] = hwFileDownloadTimerPtr;
 
+		QString answerDir = homeworkDir + "/" + QString::fromLocal8Bit("请将答案放置在此, 此目录中应只有一个文件夹");
+		dir.mkdir(answerDir);
+		memberDataPtr->hwDirMap[hw.hid] = answerDir;
+
+		QStringList hwInfo;
+		hwInfo.append(recvData["storePath"].toString());
+		hwInfo.append(hw.hsource);
+		memberDataPtr->hwInfoMap[hw.hid] = hwInfo;
+		
 		TimerPtr hwCountdownTimer = std::make_shared<boost::asio::steady_timer>(IOContextManager::getInstance()->getIOLoop());
 		auto startTime = QDateTime::fromString(hw.hstartdate, timeFormat);
 		auto countdownTime = QDateTime::currentDateTime().secsTo(startTime);
@@ -169,17 +172,6 @@ void HomeworkManager::handleHomeworkCreate(JsonObjType & msg, ConnPtr conn)
 		startHwCountdownTimer(hwCountdownTimer, (int)countdownTime, hw.hid, hwTime);
 		memberDataPtr->hwCountdownTimerMap[hw.hid] = hwCountdownTimer;
 	}
-}
-
-void HomeworkManager::startQueryAndDownloadHwFileTimer(TimerPtr timerPtr, QString filePath, QString groupId, QString homeworkId, QString fileStorePath)
-{
-	timerPtr->expires_from_now(seconds(15));
-	timerPtr->async_wait([this, filePath, groupId, homeworkId, fileStorePath](const boost::system::error_code& err) {
-		if (err == boost::asio::error::operation_aborted)
-			return;
-
-		queryAndDownloadHwFile(filePath, groupId, homeworkId, fileStorePath);
-	});
 }
 
 void HomeworkManager::startHwCountdownTimer(TimerPtr timerPtr, int countdownSec, QString homeworkId, int hwTime)
@@ -190,8 +182,6 @@ void HomeworkManager::startHwCountdownTimer(TimerPtr timerPtr, int countdownSec,
 			return;
 
 		memberDataPtr->hwCountdownTimerMap.remove(homeworkId);
-		memberDataPtr->hwDownloadTimerMap[homeworkId]->cancel();
-		memberDataPtr->hwDownloadTimerMap.remove(homeworkId);
 
 		DBOP::getInstance()->setHomeworkState(homeworkId ,HomeworkState::HwRun);
 
@@ -209,58 +199,25 @@ void HomeworkManager::startHwExecuteTimer(TimerPtr timerPtr, int countdownSec, Q
             return;
 
 		DBOP::getInstance()->setHomeworkState(homeworkId, HomeworkState::HwFinished);
+		
+		QDir dir(memberDataPtr->hwDirMap[homeworkId]);
+		auto dirChildDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Readable, QDir::Name);
+
+		QDir answerDir(dir.absolutePath() + (dirChildDirs.isEmpty() ? "" : ("/" + dirChildDirs[0])));
+		QString answerFile = tmpDir.c_str() + answerDir.dirName() + ".zip";
+		JlCompress::compressDir(answerFile, answerDir.absolutePath());
+
+		auto addr = JsonObjType::fromVariantHash(DBOP::getInstance()->getUser(memberDataPtr->hwInfoMap[homeworkId][1]));
+		auto servicePtr = std::make_shared<FileSendService>(answerFile, memberDataPtr->hwInfoMap[homeworkId][0]);
+		ConnectionManager::getInstance()->connnectHost(ConnType::CONN_TEMP, INVALID_ID, addr, servicePtr, [](const boost::system::error_code& err) {
+			if (err != 0) {
+				qDebug() << "send file connnection connect failed!";
+				return;
+			}
+
+			qDebug() << "send picture connnection connect success!";
+		});
 	});
-}
-
-void HomeworkManager::queryAndDownloadHwFile(QString filePath, QString groupId, QString homeworkId, QString fileStorePath)
-{
-	JsonObjType datas;
-	datas["filePath"] = filePath.toStdString().c_str();
-	datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
-	datas["groupId"] = groupId.toStdString().c_str();
-	datas["hwId"] = homeworkId.toStdString().c_str();
-	datas["storePath"] = fileStorePath.toStdString().c_str();
-	datas["dest"] = groupId.toStdString().c_str();
-	ConnectionManager::getInstance()->sendActionMsg(TransferMode::Random, homeworkFamilyStr, homeworkFileQueryActionStr, datas);
-}
-
-void HomeworkManager::handleQueryAndDownloadHwFile(JsonObjType & msg, ConnPtr conn)
-{
-	JsonObjType recvData = msg["data"].toObject();
-	auto result = DBOP::getInstance()->getSharedFile(recvData["filePath"].toString());
-	sendQueryResult(recvData, result);
-}
-
-void HomeworkManager::sendQueryResult(JsonObjType& recvData, QVariantList result)
-{
-	JsonObjType datas;
-	datas["result"] = JsonAryType::fromVariantList(result);
-	datas["filePath"] = recvData["filePath"].toString();
-	datas["hwId"] = recvData["hwId"].toString();
-	datas["groupId"] = recvData["groupId"].toString();
-	datas["storePath"] = recvData["storePath"].toString();
-	datas["dest"] = recvData["source"].toString();
-	datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
-	ConnectionManager::getInstance()->sendActionMsg(TransferMode::Single, homeworkFamilyStr, sendQueryResultActionStr, datas);
-}
-
-void HomeworkManager::handleSendQueryResult(JsonObjType & msg, ConnPtr conn)
-{
-	JsonObjType recvData = msg["data"].toObject();
-	JsonAryType result = recvData["result"].toArray();
-	auto hwId = recvData["hwId"].toString();
-
-	if (result.empty())
-	{
-		if (memberDataPtr->hwDownloadTimerMap.contains(hwId))
-			startQueryAndDownloadHwFileTimer(memberDataPtr->hwDownloadTimerMap[hwId], recvData["filePath"].toString(),
-				recvData["groupId"].toString(), hwId, recvData["storePath"].toString());
-	}
-	else {
-		SessionManager::getInstance()->downloadSharedFile(true, recvData["source"].toString(), result.toVariantList(), recvData["storePath"].toString());
-		memberDataPtr->hwDownloadTimerMap[hwId]->cancel();
-		memberDataPtr->hwDownloadTimerMap.remove(hwId);
-	}
 }
 
 void HomeworkManager::handleHomeworkGather(JsonObjType & msg, ConnPtr conn)

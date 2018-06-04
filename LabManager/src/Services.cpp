@@ -16,6 +16,7 @@ const QString netStructureServiceStr("NetStructureService");
 const QString picTransferServiceStr("PicTransferService");
 const QString fileDownloadServiceStr("FileDownloadService");
 const QString groupFileUploadServiceStr("GroupFileUploadService");
+const QString fileSendServiceStr("FileSendService");
 const QString taskPauseStr("TaskPause");
 const QString taskStopStr("TaskStop");
 const QString taskRestartStr("TaskRestart");
@@ -33,6 +34,12 @@ ServicePtr Service::getServicePtr(const QString & name, JsonObjType & params)
 	}
 	else if (name == groupFileUploadServiceStr) {
 		return std::make_shared<GroupFileUploadService>(params);
+	}
+	else if (name == groupFileUploadServiceStr) {
+		return std::make_shared<GroupFileUploadService>(params);
+	}
+	else if (name == fileSendServiceStr) {
+		return std::make_shared<FileSendService>(params);
 	}
 
     return ServicePtr();
@@ -685,4 +692,143 @@ void GroupFileUploadService::restore()
 int GroupFileUploadService::getProgress()
 {
 	return int(float(handleFileLen) / fileSize * 100);
+}
+
+
+FileSendService::FileSendService(const QString & fileName, const QString & storePath)
+	: isSender(true), isInit(false), fileName(fileName), storePath(storePath), writeBuff(1024 * 512, '\0'), handleFileLen(0)
+{
+
+}
+
+FileSendService::FileSendService(JsonObjType & serviceParam)
+	: isSender(false), isInit(false), handleFileLen(0)
+{
+	fileName = serviceParam["fileName"].toString();
+	fileSize = serviceParam["fileSize"].toInt();
+	readBuff.resize(1024 * 512);
+}
+
+FileSendService::~FileSendService()
+{
+}
+
+void FileSendService::start()
+{
+	if (isSender)
+	{
+		JsonObjType serviceInfor;
+		serviceInfor["serviceName"] = fileSendServiceStr;
+
+		JsonObjType serviceParam;
+		QFileInfo fileInfo(fileName);
+		serviceParam["fileSize"] = fileInfo.size();
+		serviceParam["fileName"] = storePath + "/" + fileInfo.fileName();
+		serviceInfor["serviceParam"] = serviceParam;
+		Service::sendData(serviceInfor);
+		execute();
+	}
+	else { dataHandle(); }
+}
+
+void FileSendService::dataHandle()
+{
+	if (!isInit) {
+		file.setFileName(fileName);
+		if (!file.open(QFile::WriteOnly)) {
+			qDebug() << "write file open failed! filenme:" << fileName;
+			conn->stop();
+			return;
+		}
+
+		if (!readRemain.isEmpty()) {
+			int writeBytes = file.write(readRemain);
+			readRemain.clear();
+			if (writeBytes == -1) {
+				qDebug() << "recv file write failed! filename: " << fileName;
+				file.close();
+				conn->stop();
+				return;
+			}
+
+			handleFileLen += writeBytes;
+			if (handleFileLen >= fileSize) {
+				qDebug() << "recv file recv finished! filename: " << fileName;
+				file.close();
+				conn->stop();
+				return;
+			}
+		}
+
+		isInit = true;
+	}
+
+	conn->sock.async_receive(boost::asio::buffer(readBuff.data(), readBuff.size()), [this](const boost::system::error_code& ec, std::size_t readBytes) {
+		if (ec != 0) {
+			qDebug() << "FileSendService tcp connect error: " << ec;
+			if (file.isOpen()) file.close();
+			conn->stop();
+			return;
+		}
+
+		auto rawMsg = readBuff.length() == readBytes ? readBuff : readBuff.left(readBytes);
+
+		int writeBytes = file.write(rawMsg);
+		if (writeBytes == -1) {
+			qDebug() << "recv file write failed! filename: " << fileName << " errorCode: " << ec;
+			file.close();
+			conn->stop();
+			return;
+		}
+
+		handleFileLen += writeBytes;
+		if (handleFileLen >= fileSize) {
+			qDebug() << "recv file recv finished! filename: " << fileName;
+			file.close();
+			conn->stop();
+			return;
+		}
+
+		dataHandle();
+	});
+}
+
+void FileSendService::execute()
+{
+	if (!isInit) {
+		file.setFileName(fileName);
+		if (!file.open(QFile::ReadOnly)) {
+			qDebug() << "send file open failed! filenme:" << fileName;
+			conn->stop();
+			return;
+		}
+
+		isInit = true;
+	}
+
+	int readBytes = file.read(writeBuff.data(), writeBuff.size());
+	if (readBytes < 0) {
+		qDebug() << "send file read failed! filename: " << fileName << " errorCode: " << file.errorString();
+		file.close();
+		conn->stop();
+		return;
+	}
+	else if (readBytes == 0) {
+		conn->sock.async_send(boost::asio::buffer(writeBuff.data(), readBytes), [this](const boost::system::error_code& ec, std::size_t writeBytes) {
+			qDebug() << "send file read finished! filename: " << fileName;
+			file.close();
+		});
+		return;
+	}
+
+	conn->sock.async_send(boost::asio::buffer(writeBuff.data(), readBytes), [this](const boost::system::error_code& ec, std::size_t writeBytes) {
+		if (ec != 0) {
+			qDebug() << "send file send failed! filename: " << fileName << " errorCode: " << ec;
+			file.close();
+			conn->stop();
+			return;
+		}
+
+		execute();
+	});
 }

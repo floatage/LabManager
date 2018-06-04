@@ -116,5 +116,24 @@ private:
 	JsonObjType groupFileData;
 };
 
+class FileSendService : public Service {
+public:
+	FileSendService(const QString& fileName, const QString& storePath);
+	FileSendService(JsonObjType& serviceParam);
+	~FileSendService();
+
+	virtual void start();
+	virtual void dataHandle();
+	virtual void execute();
+
+private:
+	bool isSender, isInit;
+	int fileSize, handleFileLen;
+	QString fileName;
+	QString storePath;
+	SendBufferType writeBuff;
+	QFile file;
+};
+
 #endif
 

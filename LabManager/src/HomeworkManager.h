@@ -35,15 +35,9 @@ public:
 private:
     HomeworkManager(QObject *parent = 0);
 
-	void startQueryAndDownloadHwFileTimer(TimerPtr timerPtr, QString filePath, QString groupId, QString homeworkId, QString fileStorePath);
 	void startHwCountdownTimer(TimerPtr timerPtr, int countdownSec, QString homeworkId, int hwTime);
 	void startHwExecuteTimer(TimerPtr timerPtr, int countdownSec, QString homeworkId);
 
-	void queryAndDownloadHwFile(QString filePath, QString groupId, QString homeworkId, QString fileStorePath);
-	void sendQueryResult(JsonObjType& recvData, QVariantList result);
-
-	void handleSendQueryResult(JsonObjType& msg, ConnPtr conn);
-	void handleQueryAndDownloadHwFile(JsonObjType& msg, ConnPtr conn);
 	void handleHomeworkCreate(JsonObjType& msg, ConnPtr conn);
 	void handleHomeworkGather(JsonObjType& msg, ConnPtr conn);
 	void handleHomeworkPause(JsonObjType& msg, ConnPtr conn);

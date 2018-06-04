@@ -97,3 +97,4 @@ debug
 LabManager/group/
 LabManager/homework/
 LabManager/quazip/
+*.TMP
