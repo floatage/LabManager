@@ -972,7 +972,7 @@ int DBOP::setRequestState(const ModelStringType& requestId, int state)
 }
 
 //Task operation
-int DBOP::createTask(const TaskInfo & task)
+int DBOP::createTask(TaskInfo task)
 {
 	static QMutex taskCreateMutex;
 	static const QString ADD_TASK("insert into Task(tid,ttype,tmode,tdata,tstate,tdate,tsource,tdest) values(?,?,?,?,?,?,?,?)");
@@ -1054,7 +1054,7 @@ int DBOP::setTaskState(const QString& taskId, int state)
 
 static QMutex homeworkMutex;
 //Homework operation
-int DBOP::createHomework(const HomeworkInfo & homework)
+int DBOP::createHomework(HomeworkInfo homework)
 {
 	static const QString ADD_HOMEWORK("insert into Homework(hid,hadmin,hsource,hugid,hstartdate,hduration,hfilepath,hintro,hstate) values(?,?,?,?,?,?,?,?,?)");
 

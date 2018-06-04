@@ -215,12 +215,12 @@ void HomeworkManager::startHwExecuteTimer(TimerPtr timerPtr, int countdownSec, Q
 void HomeworkManager::queryAndDownloadHwFile(QString filePath, QString groupId, QString homeworkId, QString fileStorePath)
 {
 	JsonObjType datas;
-	datas["filePath"] = filePath;
+	datas["filePath"] = filePath.toStdString().c_str();
 	datas["source"] = NetStructureManager::getInstance()->getLocalUuid().c_str();
-	datas["groupId"] = groupId;
-	datas["hwId"] = homeworkId;
-	datas["storePath"] = fileStorePath;
-	datas["dest"] = groupId;
+	datas["groupId"] = groupId.toStdString().c_str();
+	datas["hwId"] = homeworkId.toStdString().c_str();
+	datas["storePath"] = fileStorePath.toStdString().c_str();
+	datas["dest"] = groupId.toStdString().c_str();
 	ConnectionManager::getInstance()->sendActionMsg(TransferMode::Random, homeworkFamilyStr, homeworkFileQueryActionStr, datas);
 }
 

@@ -66,12 +66,12 @@ public:
 	int setRequestState(const ModelStringType& requestId, int state);
 
 	//Task operation
-	int createTask(const TaskInfo& task);
+	int createTask(TaskInfo task);
 	QVariantList listTasks(bool isFinished);
 	int setTaskState(const QString& taskId, int state);
 
 	//Homework operation
-	int createHomework(const HomeworkInfo& homework);
+	int createHomework(HomeworkInfo homework);
 	int deleteHomework(const ModelStringType& homeworkId);
 	QVariantList getHomework(const ModelStringType& homeworkId);
 	QVariantList listHomeworks(const ModelStringType& groupId);

@@ -16,7 +16,7 @@ public:
 	int removeSharedFile(const QString& filePath);
 
 	void uploadGroupSharedFile(const QString& groupId, const QString& filePath);
-	void downloadSharedFile(bool isGroup,const QString& duuid, QVariantHash& fileData, const QString& storePath);
+	void downloadSharedFile(bool isGroup, QString duuid, QVariantHash fileData, QString storePath);
 
 private:
 	SharedFileManager();

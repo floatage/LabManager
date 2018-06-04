@@ -348,7 +348,8 @@ void ConnectionManager::sendRandomMsg(JsonObjType& msg, bool isRepackage)
 			validConn[ConnType::CONN_CHILD].begin()->second->send(msg);
 		break;
 	case ROLE_ROUTER:
-		familyParse(msg, nullptr);
+		if (!validConn[ConnType::CONN_BROTHER].empty())
+			validConn[ConnType::CONN_BROTHER].begin()->second->send(msg);
 		break;
 	case ROLE_MEMBER:
 		if (!validConn[ConnType::CONN_PARENT].empty())

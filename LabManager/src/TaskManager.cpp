@@ -62,7 +62,7 @@ int TaskManager::createSendPicSingleTask(const QString & duuid, QVariantHash& da
 	return 0;
 }
 
-int TaskManager::createFileDownloadTask(const QString & duuid, QVariantHash data, const QString& storePath)
+int TaskManager::createFileDownloadTask(QString duuid, QVariantHash data, QString storePath)
 {
 	auto addr = JsonObjType::fromVariantHash(DBOP::getInstance()->getUser(duuid));
 	auto filePath = storePath.split("///")[1] + "/" + data["fileName"].toString();

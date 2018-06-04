@@ -20,7 +20,7 @@ public:
 	int createTask(const TaskInfo& task, ConnPtr taskConn);
     int createTask(int mode, const QString& duuid, int type, QVariantHash& data);
 	int createSendPicSingleTask(const QString& duuid, QVariantHash& data);
-    Q_INVOKABLE int createFileDownloadTask(const QString& duuid, QVariantHash data, const QString& storePath);
+    Q_INVOKABLE int createFileDownloadTask(QString duuid, QVariantHash data, QString storePath);
 
     Q_INVOKABLE void restoreTask(const QString& tid);
     Q_INVOKABLE void pauseTask(const QString& tid);

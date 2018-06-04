@@ -43,7 +43,7 @@ void SharedFileManager::uploadGroupSharedFile(const QString & groupId, const QSt
 	ConnectionManager::getInstance()->uploadFileToGroupSpace(sharedFileInfo, false);
 }
 
-void SharedFileManager::downloadSharedFile(bool isGroup, const QString & duuid, QVariantHash& fileData, const QString & storePath)
+void SharedFileManager::downloadSharedFile(bool isGroup, QString  duuid, QVariantHash fileData, QString storePath)
 {
 	QString dest = isGroup ? ConnectionManager::getInstance()->getRandomServiceDest() : duuid;
 	fileData["rsource"] = NetStructureManager::getInstance()->getLocalUuid().c_str();

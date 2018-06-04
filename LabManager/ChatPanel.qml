@@ -16,7 +16,7 @@ Item{
     function appendMsg(msg){
         var bSend = (msg[1] == panelParent.localUUid)
         chatMsgControlerContentListView.model.append({
-            msgSenderPic: bSend ? panelParent.localPic : panelParent.curSeesionDestPic
+            msgSenderPic: bSend ? panelParent.localPic : (panelParent.curSeesionType == 2 ? "/img/defaultPic.jpg" : panelParent.curSeesionDestPic)
             , isGroup: panelParent.curSeesionType == 2
             , msgSenderRole: "成员"
             , msgSender: bSend ?  "我" : msg[7]
