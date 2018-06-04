@@ -1076,7 +1076,7 @@ int DBOP::createHomework(const HomeworkInfo & homework)
 	}
 
 	qDebug() << "homework insert failed! hid: " << homework.hid << " admin: " << homework.hadmin << " hugid: " << homework.hugid << " hintro: " << homework.hintro << " reason: " << query.lastError().text();
-	return -1;
+	return query.lastError().type() == 1 ? 0 : -1;
 }
 
 int DBOP::deleteHomework(const ModelStringType & homeworkId)

@@ -149,25 +149,25 @@ void HomeworkManager::handleHomeworkCreate(JsonObjType & msg, ConnPtr conn)
 {
 	JsonObjType recvData = msg["data"].toObject();
 	
-	HomeworkInfo hw(recvData["hid"].toString(), recvData["admin"].toString(), recvData["source"].toString(), recvData["dest"].toString(), 
+	HomeworkInfo hw(recvData["id"].toString(), recvData["admin"].toString(), recvData["source"].toString(), recvData["dest"].toString(), 
 		recvData["date"].toString(), recvData["duration"].toString(), recvData["path"].toString(), recvData["intro"].toString());
 	if (DBOP::getInstance()->createHomework(hw) == 0) {
 		QString localDesktopDir = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
-		QString homeworkDir = localDesktopDir + hw.hintro + "_" + hw.hid;
+		QString homeworkDir = localDesktopDir + "/" + hw.hintro + "_" + hw.hid;
 		QDir dir;
 		dir.mkdir(homeworkDir);
-		dir.mkdir(homeworkDir + QString::fromLocal8Bit("请将答案放置在此, 此目录中应只有一个文件夹"));
+		dir.mkdir(homeworkDir + "/" + QString::fromLocal8Bit("请将答案放置在此, 此目录中应只有一个文件夹"));
 		
 		TimerPtr hwFileDownloadTimerPtr = std::make_shared<boost::asio::steady_timer>(IOContextManager::getInstance()->getIOLoop());
 		startQueryAndDownloadHwFileTimer(hwFileDownloadTimerPtr, hw.hfilepath, hw.hugid, hw.hid, homeworkDir);
-		memberDataPtr->hwDownloadTimerMap[hw.hid] = std::move(hwFileDownloadTimerPtr);
+		memberDataPtr->hwDownloadTimerMap[hw.hid] = hwFileDownloadTimerPtr;
 
 		TimerPtr hwCountdownTimer = std::make_shared<boost::asio::steady_timer>(IOContextManager::getInstance()->getIOLoop());
 		auto startTime = QDateTime::fromString(hw.hstartdate, timeFormat);
-		auto countdownTime = startTime.secsTo(QDateTime::currentDateTime());
+		auto countdownTime = QDateTime::currentDateTime().secsTo(startTime);
 		auto hwTime = hw.hduration.toInt() * 60;
 		startHwCountdownTimer(hwCountdownTimer, (int)countdownTime, hw.hid, hwTime);
-		memberDataPtr->hwCountdownTimerMap[hw.hid] = std::move(hwCountdownTimer);
+		memberDataPtr->hwCountdownTimerMap[hw.hid] = hwCountdownTimer;
 	}
 }
 
@@ -192,18 +192,23 @@ void HomeworkManager::startHwCountdownTimer(TimerPtr timerPtr, int countdownSec,
 		memberDataPtr->hwCountdownTimerMap.remove(homeworkId);
 		memberDataPtr->hwDownloadTimerMap[homeworkId]->cancel();
 		memberDataPtr->hwDownloadTimerMap.remove(homeworkId);
+
+		DBOP::getInstance()->setHomeworkState(homeworkId ,HomeworkState::HwRun);
+
 		TimerPtr timePtr = std::make_shared<boost::asio::steady_timer>(IOContextManager::getInstance()->getIOLoop());
 		startHwExecuteTimer(timePtr, hwTime);
 		memberDataPtr->hwExecuteTimerMap[homeworkId] = timePtr;
 	});
 }
 
-void HomeworkManager::startHwExecuteTimer(TimerPtr timerPtr, int countdownSec)
+void HomeworkManager::startHwExecuteTimer(TimerPtr timerPtr, int countdownSec, QString homeworkId)
 {
 	timerPtr->expires_from_now(seconds(countdownSec));
-	timerPtr->async_wait([this](const boost::system::error_code& err) {
+	timerPtr->async_wait([this, homeworkId](const boost::system::error_code& err) {
 		if (err == boost::asio::error::operation_aborted)
             return;
+
+		DBOP::getInstance()->setHomeworkState(homeworkId, HomeworkState::HwFinished);
 	});
 }
 

@@ -37,7 +37,7 @@ private:
 
 	void startQueryAndDownloadHwFileTimer(TimerPtr timerPtr, QString filePath, QString groupId, QString homeworkId, QString fileStorePath);
 	void startHwCountdownTimer(TimerPtr timerPtr, int countdownSec, QString homeworkId, int hwTime);
-	void startHwExecuteTimer(TimerPtr timerPtr, int countdownSec);
+	void startHwExecuteTimer(TimerPtr timerPtr, int countdownSec, QString homeworkId);
 
 	void queryAndDownloadHwFile(QString filePath, QString groupId, QString homeworkId, QString fileStorePath);
 	void sendQueryResult(JsonObjType& recvData, QVariantList result);
