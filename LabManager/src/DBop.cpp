@@ -1052,6 +1052,7 @@ int DBOP::setTaskState(const QString& taskId, int state)
 	return -1;
 }
 
+static QMutex homeworkMutex;
 //Homework operation
 int DBOP::createHomework(const HomeworkInfo & homework)
 {
@@ -1069,6 +1070,7 @@ int DBOP::createHomework(const HomeworkInfo & homework)
 	query.addBindValue(homework.hintro);
 	query.addBindValue(homework.hstate);
 
+	QMutexLocker lock(&homeworkMutex);
 	if (query.exec()) {
 		notifyHomeworkCreate(homework);
 		qDebug() << "homework insert success! hid: " << homework.hid << " admin: " << homework.hadmin << " hugid: " << homework.hugid << " hintro: " << homework.hintro;
@@ -1166,6 +1168,7 @@ int DBOP::setHomeworkState(const ModelStringType & homeworkId, int state)
 	query.addBindValue(state);
 	query.addBindValue(homeworkId);
 
+	QMutexLocker lock(&homeworkMutex);
 	if (query.exec()) {
 		homeworkStateChanged(homeworkId, state);
 		qDebug() << "homework set state success! hid: " << homeworkId << " hstate: " << state;

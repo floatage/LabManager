@@ -196,7 +196,7 @@ void HomeworkManager::startHwCountdownTimer(TimerPtr timerPtr, int countdownSec,
 		DBOP::getInstance()->setHomeworkState(homeworkId ,HomeworkState::HwRun);
 
 		TimerPtr timePtr = std::make_shared<boost::asio::steady_timer>(IOContextManager::getInstance()->getIOLoop());
-		startHwExecuteTimer(timePtr, hwTime);
+		startHwExecuteTimer(timePtr, hwTime, homeworkId);
 		memberDataPtr->hwExecuteTimerMap[homeworkId] = timePtr;
 	});
 }
