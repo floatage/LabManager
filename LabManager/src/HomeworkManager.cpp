@@ -15,6 +15,8 @@
 
 #include <chrono>
 
+#include "JlCompress.h"
+
 using namespace std::chrono;
 
 const StringType homeworkFamilyStr("HomeworkManage");
@@ -201,9 +203,7 @@ void HomeworkManager::startHwExecuteTimer(TimerPtr timerPtr, int countdownSec)
 	timerPtr->expires_from_now(seconds(countdownSec));
 	timerPtr->async_wait([this](const boost::system::error_code& err) {
 		if (err == boost::asio::error::operation_aborted)
-			return;
-
-		
+            return;
 	});
 }
 

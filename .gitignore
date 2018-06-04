@@ -95,3 +95,5 @@ LabManager/tmp/
 *.pro
 debug
 LabManager/group/
+LabManager/homework/
+LabManager/quazip/
