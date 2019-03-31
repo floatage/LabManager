@@ -88,13 +88,13 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 *db
-LabManager/Win32/
-LabManager/Debug/
-LabManager/Release/
-LabManager/tmp/
+labIM/Win32/
+labIM/Debug/
+labIM/Release/
+labIM/tmp/
 *.pro
-debug
-LabManager/group/
-LabManager/homework/
-LabManager/quazip/
-*.TMP
+labIM/debug
+labIM/group/
+labIM/homework/
+labIM/quazip/
+*.tmp
